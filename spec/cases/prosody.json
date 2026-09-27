@@ -1,0 +1,126 @@
+[
+  {
+    "id": "prosody-katakana-space-removal-hello-world",
+    "language": "en",
+    "input": "Hello World",
+    "expected": {
+      "canonical": "ハローワールド"
+    },
+    "category": "space_removal",
+    "tags": [
+      "prosody",
+      "spaces",
+      "katakana_concat"
+    ],
+    "description": "Remove whitespace between consecutive Katakana words"
+  },
+  {
+    "id": "prosody-katakana-space-removal-multiword",
+    "language": "en",
+    "input": "nice stream bro",
+    "expected": {
+      "canonical": "ナイスストリームブロ"
+    },
+    "category": "space_removal",
+    "tags": [
+      "prosody",
+      "spaces",
+      "katakana_concat"
+    ],
+    "description": "Remove whitespace across multiple consecutive Katakana words"
+  },
+  {
+    "id": "prosody-punctuation-comma-normalization",
+    "language": "en",
+    "input": "hello, world",
+    "expected": {
+      "canonical": "ハロー、ワールド"
+    },
+    "category": "punctuation_normalization",
+    "tags": [
+      "prosody",
+      "punctuation",
+      "comma"
+    ],
+    "description": "Normalize western comma to Japanese touten '、' and remove surrounding spacing"
+  },
+  {
+    "id": "prosody-punctuation-exclamation-normalization",
+    "language": "en",
+    "input": "good game!",
+    "expected": {
+      "canonical": "グッドゲーム！"
+    },
+    "category": "punctuation_normalization",
+    "tags": [
+      "prosody",
+      "punctuation",
+      "exclamation"
+    ],
+    "description": "Normalize western exclamation mark to fullwidth '！' and trim space"
+  },
+  {
+    "id": "prosody-punctuation-question-normalization",
+    "language": "en",
+    "input": "what is this?",
+    "expected": {
+      "canonical": "ワットイズディス？"
+    },
+    "category": "punctuation_normalization",
+    "tags": [
+      "prosody",
+      "punctuation",
+      "question"
+    ],
+    "description": "Normalize western question mark to fullwidth '？' and trim space"
+  },
+  {
+    "id": "prosody-punctuation-period-sentence-end",
+    "language": "en",
+    "input": "this is test.",
+    "expected": {
+      "canonical": "ディスイズテスト。"
+    },
+    "category": "punctuation_normalization",
+    "tags": [
+      "prosody",
+      "punctuation",
+      "period"
+    ],
+    "description": "Normalize sentence-ending period to Japanese kuten '。'"
+  },
+  {
+    "id": "prosody-punctuation-inverted-removal-spanish",
+    "language": "es",
+    "input": "¡Hola! ¿Cómo estás?",
+    "expected": {
+      "canonical": "オラ！コモエスタス？",
+      "accepted": [
+        "オラ！コモエストアス？"
+      ]
+    },
+    "category": "punctuation_normalization",
+    "tags": [
+      "prosody",
+      "punctuation",
+      "inverted_marks",
+      "spanish"
+    ],
+    "description": "Strip inverted marks '¡' and '¿' while retaining fullwidth question and exclamation marks"
+  },
+  {
+    "id": "prosody-punctuation-space-trimming-surrounding",
+    "language": "en",
+    "input": "hello   !   world",
+    "expected": {
+      "canonical": "ハロー！ワールド"
+    },
+    "category": "space_removal",
+    "tags": [
+      "prosody",
+      "spaces",
+      "punctuation"
+    ],
+    "description": "Remove spaces immediately preceding and succeeding punctuation marks"
+  }
+]

@@ -1,0 +1,109 @@
+[
+  {
+    "id": "kanji-guard-ryokai",
+    "language": "ja",
+    "input": "了解",
+    "expected": {
+      "canonical": "了解"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "pure_kanji"
+    ],
+    "description": "Strictly preserve Japanese pure Kanji '了解' without Pinyin conversion"
+  },
+  {
+    "id": "kanji-guard-shoken-kangei",
+    "language": "ja",
+    "input": "初見歓迎",
+    "expected": {
+      "canonical": "初見歓迎"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "pure_kanji",
+      "stream"
+    ],
+    "description": "Strictly preserve Japanese stream title pure Kanji '初見歓迎'"
+  },
+  {
+    "id": "kanji-guard-kamikai",
+    "language": "ja",
+    "input": "神回",
+    "expected": {
+      "canonical": "神回"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "pure_kanji",
+      "stream"
+    ],
+    "description": "Strictly preserve Japanese stream evaluation Kanji '神回'"
+  },
+  {
+    "id": "kanji-guard-haishin-kaishi",
+    "language": "ja",
+    "input": "配信開始",
+    "expected": {
+      "canonical": "配信開始"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "pure_kanji"
+    ],
+    "description": "Preserve pure Japanese Kanji '配信開始'"
+  },
+  {
+    "id": "kanji-guard-kansha",
+    "language": "ja",
+    "input": "感謝",
+    "expected": {
+      "canonical": "感謝"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "pure_kanji"
+    ],
+    "description": "Preserve pure Japanese Kanji '感謝'"
+  },
+  {
+    "id": "kanji-guard-saikou",
+    "language": "ja",
+    "input": "最高",
+    "expected": {
+      "canonical": "最高"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "pure_kanji"
+    ],
+    "description": "Preserve pure Japanese Kanji '最高'"
+  },
+  {
+    "id": "kanji-guard-yuushou",
+    "language": "ja",
+    "input": "優勝",
+    "expected": {
+      "canonical": "優勝"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "pure_kanji"
+    ],
+    "description": "Preserve pure Japanese Kanji '優勝'"
+  }
+]

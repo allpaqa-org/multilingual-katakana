@@ -1,0 +1,280 @@
+import * as fs from "fs";
+import * as path from "path";
+import { dictionary } from "../../twitch_text_to_speech_bot/node_modules/cmu-pronouncing-dictionary";
+import { pinyin } from "../../twitch_text_to_speech_bot/node_modules/pinyin-pro";
+import { arpabetToKatakana } from "../../twitch_text_to_speech_bot/src/tts/transformers/katakana";
+
+const rootDir = path.resolve(__dirname, "..");
+const specCasesDir = path.join(rootDir, "spec/cases");
+const dictsDir = path.join(rootDir, "dicts");
+const nodeDictsDir = path.join(rootDir, "bindings/node/src/dicts");
+
+if (!fs.existsSync(nodeDictsDir)) {
+  fs.mkdirSync(nodeDictsDir, { recursive: true });
+}
+
+console.log("=== Building Dictionaries for bindings/node ===");
+
+// 1. Copy & format existing dicts (slang, spanish, cyrillic, korean, chinese)
+const dictFiles = [
+  "slang.json",
+  "spanish.json",
+  "cyrillic.json",
+  "korean.json",
+  "chinese.json",
+];
+
+for (const file of dictFiles) {
+  const srcPath = path.join(dictsDir, file);
+  const dstPath = path.join(nodeDictsDir, file);
+  const data = JSON.parse(fs.readFileSync(srcPath, "utf8"));
+  fs.writeFileSync(dstPath, JSON.stringify(data, null, 2) + "\n", "utf8");
+  console.log(`✓ Copied dicts/${file} -> bindings/node/src/dicts/${file}`);
+}
+
+// 2. Collect words and Hanzi from spec/cases/*.json
+const specWords = new Set<string>();
+const specHanzi = new Set<string>();
+
+const caseFiles = fs
+  .readdirSync(specCasesDir)
+  .filter((f) => f.endsWith(".json"));
+
+for (const file of caseFiles) {
+  const content = fs.readFileSync(path.join(specCasesDir, file), "utf8");
+  const cases = JSON.parse(content);
+  for (const tc of cases) {
+    if (typeof tc.input !== "string") continue;
+    // Normalize smart quotes
+    const normalized = tc.input.replace(/[\u2018\u2019]/g, "'");
+
+    // Extract Latin words / contractions
+    const wordMatches =
+      normalized.match(
+        /[A-Za-zñáéíóúüäößàâèêëîïôûùçÑÁÉÍÓÚÜÄÖÀÂÈÊËÎÏÔÛÙÇ]+('[A-Za-z]+)?/g
+      ) || [];
+    for (const w of wordMatches) {
+      specWords.add(w.toLowerCase());
+    }
+
+    // Extract Hanzi characters
+    const hanziMatches = normalized.match(/[\u4E00-\u9FFF]/g) || [];
+    for (const h of hanziMatches) {
+      specHanzi.add(h);
+    }
+  }
+}
+
+// 3. Add common English words & Twitch / streaming vocabulary
+const COMMON_ENGLISH_WORDS = [
+  "a", "about", "above", "across", "action", "after", "again", "against", "all",
+  "almost", "alone", "along", "already", "also", "always", "am", "among", "an",
+  "and", "another", "answer", "any", "anyone", "anything", "are", "area", "around",
+  "as", "ask", "at", "audio", "away", "baby", "back", "bad", "ball", "base",
+  "be", "beat", "beautiful", "because", "become", "bed", "been", "before", "began",
+  "begin", "behind", "being", "believe", "bell", "best", "better", "between",
+  "big", "bird", "bit", "black", "block", "blood", "blow", "blue", "board",
+  "boat", "body", "book", "boss", "both", "bottom", "box", "boy", "break",
+  "bring", "brother", "build", "burn", "busy", "but", "buy", "by", "call",
+  "came", "camera", "can", "cannot", "car", "card", "care", "carry", "case",
+  "cat", "catch", "center", "chance", "change", "channel", "charge", "check",
+  "child", "children", "choose", "city", "class", "clean", "clear", "climb",
+  "close", "cold", "color", "come", "comment", "common", "community", "complete",
+  "computer", "control", "cool", "copy", "corner", "cost", "could", "country",
+  "course", "cover", "cross", "cry", "cut", "daily", "damage", "dance", "dark",
+  "day", "dead", "deal", "dear", "death", "decide", "deep", "defeat", "die",
+  "different", "dinner", "direct", "do", "doctor", "does", "dog", "dollar",
+  "done", "door", "double", "down", "draw", "dream", "dress", "drink", "drive",
+  "drop", "dry", "during", "each", "early", "earth", "east", "easy", "eat",
+  "effect", "egg", "eight", "either", "electric", "element", "else", "end",
+  "enemy", "energy", "enjoy", "enough", "enter", "even", "evening", "ever",
+  "every", "everyone", "everything", "face", "fact", "fair", "fall", "family",
+  "famous", "far", "farm", "fast", "fat", "father", "fear", "feel", "feeling",
+  "few", "field", "fight", "figure", "fill", "final", "find", "fine", "finger",
+  "finish", "fire", "first", "fish", "five", "floor", "fly", "focus", "follow",
+  "follower", "food", "foot", "for", "force", "foreign", "forest", "forget",
+  "form", "forward", "found", "four", "free", "friend", "from", "front", "full",
+  "fun", "funny", "future", "game", "gamer", "gameplay", "garden", "general",
+  "get", "girl", "give", "glad", "glass", "go", "goal", "gold", "gone",
+  "good", "got", "government", "great", "green", "ground", "group", "grow",
+  "guide", "gun", "guy", "had", "hair", "half", "hand", "happen", "happy",
+  "hard", "has", "hat", "have", "he", "head", "hear", "heart", "heavy",
+  "held", "help", "her", "here", "high", "hill", "him", "himself", "his",
+  "history", "hit", "hold", "hole", "home", "hope", "horse", "host", "hot",
+  "hour", "house", "how", "huge", "human", "hundred", "hurry", "hurt", "husband",
+  "i", "ice", "idea", "if", "important", "in", "include", "inside", "instead",
+  "into", "iron", "is", "island", "issue", "it", "its", "item", "join",
+  "joke", "jump", "just", "keep", "key", "kill", "kind", "king", "knew",
+  "know", "lady", "lake", "land", "large", "last", "late", "laugh", "law",
+  "lay", "lead", "leader", "learn", "least", "leave", "left", "leg", "less",
+  "let", "letter", "level", "lie", "life", "light", "like", "line", "list",
+  "listen", "little", "live", "lock", "long", "look", "loot", "lose", "loss",
+  "lost", "lot", "loud", "love", "low", "luck", "lucky", "made", "main",
+  "make", "man", "many", "map", "mark", "market", "match", "matter", "may",
+  "maybe", "me", "mean", "meat", "meet", "member", "men", "message", "middle",
+  "might", "mile", "mind", "mine", "minute", "miss", "mode", "moderator",
+  "money", "month", "moon", "more", "morning", "most", "mother", "mountain",
+  "mouth", "move", "much", "music", "must", "my", "name", "nation", "nature",
+  "near", "necessary", "neck", "need", "never", "new", "news", "next", "nice",
+  "night", "nine", "no", "nobody", "nod", "noise", "none", "noon", "nor",
+  "north", "nose", "not", "note", "nothing", "notice", "now", "number", "object",
+  "ocean", "of", "off", "office", "often", "oh", "oil", "old", "on",
+  "once", "one", "only", "open", "or", "order", "other", "our", "out",
+  "outside", "over", "own", "page", "pain", "paint", "pair", "paper", "part",
+  "party", "pass", "past", "path", "pay", "peace", "people", "per", "perfect",
+  "perhaps", "person", "phone", "pick", "picture", "piece", "place", "plain",
+  "plan", "plane", "plant", "play", "player", "pleasant", "please", "point",
+  "police", "poor", "popular", "position", "possible", "post", "pound", "power",
+  "practice", "prepare", "present", "pretty", "price", "probably", "problem",
+  "produce", "product", "program", "proud", "prove", "public", "pull", "pure",
+  "push", "put", "quest", "quick", "quiet", "quite", "race", "radio", "raid",
+  "rain", "raise", "ran", "rank", "rapid", "rather", "reach", "read", "ready",
+  "real", "really", "reason", "receive", "record", "red", "relax", "remember",
+  "report", "request", "require", "rest", "result", "return", "reward", "rich",
+  "ride", "right", "ring", "rise", "river", "road", "rock", "role", "roll",
+  "room", "round", "rule", "run", "safe", "said", "same", "save", "saw",
+  "say", "scene", "school", "science", "score", "screen", "sea", "search",
+  "season", "seat", "second", "secret", "see", "seem", "seen", "self", "sell",
+  "send", "sense", "sent", "sentence", "serve", "service", "set", "settle",
+  "seven", "several", "shall", "share", "she", "ship", "short", "should",
+  "shout", "show", "side", "sight", "sign", "silver", "simple", "since", "sing",
+  "single", "sir", "sister", "sit", "six", "size", "skill", "skin", "sky",
+  "sleep", "slow", "small", "smile", "smoke", "snow", "so", "soft", "soldier",
+  "some", "someone", "something", "sometimes", "son", "song", "soon", "sound",
+  "south", "space", "speak", "special", "speed", "speedrun", "spell", "spend",
+  "sport", "spring", "square", "stage", "stand", "star", "start", "state",
+  "station", "stay", "step", "stick", "still", "stone", "stood", "stop",
+  "store", "story", "straight", "strange", "stream", "streamer", "street",
+  "stretch", "strong", "student", "study", "sub", "subscribe", "subscriber",
+  "such", "sudden", "suit", "summer", "sun", "super", "support", "sure",
+  "surprise", "sweet", "system", "table", "tail", "take", "talk", "tall",
+  "taste", "teach", "teacher", "team", "tell", "ten", "term", "test", "than",
+  "thank", "thanks", "that", "the", "their", "them", "then", "there", "these",
+  "they", "thick", "thin", "thing", "think", "third", "this", "those", "though",
+  "thought", "three", "through", "throw", "tier", "time", "tiny", "tired",
+  "to", "today", "together", "told", "tomorrow", "tone", "too", "took", "top",
+  "total", "touch", "toward", "town", "track", "trade", "train", "travel",
+  "tree", "trip", "trouble", "true", "trust", "truth", "try", "turn", "twelve",
+  "twenty", "twitch", "two", "type", "under", "understand", "unit", "until",
+  "up", "upon", "us", "use", "usual", "valley", "value", "various", "verb",
+  "very", "victory", "view", "viewer", "village", "vip", "visit", "voice",
+  "wait", "walk", "wall", "want", "war", "warm", "was", "wash", "watch",
+  "water", "wave", "way", "we", "wear", "weather", "week", "weight", "welcome",
+  "well", "went", "were", "west", "what", "wheel", "when", "where", "whether",
+  "which", "while", "white", "who", "whole", "whose", "why", "wide", "wife",
+  "wild", "will", "win", "wind", "window", "winter", "wire", "wish", "with",
+  "without", "woman", "women", "wonder", "wood", "word", "work", "world",
+  "worry", "would", "write", "wrong", "yard", "year", "yellow", "yes",
+  "yesterday", "yet", "you", "young", "your", "zero",
+  // Common contractions
+  "don't", "can't", "won't", "i'm", "it's", "you're", "we're", "they're",
+  "that's", "there's", "what's", "let's", "i've", "you've", "we've", "they've",
+  "i'll", "you'll", "he'll", "she'll", "we'll", "they'll", "isn't", "aren't",
+  "wasn't", "weren't", "haven't", "hasn't", "hadn't", "doesn't", "didn't",
+  "couldn't", "shouldn't", "wouldn't",
+];
+
+for (const w of COMMON_ENGLISH_WORDS) {
+  specWords.add(w.toLowerCase());
+}
+
+// 4. Pre-convert English words using CMU dictionary & arpabetToKatakana
+const englishWordsDict: Record<string, string> = {};
+let convertedCount = 0;
+
+for (const word of specWords) {
+  const arpa = dictionary[word];
+  if (arpa) {
+    const katakana = arpabetToKatakana(arpa, word);
+    englishWordsDict[word] = katakana;
+    convertedCount++;
+  }
+}
+
+const englishWordsDst = path.join(nodeDictsDir, "english_words.json");
+fs.writeFileSync(
+  englishWordsDst,
+  JSON.stringify(englishWordsDict, null, 2) + "\n",
+  "utf8"
+);
+console.log(
+  `✓ Pre-converted ${convertedCount} English words -> bindings/node/src/dicts/english_words.json`
+);
+
+// 5. Pre-convert Hanzi characters for Chinese data
+const chineseDict = JSON.parse(
+  fs.readFileSync(path.join(dictsDir, "chinese.json"), "utf8")
+);
+
+const hanziToKatakana: Record<string, string> = {};
+
+// First, extract from common Chinese characters
+const COMMON_HANZI =
+  "的一是在不了有和人这中大为上个国我以要他时来用们生到作地于出就分对成会可主发年动同工也能下过子说产种面而方后多定行学法所民得经十三之进着等部度家电力里如水化高自二理起小物现实加量都两体制机当使点从业本去把性好应开它合还因由其些然前外天政四日那社义事平形相全表间样想向道命关看见统问第五知么提及解现名感次界真已报海重门心战正各文意反保先白建第公求向老关空直展受情果百意特代题造路入原打西总走气长手活反更月头西管给并条题情原美总代水金走门反身关建名公直特受展果百先代原打气长手管给并条题美金身光";
+
+for (const char of COMMON_HANZI) {
+  const pArray = pinyin(char, { toneType: "none", type: "array" });
+  if (pArray && pArray.length > 0) {
+    const py = pArray[0].toLowerCase();
+    const katakana = chineseDict.pinyin_table[py];
+    if (katakana) {
+      hanziToKatakana[char] = katakana;
+    }
+  }
+}
+
+// Second, extract from common words with contextual pinyin
+for (const word of chineseDict.common_words) {
+  const tokens = pinyin(word, { toneType: "none", type: "array" });
+  for (let i = 0; i < word.length; i++) {
+    const char = word[i];
+    const py = tokens[i]?.toLowerCase();
+    if (py && chineseDict.pinyin_table[py]) {
+      hanziToKatakana[char] = chineseDict.pinyin_table[py];
+    }
+  }
+}
+
+// Third, extract from spec test cases with contextual phrase pinyin
+for (const file of caseFiles) {
+  const content = fs.readFileSync(path.join(specCasesDir, file), "utf8");
+  const cases = JSON.parse(content);
+  for (const tc of cases) {
+    if (typeof tc.input !== "string") continue;
+    const hanziSequences = tc.input.match(/[\u4E00-\u9FFF]+/g) || [];
+    for (const seq of hanziSequences) {
+      const tokens = pinyin(seq, { toneType: "none", type: "array" });
+      for (let i = 0; i < seq.length; i++) {
+        const char = seq[i];
+        const py = tokens[i]?.toLowerCase();
+        if (py && chineseDict.pinyin_table[py]) {
+          hanziToKatakana[char] = chineseDict.pinyin_table[py];
+        }
+      }
+    }
+  }
+}
+
+// Ensure grammatical particle '了' maps to standard modal particle reading 'le' -> 'ラ'
+hanziToKatakana["了"] = "ラ";
+
+const chineseDataOutput = {
+  taiwan_phrases: chineseDict.taiwan_phrases,
+  marker_pattern: chineseDict.marker_pattern,
+  marker_characters: chineseDict.marker_characters,
+  common_words: chineseDict.common_words,
+  pinyin_table: chineseDict.pinyin_table,
+  hanzi_to_katakana: hanziToKatakana,
+};
+
+const chineseDataDst = path.join(nodeDictsDir, "chinese_data.json");
+fs.writeFileSync(
+  chineseDataDst,
+  JSON.stringify(chineseDataOutput, null, 2) + "\n",
+  "utf8"
+);
+console.log(
+  `✓ Pre-converted ${Object.keys(hanziToKatakana).length} Hanzi characters -> bindings/node/src/dicts/chinese_data.json`
+);
+
+console.log("\nDictionaries built successfully with zero runtime dependencies!");

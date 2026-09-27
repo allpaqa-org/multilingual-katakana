@@ -1,0 +1,290 @@
+[
+  {
+    "id": "en-greetings-hello",
+    "language": "en",
+    "input": "hello",
+    "expected": {
+      "canonical": "ハロー"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "basic",
+      "cmudict"
+    ],
+    "description": "Convert basic English greeting 'hello' via CMUdict"
+  },
+  {
+    "id": "en-greetings-hello-world",
+    "language": "en",
+    "input": "Hello World",
+    "expected": {
+      "canonical": "ハローワールド"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "multiword",
+      "prosody"
+    ],
+    "description": "Convert capitalized 'Hello World' and join consecutive Katakana"
+  },
+  {
+    "id": "en-greetings-nice-stream-bro",
+    "language": "en",
+    "input": "nice stream bro",
+    "expected": {
+      "canonical": "ナイスストリームブロ"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "twitch",
+      "multiword"
+    ],
+    "description": "Convert common stream encouragement phrase"
+  },
+  {
+    "id": "en-sentence-this-is-test",
+    "language": "en",
+    "input": "this is test",
+    "expected": {
+      "canonical": "ディスイズテスト"
+    },
+    "category": "general",
+    "tags": [
+      "sentences",
+      "cmudict"
+    ],
+    "description": "Convert short simple English sentence 'this is test'"
+  },
+  {
+    "id": "en-loanword-twitch",
+    "language": "en",
+    "input": "twitch",
+    "expected": {
+      "canonical": "ツイッチ"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "twitch",
+      "sokuon"
+    ],
+    "description": "Convert 'twitch' applying TW + vowel (ツィ) and final stop (ッチ)"
+  },
+  {
+    "id": "en-loanword-chat",
+    "language": "en",
+    "input": "chat",
+    "expected": {
+      "canonical": "チャット"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "sokuon"
+    ],
+    "description": "Convert 'chat' with final stop sokuon"
+  },
+  {
+    "id": "en-loanword-bot",
+    "language": "en",
+    "input": "bot",
+    "expected": {
+      "canonical": "ボット"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "short_vowel",
+      "sokuon"
+    ],
+    "description": "Convert 'bot' with short-o vowel rule and sokuon"
+  },
+  {
+    "id": "en-loanword-egg",
+    "language": "en",
+    "input": "egg",
+    "expected": {
+      "canonical": "エッグ"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "short_vowel",
+      "sokuon"
+    ],
+    "description": "Convert 'egg' with short vowel stop"
+  },
+  {
+    "id": "en-loanword-egging",
+    "language": "en",
+    "input": "egging",
+    "expected": {
+      "canonical": "エギング"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "inflection"
+    ],
+    "description": "Convert inflected form 'egging'"
+  },
+  {
+    "id": "en-loanword-game",
+    "language": "en",
+    "input": "game",
+    "expected": {
+      "canonical": "ゲーム"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "chouon"
+    ],
+    "description": "Convert 'game' with standard loanword chouon"
+  },
+  {
+    "id": "en-loanword-play",
+    "language": "en",
+    "input": "play",
+    "expected": {
+      "canonical": "プレイ"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "diphthong"
+    ],
+    "description": "Convert diphthong 'ay' to 'エイ' (プレイ)"
+  },
+  {
+    "id": "en-loanword-player",
+    "language": "en",
+    "input": "player",
+    "expected": {
+      "canonical": "プレイヤー"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "er_suffix"
+    ],
+    "description": "Convert 'player' with ER after /i/ mapping to 'ヤー'"
+  },
+  {
+    "id": "en-loanword-playing",
+    "language": "en",
+    "input": "playing",
+    "expected": {
+      "canonical": "プレイイング"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "ing_suffix"
+    ],
+    "description": "Convert 'playing' with progressive suffix"
+  },
+  {
+    "id": "en-loanword-comments",
+    "language": "en",
+    "input": "comments",
+    "expected": {
+      "canonical": "コメンツ"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "plural",
+      "ts_rule"
+    ],
+    "description": "Convert 'comments' with word-final T+S mapped to 'ツ'"
+  },
+  {
+    "id": "en-phonics-elongation-aaaaaaa",
+    "language": "en",
+    "input": "aaaaaaa",
+    "expected": {
+      "canonical": "アアアアアアア"
+    },
+    "category": "phonics_fallback",
+    "tags": [
+      "slang",
+      "elongation",
+      "phonics"
+    ],
+    "description": "Convert repeated vowel elongation via phonics fallback rule"
+  },
+  {
+    "id": "en-punctuation-smart-quote-dont",
+    "language": "en",
+    "input": "don’t do that",
+    "expected": {
+      "canonical": "ドーントドゥーザット"
+    },
+    "category": "punctuation",
+    "tags": [
+      "contractions",
+      "smart_quotes"
+    ],
+    "description": "Convert contraction containing smart curly apostrophe (U+2019)"
+  },
+  {
+    "id": "en-acronyms-stream-bundle",
+    "language": "en",
+    "input": "fps rpg bgm pvp url",
+    "expected": {
+      "canonical": "エフピーエスアールピージービージーエムピーブイピーユーアールエル"
+    },
+    "category": "acronyms",
+    "tags": [
+      "acronyms",
+      "gaming"
+    ],
+    "description": "Convert stream acronyms and concatenate Katakana"
+  },
+  {
+    "id": "en-loanword-thanks",
+    "language": "en",
+    "input": "thanks",
+    "expected": {
+      "canonical": "サンクス"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "ng_k_rule"
+    ],
+    "description": "Convert 'thanks' with NG before K mapping to 'ン'"
+  },
+  {
+    "id": "en-loanword-good-morning",
+    "language": "en",
+    "input": "good morning",
+    "expected": {
+      "canonical": "グッドモーニング"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "loanwords"
+    ],
+    "description": "Convert English greeting 'good morning'"
+  },
+  {
+    "id": "en-loanword-streamer",
+    "language": "en",
+    "input": "streamer",
+    "expected": {
+      "canonical": "ストリーマー"
+    },
+    "category": "loanwords",
+    "tags": [
+      "loanwords",
+      "twitch"
+    ],
+    "description": "Convert gaming loanword 'streamer'"
+  }
+]

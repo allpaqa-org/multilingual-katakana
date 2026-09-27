@@ -1,0 +1,141 @@
+[
+  {
+    "id": "es-greetings-hola-amigo",
+    "language": "es",
+    "input": "¡Hola! amigo",
+    "expected": {
+      "canonical": "オラ！アミーゴ"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "spanish",
+      "inverted_punctuation",
+      "silent_h"
+    ],
+    "description": "Convert Spanish greeting with inverted exclamation and silent H"
+  },
+  {
+    "id": "es-thanks-muchas-gracias",
+    "language": "es",
+    "input": "muchas gracias",
+    "expected": {
+      "canonical": "ムチャスグラシアス"
+    },
+    "category": "thanks",
+    "tags": [
+      "thanks",
+      "spanish",
+      "multiword",
+      "prosody"
+    ],
+    "description": "Convert Spanish phrase 'muchas gracias' with Katakana space removal"
+  },
+  {
+    "id": "es-honorific-senor",
+    "language": "es",
+    "input": "señor",
+    "expected": {
+      "canonical": "セニョール"
+    },
+    "category": "honorifics",
+    "tags": [
+      "special_letters",
+      "enie",
+      "spanish"
+    ],
+    "description": "Convert Spanish word with ñ (eñe)"
+  },
+  {
+    "id": "es-honorific-senora",
+    "language": "es",
+    "input": "señora",
+    "expected": {
+      "canonical": "セニョーラ"
+    },
+    "category": "honorifics",
+    "tags": [
+      "special_letters",
+      "enie",
+      "spanish"
+    ],
+    "description": "Convert Spanish word with ñ (eñe) feminine form"
+  },
+  {
+    "id": "es-phrase-por-favor",
+    "language": "es",
+    "input": "por favor",
+    "expected": {
+      "canonical": "ポルファボール"
+    },
+    "category": "polite",
+    "tags": [
+      "polite",
+      "spanish",
+      "multiword"
+    ],
+    "description": "Convert Spanish polite request 'por favor'"
+  },
+  {
+    "id": "es-greetings-buenos-dias",
+    "language": "es",
+    "input": "buenos dias",
+    "expected": {
+      "canonical": "ブエノスディアス"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "morning",
+      "spanish"
+    ],
+    "description": "Convert Spanish morning greeting 'buenos dias'"
+  },
+  {
+    "id": "es-greetings-buenas-noches",
+    "language": "es",
+    "input": "buenas noches",
+    "expected": {
+      "canonical": "ブエナスノーチェス"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "night",
+      "spanish"
+    ],
+    "description": "Convert Spanish evening greeting 'buenas noches'"
+  },
+  {
+    "id": "es-question-como-estas-inverted",
+    "language": "es",
+    "input": "¿Cómo estás?",
+    "expected": {
+      "canonical": "コモエスタス？",
+      "accepted": [
+        "コモエストアス？"
+      ]
+    },
+    "category": "questions",
+    "tags": [
+      "inverted_punctuation",
+      "accents",
+      "spanish"
+    ],
+    "description": "Convert Spanish inverted question with accent mark"
+  },
+  {
+    "id": "es-farewell-adios",
+    "language": "es",
+    "input": "adios",
+    "expected": {
+      "canonical": "アディオス"
+    },
+    "category": "farewell",
+    "tags": [
+      "farewell",
+      "spanish"
+    ],
+    "description": "Convert Spanish farewell 'adios'"
+  }
+]

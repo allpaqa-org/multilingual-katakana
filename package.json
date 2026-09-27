@@ -1,0 +1,15 @@
+{
+  "name": "multilingual-katakana-monorepo",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Zero-dependency, ultra-fast multilingual Katakana converter monorepo",
+  "scripts": {
+    "test": "cd bindings/node && bun test",
+    "lint": "cd bindings/node && bun run lint",
+    "format": "cd bindings/node && bun run format",
+    "check": "cd bindings/node && bun run check",
+    "build": "cd bindings/node && bun run build",
+    "check:complexity": "bun run scripts/check_complexity.ts",
+    "validate:spec": "bun run scripts/validate_spec.ts"
+  }
+}

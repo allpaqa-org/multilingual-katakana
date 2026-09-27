@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "$id": "https://github.com/takuyayukat/multilingual-katakana/spec/schema.json",
+  "title": "MultilingualKatakanaTestCaseSuite",
+  "description": "Schema for multilingual katakana conversion test cases",
+  "oneOf": [
+    {
+      "type": "array",
+      "items": {
+        "$ref": "#/definitions/TestCase"
+      }
+    },
+    {
+      "type": "object",
+      "properties": {
+        "$schema": {
+          "type": "string"
+        },
+        "language": {
+          "type": "string"
+        },
+        "category": {
+          "type": "string"
+        },
+        "cases": {
+          "type": "array",
+          "items": {
+            "$ref": "#/definitions/TestCase"
+          }
+        }
+      },
+      "required": [
+        "cases"
+      ],
+      "additionalProperties": false
+    }
+  ],
+  "definitions": {
+    "TestCase": {
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "string",
+          "description": "Unique identifier for the test case"
+        },
+        "language": {
+          "type": "string",
+          "description": "Target or source language code (e.g. en, zh, ko, ru, es, slang, ja, mixed)"
+        },
+        "input": {
+          "type": "string",
+          "description": "Input text to be transformed"
+        },
+        "expected": {
+          "description": "Expected katakana output: canonical form and optional accepted variations",
+          "oneOf": [
+            {
+              "type": "object",
+              "properties": {
+                "canonical": {
+                  "type": "string",
+                  "description": "The authoritative canonical katakana transcription"
+                },
+                "accepted": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  },
+                  "description": "Alternative acceptable katakana variations"
+                }
+              },
+              "required": [
+                "canonical"
+              ],
+              "additionalProperties": false
+            },
+            {
+              "type": "string",
+              "description": "Canonical katakana transcription shorthand"
+            }
+          ]
+        },
+        "category": {
+          "type": "string",
+          "description": "Category or functional grouping of the test case"
+        },
+        "tags": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "description": "List of tags for filtering and grouping"
+        },
+        "description": {
+          "type": "string",
+          "description": "Explanation of the test case intent"
+        }
+      },
+      "required": [
+        "id",
+        "language",
+        "input",
+        "expected",
+        "category",
+        "tags",
+        "description"
+      ],
+      "additionalProperties": false
+    }
+  }
+}

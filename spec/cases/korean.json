@@ -1,0 +1,180 @@
+[
+  {
+    "id": "ko-greetings-hello",
+    "language": "ko",
+    "input": "안녕하세요",
+    "expected": {
+      "canonical": "アンニョンハセヨ"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "polite",
+      "common_phrase"
+    ],
+    "description": "Convert standard Korean polite greeting '안녕하세요'"
+  },
+  {
+    "id": "ko-greetings-thank-you",
+    "language": "ko",
+    "input": "감사합니다",
+    "expected": {
+      "canonical": "カムサハムニダ"
+    },
+    "category": "greetings",
+    "tags": [
+      "thanks",
+      "polite",
+      "common_phrase"
+    ],
+    "description": "Convert standard Korean formal thank you '감사합니다'"
+  },
+  {
+    "id": "ko-stream-broadcast-fun-fighting",
+    "language": "ko",
+    "input": "안녕하세요! 방송 너무 재미있어요 화이팅!",
+    "expected": {
+      "canonical": "アンニョンハセヨ！パンソンノムチェミイッソヨファイティン！"
+    },
+    "category": "stream_comment",
+    "tags": [
+      "stream",
+      "cheering",
+      "prosody",
+      "punctuation"
+    ],
+    "description": "Convert stream viewer comment praising broadcast and cheering"
+  },
+  {
+    "id": "ko-slang-combo-really-awesome-goodnight",
+    "language": "ko",
+    "input": "진짜 대박 잘자요",
+    "expected": {
+      "canonical": "チンチャテバクチャルジャヨ"
+    },
+    "category": "slang",
+    "tags": [
+      "slang",
+      "multiword",
+      "prosody"
+    ],
+    "description": "Convert concatenated slang combination '진짜 대박 잘자요'"
+  },
+  {
+    "id": "ko-greetings-informal-hello",
+    "language": "ko",
+    "input": "안녕",
+    "expected": {
+      "canonical": "アンニョン"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "casual",
+      "common_phrase"
+    ],
+    "description": "Convert informal greeting '안녕'"
+  },
+  {
+    "id": "ko-greetings-informal-thanks",
+    "language": "ko",
+    "input": "고마워",
+    "expected": {
+      "canonical": "コマウォ"
+    },
+    "category": "greetings",
+    "tags": [
+      "thanks",
+      "casual",
+      "common_phrase"
+    ],
+    "description": "Convert informal thanks '고마워'"
+  },
+  {
+    "id": "ko-apology-formal-sorry",
+    "language": "ko",
+    "input": "죄송합니다",
+    "expected": {
+      "canonical": "チェソンハムニダ"
+    },
+    "category": "greetings",
+    "tags": [
+      "apology",
+      "polite",
+      "common_phrase"
+    ],
+    "description": "Convert formal apology '죄송합니다'"
+  },
+  {
+    "id": "ko-apology-casual-sorry",
+    "language": "ko",
+    "input": "미안해",
+    "expected": {
+      "canonical": "ミアネ"
+    },
+    "category": "greetings",
+    "tags": [
+      "apology",
+      "casual",
+      "common_phrase"
+    ],
+    "description": "Convert casual apology '미안해'"
+  },
+  {
+    "id": "ko-phrase-love-you",
+    "language": "ko",
+    "input": "사랑해요",
+    "expected": {
+      "canonical": "サランヘヨ"
+    },
+    "category": "greetings",
+    "tags": [
+      "affection",
+      "common_phrase"
+    ],
+    "description": "Convert phrase '사랑해요'"
+  },
+  {
+    "id": "ko-phrase-well-done",
+    "language": "ko",
+    "input": "수고했어요",
+    "expected": {
+      "canonical": "スゴヘッソヨ"
+    },
+    "category": "greetings",
+    "tags": [
+      "farewell",
+      "appreciation",
+      "common_phrase"
+    ],
+    "description": "Convert appreciation phrase '수고했어요'"
+  },
+  {
+    "id": "ko-cheering-paiting",
+    "language": "ko",
+    "input": "파이팅",
+    "expected": {
+      "canonical": "パイティン"
+    },
+    "category": "slang",
+    "tags": [
+      "cheering",
+      "loanword"
+    ],
+    "description": "Convert alternative cheering '파이팅'"
+  },
+  {
+    "id": "ko-decomposition-broadcast",
+    "language": "ko",
+    "input": "방송",
+    "expected": {
+      "canonical": "パンソン"
+    },
+    "category": "decomposition",
+    "tags": [
+      "batchim",
+      "hangul_math"
+    ],
+    "description": "Decompose Hangul syllables 방 (ㅂ+ㅏ+ㅇ -> パン) and 송 (ㅅ+ㅗ+ㅇ -> ソン)"
+  }
+]

@@ -1,0 +1,146 @@
+[
+  {
+    "id": "zh-sentence-cheering",
+    "language": "zh",
+    "input": "你好！玩得很好，加油！",
+    "expected": {
+      "canonical": "ニーハオ！ワンドゥヘンハオ、ジャーヨウ！"
+    },
+    "category": "mandarin_sentences",
+    "tags": [
+      "greetings",
+      "cheering",
+      "pinyin",
+      "punctuation"
+    ],
+    "description": "Convert Mandarin greeting and encouragement with Chinese punctuation"
+  },
+  {
+    "id": "zh-stream-taiwan-patron",
+    "language": "zh",
+    "input": "大家安安！實況主太強了，謝謝乾爹！",
+    "expected": {
+      "canonical": "ダージアアンアン！シークアンジュータイチャンラ、シエシエガンディエ！"
+    },
+    "category": "taiwan_stream",
+    "tags": [
+      "taiwan_slang",
+      "twitch",
+      "patron"
+    ],
+    "description": "Convert Taiwan Twitch slang (安安, 實況主, 乾爹) and punctuation"
+  },
+  {
+    "id": "zh-taiwan-pronunciation-rubbish",
+    "language": "zh",
+    "input": "這個是垃圾桶",
+    "expected": {
+      "canonical": "ジャーガーシーレースートン"
+    },
+    "category": "taiwan_pronunciation",
+    "tags": [
+      "taiwan_slang",
+      "lexicon"
+    ],
+    "description": "Verify Taiwan Mandarin pronunciation for 垃圾 (レースー) instead of Mainland (ラージースー)"
+  },
+  {
+    "id": "zh-stream-streamer-awesome",
+    "language": "zh",
+    "input": "實況主太厲害了吧",
+    "expected": {
+      "canonical": "シークアンジュータイリーハイラバー"
+    },
+    "category": "taiwan_stream",
+    "tags": [
+      "taiwan_slang",
+      "particles"
+    ],
+    "description": "Convert Taiwan streamer praise sentence with final particle '吧'"
+  },
+  {
+    "id": "zh-stream-thank-patron",
+    "language": "zh",
+    "input": "謝謝乾爹",
+    "expected": {
+      "canonical": "シエシエガンディエ"
+    },
+    "category": "taiwan_stream",
+    "tags": [
+      "taiwan_slang",
+      "thanks"
+    ],
+    "description": "Convert thank you patron phrase"
+  },
+  {
+    "id": "zh-greetings-morning",
+    "language": "zh",
+    "input": "早安！",
+    "expected": {
+      "canonical": "ザオアン！"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "taiwan_slang"
+    ],
+    "description": "Convert morning greeting '早安'"
+  },
+  {
+    "id": "zh-greetings-night",
+    "language": "zh",
+    "input": "晚安！",
+    "expected": {
+      "canonical": "ワンアン！"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "taiwan_slang"
+    ],
+    "description": "Convert good night greeting '晚安'"
+  },
+  {
+    "id": "zh-slang-laughing",
+    "language": "zh",
+    "input": "笑死，太好笑了！",
+    "expected": {
+      "canonical": "シアオスー、タイハオシアオラ！"
+    },
+    "category": "taiwan_stream",
+    "tags": [
+      "taiwan_slang",
+      "reactions"
+    ],
+    "description": "Convert Taiwan reaction phrase '笑死，太好笑了！'"
+  },
+  {
+    "id": "zh-farewell-see-you-tomorrow",
+    "language": "zh",
+    "input": "辛苦了！明天見！",
+    "expected": {
+      "canonical": "シンクーラ！ミンティエンジエン！"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "taiwan_slang",
+      "farewell"
+    ],
+    "description": "Convert farewell phrase '辛苦了！明天見！'"
+  },
+  {
+    "id": "zh-stream-like-and-welcome",
+    "language": "zh",
+    "input": "歡迎大家！請按讚！",
+    "expected": {
+      "canonical": "ホワンインダージア！チンアンザン！"
+    },
+    "category": "taiwan_stream",
+    "tags": [
+      "taiwan_slang",
+      "call_to_action"
+    ],
+    "description": "Convert stream welcome and like button encouragement"
+  }
+]

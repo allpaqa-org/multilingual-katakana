@@ -1,0 +1,283 @@
+[
+  {
+    "id": "slang-laughter-single-w",
+    "language": "slang",
+    "input": "w",
+    "expected": {
+      "canonical": "わら"
+    },
+    "category": "japanese_net_slang",
+    "tags": [
+      "slang",
+      "laughter",
+      "twitch"
+    ],
+    "description": "Convert single 'w' net slang to 'わら'"
+  },
+  {
+    "id": "slang-laughter-double-w",
+    "language": "slang",
+    "input": "ww",
+    "expected": {
+      "canonical": "わらわら"
+    },
+    "category": "japanese_net_slang",
+    "tags": [
+      "slang",
+      "laughter",
+      "twitch"
+    ],
+    "description": "Convert double 'ww' net slang to 'わらわら'"
+  },
+  {
+    "id": "slang-laughter-triple-w",
+    "language": "slang",
+    "input": "www",
+    "expected": {
+      "canonical": "わらわら"
+    },
+    "category": "japanese_net_slang",
+    "tags": [
+      "slang",
+      "laughter",
+      "twitch"
+    ],
+    "description": "Convert triple 'www' net slang to 'わらわら'"
+  },
+  {
+    "id": "slang-laughter-kusa",
+    "language": "slang",
+    "input": "kusa",
+    "expected": {
+      "canonical": "くさ"
+    },
+    "category": "japanese_net_slang",
+    "tags": [
+      "slang",
+      "laughter"
+    ],
+    "description": "Convert romaji 'kusa' to 'くさ'"
+  },
+  {
+    "id": "slang-gaming-gg",
+    "language": "slang",
+    "input": "gg",
+    "expected": {
+      "canonical": "ジージー"
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "gaming",
+      "good_game"
+    ],
+    "description": "Convert 'gg' to 'ジージー'"
+  },
+  {
+    "id": "slang-gaming-gg-wp",
+    "language": "slang",
+    "input": "gg wp",
+    "expected": {
+      "canonical": "ジージーウェルプレイド",
+      "accepted": [
+        "ジージー ウェルプレイド"
+      ]
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "gaming",
+      "multiword"
+    ],
+    "description": "Convert 'gg wp' to 'ジージーウェルプレイド'"
+  },
+  {
+    "id": "slang-gaming-glhf",
+    "language": "slang",
+    "input": "glhf",
+    "expected": {
+      "canonical": "グッドラックハブファン",
+      "accepted": [
+        "グッドラック ハブファン"
+      ]
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "gaming"
+    ],
+    "description": "Convert 'glhf' to 'グッドラックハブファン'"
+  },
+  {
+    "id": "slang-gaming-ez",
+    "language": "slang",
+    "input": "ez",
+    "expected": {
+      "canonical": "イージー"
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "gaming"
+    ],
+    "description": "Convert 'ez' to 'イージー'"
+  },
+  {
+    "id": "slang-twitch-pog",
+    "language": "slang",
+    "input": "pog",
+    "expected": {
+      "canonical": "ポグ"
+    },
+    "category": "twitch_emotes",
+    "tags": [
+      "slang",
+      "twitch",
+      "emote"
+    ],
+    "description": "Convert Twitch emote 'pog' to 'ポグ'"
+  },
+  {
+    "id": "slang-twitch-poggers",
+    "language": "slang",
+    "input": "poggers",
+    "expected": {
+      "canonical": "ポガーズ"
+    },
+    "category": "twitch_emotes",
+    "tags": [
+      "slang",
+      "twitch",
+      "emote"
+    ],
+    "description": "Convert Twitch emote 'poggers' to 'ポガーズ'"
+  },
+  {
+    "id": "slang-twitch-pogchamp",
+    "language": "slang",
+    "input": "pogchamp",
+    "expected": {
+      "canonical": "ポグチャンプ"
+    },
+    "category": "twitch_emotes",
+    "tags": [
+      "slang",
+      "twitch",
+      "emote"
+    ],
+    "description": "Convert Twitch emote 'pogchamp' to 'ポグチャンプ'"
+  },
+  {
+    "id": "slang-twitch-kekw",
+    "language": "slang",
+    "input": "kekw",
+    "expected": {
+      "canonical": "ケクダブリュー"
+    },
+    "category": "twitch_emotes",
+    "tags": [
+      "slang",
+      "twitch",
+      "emote"
+    ],
+    "description": "Convert Twitch emote 'kekw' to 'ケクダブリュー'"
+  },
+  {
+    "id": "slang-net-afk",
+    "language": "slang",
+    "input": "afk",
+    "expected": {
+      "canonical": "エーエフケー"
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "status"
+    ],
+    "description": "Convert 'afk' (away from keyboard) acronym"
+  },
+  {
+    "id": "slang-net-brb",
+    "language": "slang",
+    "input": "brb",
+    "expected": {
+      "canonical": "ビーアールビー"
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "status"
+    ],
+    "description": "Convert 'brb' (be right back) acronym"
+  },
+  {
+    "id": "slang-net-lol",
+    "language": "slang",
+    "input": "lol",
+    "expected": {
+      "canonical": "ロル"
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "laughter"
+    ],
+    "description": "Convert 'lol' to 'ロル'"
+  },
+  {
+    "id": "slang-net-lmao",
+    "language": "slang",
+    "input": "lmao",
+    "expected": {
+      "canonical": "エルエムエーオー"
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "laughter"
+    ],
+    "description": "Convert 'lmao' acronym"
+  },
+  {
+    "id": "slang-net-wtf",
+    "language": "slang",
+    "input": "wtf",
+    "expected": {
+      "canonical": "ダブリューティーエフ"
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "acronym"
+    ],
+    "description": "Convert 'wtf' acronym"
+  },
+  {
+    "id": "slang-gaming-nt",
+    "language": "slang",
+    "input": "nt",
+    "expected": {
+      "canonical": "ナイストライ"
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "gaming"
+    ],
+    "description": "Convert 'nt' (nice try) to 'ナイストライ'"
+  },
+  {
+    "id": "slang-gaming-bro",
+    "language": "slang",
+    "input": "bro",
+    "expected": {
+      "canonical": "ブロ"
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "address"
+    ],
+    "description": "Convert 'bro' to 'ブロ'"
+  }
+]

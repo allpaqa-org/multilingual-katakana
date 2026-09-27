@@ -1,0 +1,116 @@
+[
+  {
+    "id": "mixed-japanese-english-inline",
+    "language": "mixed",
+    "input": "今日の配信 nice だったよ！",
+    "expected": {
+      "canonical": "今日の配信 ナイス だったよ！"
+    },
+    "category": "mixed_stream_comments",
+    "tags": [
+      "mixed",
+      "japanese",
+      "english",
+      "spacing"
+    ],
+    "description": "Preserve Japanese text and spacing while converting English word 'nice'"
+  },
+  {
+    "id": "mixed-japanese-english-russian",
+    "language": "mixed",
+    "input": "みんな hello! Привет!",
+    "expected": {
+      "canonical": "みんな ハロー！プリヴィエト！"
+    },
+    "category": "mixed_stream_comments",
+    "tags": [
+      "mixed",
+      "japanese",
+      "english",
+      "russian",
+      "multilingual"
+    ],
+    "description": "Convert English and Russian greetings embedded within Japanese comment"
+  },
+  {
+    "id": "mixed-pentilingual-stream-greeting",
+    "language": "mixed",
+    "input": "こんにちは！ Hello! Hola! Привет! 안녕하세요! 你好！",
+    "expected": {
+      "canonical": "こんにちは！ハロー！オラ！プリヴィエト！アンニョンハセヨ！ニーハオ！"
+    },
+    "category": "mixed_multilingual",
+    "tags": [
+      "mixed",
+      "japanese",
+      "english",
+      "spanish",
+      "russian",
+      "korean",
+      "chinese",
+      "showcase"
+    ],
+    "description": "Convert 6-language stream greetings sequence preserving Japanese 'こんにちは！'"
+  },
+  {
+    "id": "mixed-japanese-slang-twitch-gg",
+    "language": "mixed",
+    "input": "twitchで配信中！gg",
+    "expected": {
+      "canonical": "ツイッチで配信中！ジージー"
+    },
+    "category": "mixed_stream_comments",
+    "tags": [
+      "mixed",
+      "twitch",
+      "slang",
+      "japanese"
+    ],
+    "description": "Convert Twitch loanword and end-of-game slang around Japanese text"
+  },
+  {
+    "id": "mixed-complex-stream-notification",
+    "language": "mixed",
+    "input": "streamer is now live! Streaming Fun Game: 初見歓迎",
+    "expected": {
+      "canonical": "ストリーマーイズナウライブ！ストリーミングファンゲーム: 初見歓迎"
+    },
+    "category": "stream_notifications",
+    "tags": [
+      "mixed",
+      "notification",
+      "japanese"
+    ],
+    "description": "Convert complex stream notification with English status, game title, and Japanese stream tag"
+  },
+  {
+    "id": "mixed-japanese-english-stream-thanks",
+    "language": "mixed",
+    "input": "配信ありがとう！ gg wpでした！",
+    "expected": {
+      "canonical": "配信ありがとう！ジージーウェルプレイドでした！"
+    },
+    "category": "mixed_stream_comments",
+    "tags": [
+      "mixed",
+      "japanese",
+      "slang"
+    ],
+    "description": "Convert gaming slang 'gg wp' surrounded by Japanese gratitude"
+  },
+  {
+    "id": "mixed-japanese-english-greeting-first-time",
+    "language": "mixed",
+    "input": "初見です！nice to meet you",
+    "expected": {
+      "canonical": "初見です！ナイストゥーミートユー"
+    },
+    "category": "mixed_stream_comments",
+    "tags": [
+      "mixed",
+      "japanese",
+      "english"
+    ],
+    "description": "Convert English phrase attached to first-time Japanese stream greeting"
+  }
+]

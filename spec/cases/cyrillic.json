@@ -1,0 +1,178 @@
+[
+  {
+    "id": "ru-greetings-privet",
+    "language": "ru",
+    "input": "Привет",
+    "expected": {
+      "canonical": "プリヴィエト"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "cyrillic",
+      "russian"
+    ],
+    "description": "Convert common Russian greeting 'Привет'"
+  },
+  {
+    "id": "ru-thanks-spasibo",
+    "language": "ru",
+    "input": "Спасибо",
+    "expected": {
+      "canonical": "スパスィーバ"
+    },
+    "category": "greetings",
+    "tags": [
+      "thanks",
+      "cyrillic",
+      "russian"
+    ],
+    "description": "Convert Russian thank you 'Спасибо'"
+  },
+  {
+    "id": "ru-phrase-khorosho",
+    "language": "ru",
+    "input": "хорошо",
+    "expected": {
+      "canonical": "ハラショー"
+    },
+    "category": "common_phrases",
+    "tags": [
+      "phrases",
+      "cyrillic",
+      "russian"
+    ],
+    "description": "Convert Russian word 'хорошо' with phonetic reduction"
+  },
+  {
+    "id": "ru-greetings-zdravstvuyte",
+    "language": "ru",
+    "input": "здравствуйте",
+    "expected": {
+      "canonical": "ズドラーストヴィチェ"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "formal",
+      "russian"
+    ],
+    "description": "Convert Russian formal greeting 'здравствуйте'"
+  },
+  {
+    "id": "ru-polite-pozhaluysta",
+    "language": "ru",
+    "input": "пожалуйста",
+    "expected": {
+      "canonical": "パジャールスタ"
+    },
+    "category": "common_phrases",
+    "tags": [
+      "polite",
+      "cyrillic",
+      "russian"
+    ],
+    "description": "Convert Russian polite request / you are welcome 'пожалуйста'"
+  },
+  {
+    "id": "ru-basic-yes",
+    "language": "ru",
+    "input": "да",
+    "expected": {
+      "canonical": "ダ"
+    },
+    "category": "basic_words",
+    "tags": [
+      "basic",
+      "cyrillic",
+      "russian"
+    ],
+    "description": "Convert Russian 'да'"
+  },
+  {
+    "id": "ru-basic-no",
+    "language": "ru",
+    "input": "нет",
+    "expected": {
+      "canonical": "ニェット"
+    },
+    "category": "basic_words",
+    "tags": [
+      "basic",
+      "cyrillic",
+      "russian"
+    ],
+    "description": "Convert Russian 'нет'"
+  },
+  {
+    "id": "ru-farewell-poka",
+    "language": "ru",
+    "input": "пока",
+    "expected": {
+      "canonical": "パカー"
+    },
+    "category": "farewell",
+    "tags": [
+      "farewell",
+      "casual",
+      "russian"
+    ],
+    "description": "Convert Russian casual farewell 'пока'"
+  },
+  {
+    "id": "ru-farewell-dosvidaniya",
+    "language": "ru",
+    "input": "досвидания",
+    "expected": {
+      "canonical": "ダスヴィダーニャ",
+      "accepted": [
+        "ドオスヴイダンイヤ"
+      ]
+    },
+    "category": "farewell",
+    "tags": [
+      "farewell",
+      "formal",
+      "russian"
+    ],
+    "description": "Convert Russian formal farewell 'досвидания'"
+  },
+  {
+    "id": "ru-basic-den",
+    "language": "ru",
+    "input": "день",
+    "expected": {
+      "canonical": "デン",
+      "accepted": [
+        "ドイェン"
+      ]
+    },
+    "category": "basic_words",
+    "tags": [
+      "basic",
+      "cyrillic",
+      "russian",
+      "soft_sign"
+    ],
+    "description": "Convert Russian 'день' with soft sign ь"
+  },
+  {
+    "id": "ru-basic-obekt",
+    "language": "ru",
+    "input": "объект",
+    "expected": {
+      "canonical": "オビエクト",
+      "accepted": [
+        "オブイェクト"
+      ]
+    },
+    "category": "basic_words",
+    "tags": [
+      "basic",
+      "cyrillic",
+      "russian",
+      "hard_sign"
+    ],
+    "description": "Convert Russian 'объект' with hard sign ъ"
+  }
+]
