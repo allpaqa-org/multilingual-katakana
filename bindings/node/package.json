@@ -38,6 +38,18 @@
   ],
   "author": "allpaqa",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allpaqa-org/multilingual-katakana.git",
+    "directory": "bindings/node"
+  },
+  "homepage": "https://github.com/allpaqa-org/multilingual-katakana#readme",
+  "bugs": {
+    "url": "https://github.com/allpaqa-org/multilingual-katakana/issues"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
   "dependencies": {},
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
