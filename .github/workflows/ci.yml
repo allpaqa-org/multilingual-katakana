@@ -1,0 +1,38 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-and-lint:
+    name: Test, Lint & Complexity Gate
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: cd bindings/node && bun install
+
+      - name: Run Tests (100% pass required)
+        run: bun run test
+
+      - name: Run Biome Linter & Formatter (0 errors required)
+        run: bun run check
+
+      - name: Audit Code Complexity (CC <= 15 required)
+        run: bun run check:complexity
+
+      - name: Validate Cross-Language Spec Schemas
+        run: bun run validate:spec
+
+      - name: Build Dual ESM/CJS Package
+        run: bun run build
