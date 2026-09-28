@@ -20,6 +20,7 @@ static DIGRAPHS: &[(&str, &str)] = &[
     ("qu", "ク"),
     ("kn", "ナ"),
     ("wr", "ラ"),
+    ("eer", "イアー"),
     ("ee", "イー"),
     ("ea", "イー"),
     ("oo", "ウー"),
@@ -337,6 +338,12 @@ mod tests {
         assert_eq!(get_english_word("Streamer"), Some("ストリーマー"));
         assert_eq!(get_english_word("play"), Some("プレイ"));
         assert_eq!(get_english_word("check"), Some("チェック"));
+        assert_eq!(get_english_word("doubt"), Some("ダウト"));
+        assert_eq!(get_english_word("island"), Some("アイランド"));
+        assert_eq!(get_english_word("sub"), Some("サブ"));
+        assert_eq!(get_english_word("host"), Some("ホスト"));
+        assert_eq!(get_english_word("clutch"), Some("クラッチ"));
+        assert_eq!(get_english_word("nerf"), Some("ナーフ"));
         assert_eq!(get_english_word("nonexistentword12345"), None);
     }
 

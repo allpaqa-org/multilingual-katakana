@@ -10,7 +10,9 @@
     "tags": [
       "slang",
       "laughter",
-      "twitch"
+      "twitch",
+      "streaming",
+      "gaming"
     ],
     "description": "Convert single 'w' net slang to 'わら'"
   },
@@ -25,7 +27,9 @@
     "tags": [
       "slang",
       "laughter",
-      "twitch"
+      "twitch",
+      "streaming",
+      "gaming"
     ],
     "description": "Convert double 'ww' net slang to 'わらわら'"
   },
@@ -40,7 +44,9 @@
     "tags": [
       "slang",
       "laughter",
-      "twitch"
+      "twitch",
+      "streaming",
+      "gaming"
     ],
     "description": "Convert triple 'www' net slang to 'わらわら'"
   },
@@ -129,13 +135,15 @@
     "expected": {
       "canonical": "ポグ"
     },
-    "category": "twitch_emotes",
+    "category": "stream_emotes",
     "tags": [
       "slang",
       "twitch",
+      "streaming",
+      "gaming",
       "emote"
     ],
-    "description": "Convert Twitch emote 'pog' to 'ポグ'"
+    "description": "Convert streaming emote 'pog' to 'ポグ'"
   },
   {
     "id": "slang-twitch-poggers",
@@ -144,13 +152,15 @@
     "expected": {
       "canonical": "ポガーズ"
     },
-    "category": "twitch_emotes",
+    "category": "stream_emotes",
     "tags": [
       "slang",
       "twitch",
+      "streaming",
+      "gaming",
       "emote"
     ],
-    "description": "Convert Twitch emote 'poggers' to 'ポガーズ'"
+    "description": "Convert streaming emote 'poggers' to 'ポガーズ'"
   },
   {
     "id": "slang-twitch-pogchamp",
@@ -159,13 +169,15 @@
     "expected": {
       "canonical": "ポグチャンプ"
     },
-    "category": "twitch_emotes",
+    "category": "stream_emotes",
     "tags": [
       "slang",
       "twitch",
+      "streaming",
+      "gaming",
       "emote"
     ],
-    "description": "Convert Twitch emote 'pogchamp' to 'ポグチャンプ'"
+    "description": "Convert streaming emote 'pogchamp' to 'ポグチャンプ'"
   },
   {
     "id": "slang-twitch-kekw",
@@ -174,13 +186,15 @@
     "expected": {
       "canonical": "ケクダブリュー"
     },
-    "category": "twitch_emotes",
+    "category": "stream_emotes",
     "tags": [
       "slang",
       "twitch",
+      "streaming",
+      "gaming",
       "emote"
     ],
-    "description": "Convert Twitch emote 'kekw' to 'ケクダブリュー'"
+    "description": "Convert streaming emote 'kekw' to 'ケクダブリュー'"
   },
   {
     "id": "slang-net-afk",
@@ -279,5 +293,20 @@
       "address"
     ],
     "description": "Convert 'bro' to 'ブロ'"
+  },
+  {
+    "id": "slang-gaming-ns",
+    "language": "slang",
+    "input": "ns",
+    "expected": {
+      "canonical": "ナイスショット"
+    },
+    "category": "gaming_slang",
+    "tags": [
+      "slang",
+      "gaming",
+      "acronym"
+    ],
+    "description": "Convert gaming abbreviation 'ns' (nice shot) to 'ナイスショット'"
   }
 ]

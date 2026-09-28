@@ -63,10 +63,11 @@
     "tags": [
       "mixed",
       "twitch",
+      "streaming",
       "slang",
       "japanese"
     ],
-    "description": "Convert Twitch loanword and end-of-game slang around Japanese text"
+    "description": "Convert streaming platform loanword and end-of-game slang around Japanese text"
   },
   {
     "id": "mixed-complex-stream-notification",

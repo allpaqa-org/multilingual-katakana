@@ -36,6 +36,7 @@ export function phonicsToKatakana(rawWord: string): string {
     .replace(/qu/g, "ク")
     .replace(/kn/g, "ナ")
     .replace(/wr/g, "ラ")
+    .replace(/eer/g, "イアー")
     .replace(/ee/g, "イー")
     .replace(/ea/g, "イー")
     .replace(/oo/g, "ウー")

@@ -36,7 +36,7 @@ Japanese character-voice TTS engines (such as **VOICEVOX, COEIROINK, AivisSpeech
    - **Korean**: Mathematical Hangul decomposition (`choseong * 588 + jungseong * 28 + jongseong`), liaison sound assimilation, and cheering phrases (`화이팅`).
    - **Russian (Cyrillic)**: Phonetic transliteration into Japanese syllabary.
    - **Spanish**: Accented vowels, inverted marks (`¡`, `¿`), and digraphs (`ñ`, `ll`, `rr`).
-   - **Streaming & Gaming Slang**: Twitch / YouTube gaming acronyms (`gg`, `gg wp`, `ez`, `pog`, `poggers`, `kekw`, `afk`, `brb`, `lol`, `w`, `ww`, `草`).
+   - **Streaming & Gaming Slang**: Multi-platform streaming (YouTube Live, Twitch, Kick, Discord) and gaming terms (`gg`, `gg wp`, `ez`, `pog`, `poggers`, `kekw`, `afk`, `brb`, `lol`, `w`, `ww`, `草`).
 4. **🛡️ Safe Kanji Guard (Japanese Kanji Protection)**:
    - Pure Japanese Kanji commonly found in stream titles and comments (`了解`, `初見歓迎`, `神回`, `配信開始`, `感謝`, `最高`, `優勝`, etc.) are strictly protected and never mistakenly converted into Chinese Pinyin.
 5. **🎭 Anime & Character TTS Optimization (Japanglish Prosody)**:

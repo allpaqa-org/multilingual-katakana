@@ -1,6 +1,6 @@
 {
   "name": "@allpaqa/multilingual-katakana",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "Zero-dependency multilingual foreign language to Japanese Katakana phonetic converter",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -35,7 +35,10 @@
     "japanese",
     "multilingual",
     "phonetics",
-    "twitch"
+    "twitch",
+    "streaming",
+    "youtube",
+    "discord"
   ],
   "author": "allpaqa",
   "license": "MIT",

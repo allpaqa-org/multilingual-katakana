@@ -77,6 +77,7 @@ mod tests {
         assert_eq!(get_slang_word("ww"), Some("わらわら"));
         assert_eq!(get_slang_word("www"), Some("わらわら"));
         assert_eq!(get_slang_word("bro"), Some("ブロ"));
+        assert_eq!(get_slang_word("ns"), Some("ナイスショット"));
         assert_eq!(get_slang_word("unknown_slang"), None);
     }
 }
