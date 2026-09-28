@@ -26,7 +26,8 @@
     "test": "bun test",
     "lint": "biome lint .",
     "format": "biome format --write .",
-    "check": "biome check --write ."
+    "check": "biome check --write .",
+    "check:ci": "biome check ."
   },
   "keywords": [
     "katakana",

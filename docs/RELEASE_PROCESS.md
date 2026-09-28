@@ -12,7 +12,7 @@ AI エージェントおよび開発者は本プロトコルに厳格に従っ�
 2. **品質検証ゲート 100% 遵守 (Quality Gate 100%)**
    - CI およびローカル環境において、全単体テスト・Biome 静的解析・コード複雑度（CC <= 15）・仕様スキーマ検証・Rust Clippy/Fmt の全項目が 100% パスすることをリリースの絶対条件とします。
 3. **AI 自律更新プロトコル (`AGENTS.md` 第 5 項準拠)**
-   - GitHub Actions によるドラフト作成後、AI が自律的にリリースノートをリッチ化し、ユーザーにワンクリック承認を案内する自律完結型リリース運用を行います。
+   - GitHub Actions（`release.yml`）がドラフトを作成後、開発環境の AI コーディングエージェント（Antigravity / Gemini CLI 等）が `gh release edit` を自律実行してリリースノートを整形し、ユーザーへ Releases URL を案内する自律完結型リリース運用を行います。
 
 ---
 
@@ -30,12 +30,12 @@ AI エージェントおよび開発者は本プロトコルに厳格に従っ�
        ↓
 [3. CD: release.yml 起動]
   - GitHub Actions がトリガー (push: tags: ['v*'])
-  - 品質ゲート通過後、Dual ESM/CJS ビルド & npm pack
-  - ドラフトリリース (draft: true) を自動作成し、dist/*.tgz を添付
+  - 品質ゲート（verify-and-pack）通過後、Dual ESM/CJS ビルド & npm pack
+  - 最小権限ジョブ（draft-release）によりドラフトリリース (draft: true) を自動作成し、dist/*.tgz を添付
        ↓
 [4. AI によるリリースノート自律整形]
-  - GitHub Actions 完了後、AI が gh release edit を実行
-  - 変更内容・主な新機能・配布アセット一覧を整理した Markdown 本文へ自律更新
+  - GitHub Actions 完了後、開発環境の AI コーディングエージェント（Antigravity / Gemini CLI 等）が gh release edit を自律実行
+  - 変更内容・主な新機能・配布アセット一覧を整理した Markdown 本文へ更新し、ユーザーへ Releases URL を案内
        ↓
 [5. ワンクリック公開 (Publish release)]
   - ユーザーが GitHub Releases 画面で "Publish release" を 1 クリック
@@ -68,7 +68,7 @@ AI エージェントおよび開発者は本プロトコルに厳格に従っ�
 bun run test
 
 # 2. Biome 静的解析・フォーマットチェック (0 errors, 0 warnings)
-bun run check
+bun run check:ci
 
 # 3. 循環的複雑度監査 (Cyclomatic Complexity <= 15)
 bun run check:complexity
@@ -108,11 +108,11 @@ git push origin main --tags
 
 1. **GitHub Actions (`.github/workflows/release.yml`) の自動実行**:
    - `v*` タグの push を検知してワークフローが起動します。
-   - Rust / Bun の品質ゲートを再検証し、Dual ESM/CJS ビルドおよび `npm pack` を実行。
-   - `dist/*.tgz` アセットを添付した **ドラフトリリース (`draft: true`)** を自動生成します。
+   - `verify-and-pack` ジョブ（読み取り権限）で Rust / Bun の品質ゲート（`bun run check:ci` 等）を検証し、Dual ESM/CJS ビルドおよび `npm pack` を実行してアーティファクトを生成。
+   - `draft-release` ジョブ（書き込み権限）で `dist/*.tgz` アセットを添付した **ドラフトリリース (`draft: true`)** を自動生成します。
 
 2. **AI によるリリースノート自律更新 (`AGENTS.md` 第 5 項)**:
-   - AI はドラフトリリースの作成完了を検知後、GitHub CLI を実行してリリースノートを最新の変更点・新機能・アセット情報を含むリッチな Markdown に更新します：
+   - GitHub Actions（`release.yml`）がドラフトを作成後、開発環境の AI コーディングエージェント（Antigravity / Gemini CLI 等）が `gh release edit` を自律実行してリリースノートを最新の変更点・新機能・アセット情報を含むリッチな Markdown に整形し、ユーザーへ Releases URL を案内します：
    ```bash
    gh release edit vX.Y.Z \
      --title "vX.Y.Z: <リリース概要タイトル>" \

@@ -6,11 +6,11 @@ on:
       - 'v*'
 
 permissions:
-  contents: write
+  contents: read
 
 jobs:
-  draft-release:
-    name: Build Distribution & Create Draft Release
+  verify-and-pack:
+    name: Verify Quality Gates & Build Tarball
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
@@ -18,9 +18,17 @@ jobs:
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
 
       - name: Run Cargo Tests (100% pass required)
         run: cargo test --all-targets
+
+      - name: Run Clippy (0 warnings required)
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Check Rust formatting
+        run: cargo fmt --check
 
       - name: Setup Bun
         uses: oven-sh/setup-bun@v2
@@ -33,7 +41,7 @@ jobs:
       - name: Run Quality Gate
         run: |
           bun run test
-          bun run check
+          bun run check:ci
           bun run check:complexity
           bun run validate:spec
 
@@ -43,6 +51,26 @@ jobs:
       - name: Pack npm tarball
         run: |
           mkdir -p dist && cd bindings/node && npm pack --pack-destination ../../dist
+
+      - name: Upload Tarball Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-tarball
+          path: dist/*.tgz
+          retention-days: 1
+
+  draft-release:
+    name: Create Draft Release on GitHub
+    needs: verify-and-pack
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - name: Download Tarball Artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: npm-tarball
+          path: dist
 
       - name: Create Draft Release on GitHub
         uses: softprops/action-gh-release@v2

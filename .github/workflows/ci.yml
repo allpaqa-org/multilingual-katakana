@@ -26,7 +26,7 @@ jobs:
         run: bun run test
 
       - name: Run Biome Linter & Formatter (0 errors required)
-        run: bun run check
+        run: bun run check:ci
 
       - name: Audit Code Complexity (CC <= 15 required)
         run: bun run check:complexity

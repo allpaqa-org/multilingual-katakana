@@ -15,10 +15,44 @@ function decomposeHangulSyllable(code: number): { l: number; v: number; t: numbe
   return { l, v, t };
 }
 
+export function composeHangulJamo(text: string): string {
+  let result = "";
+  const len = text.length;
+  let i = 0;
+
+  while (i < len) {
+    const code = text.charCodeAt(i);
+    if (code >= 0x1100 && code <= 0x1112 && i + 1 < len) {
+      const nextCode = text.charCodeAt(i + 1);
+      if (nextCode >= 0x1161 && nextCode <= 0x1175) {
+        const l = code - 0x1100;
+        const v = nextCode - 0x1161;
+        let t = 0;
+        let advance = 2;
+
+        if (i + 2 < len) {
+          const trailingCode = text.charCodeAt(i + 2);
+          if (trailingCode >= 0x11a8 && trailingCode <= 0x11c2) {
+            t = trailingCode - 0x11a7;
+            advance = 3;
+          }
+        }
+
+        result += String.fromCharCode(0xac00 + (l * 21 + v) * 28 + t);
+        i += advance;
+        continue;
+      }
+    }
+    result += text[i];
+    i++;
+  }
+  return result;
+}
+
 export function convertKorean(text: string): string {
   if (!isKorean(text)) return text;
 
-  let processed = text;
+  let processed = composeHangulJamo(text);
   // 1. Common frequent phrases priority override
   for (const [phrase, katakana] of Object.entries(koreanDict.phrases)) {
     if (processed.includes(phrase)) {

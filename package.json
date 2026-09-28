@@ -8,6 +8,7 @@
     "lint": "cd bindings/node && bun run lint",
     "format": "cd bindings/node && bun run format",
     "check": "cd bindings/node && bun run check",
+    "check:ci": "cd bindings/node && bun run check:ci",
     "build": "cd bindings/node && bun run build",
     "check:complexity": "bun run scripts/check_complexity.ts",
     "validate:spec": "bun run scripts/validate_spec.ts"

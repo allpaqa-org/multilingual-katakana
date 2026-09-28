@@ -1,0 +1,157 @@
+[
+  {
+    "id": "fail-mixed-zh-ja-syoken",
+    "language": "mixed",
+    "input": "你好！初見です！",
+    "expected": {
+      "canonical": "ニーハオ！初見です！"
+    },
+    "category": "failure_modes",
+    "tags": [
+      "safe_failure",
+      "kanji_guard",
+      "chinese",
+      "japanese"
+    ],
+    "description": "Safe failure: convert Chinese greeting while strictly protecting Japanese Kanji in '初見です！'"
+  },
+  {
+    "id": "fail-mixed-ja-en-hello",
+    "language": "mixed",
+    "input": "今日は Hello guys！",
+    "expected": {
+      "canonical": "今日は ハローガイズ！"
+    },
+    "category": "failure_modes",
+    "tags": [
+      "safe_failure",
+      "japanese",
+      "english"
+    ],
+    "description": "Safe failure: preserve Japanese words and convert English greeting without deleting text"
+  },
+  {
+    "id": "fail-unknown-language-arabic",
+    "language": "mixed",
+    "input": "مرحبا hello",
+    "expected": {
+      "canonical": "مرحبا ハロー"
+    },
+    "category": "failure_modes",
+    "tags": [
+      "safe_failure",
+      "unknown_language",
+      "arabic",
+      "english"
+    ],
+    "description": "Safe failure: preserve unsupported script (Arabic) verbatim while converting supported English"
+  },
+  {
+    "id": "fail-unknown-language-georgian",
+    "language": "mixed",
+    "input": "გამარჯობა world",
+    "expected": {
+      "canonical": "გამარჯობა ワールド"
+    },
+    "category": "failure_modes",
+    "tags": [
+      "safe_failure",
+      "unknown_language",
+      "georgian",
+      "english"
+    ],
+    "description": "Safe failure: preserve unsupported script (Georgian) verbatim while converting supported English"
+  },
+  {
+    "id": "fail-unknown-language-thai",
+    "language": "mixed",
+    "input": "สวัสดี stream",
+    "expected": {
+      "canonical": "สวัสดี ストリーム"
+    },
+    "category": "failure_modes",
+    "tags": [
+      "safe_failure",
+      "unknown_language",
+      "thai",
+      "english"
+    ],
+    "description": "Safe failure: preserve unsupported script (Thai) verbatim while converting supported English"
+  },
+  {
+    "id": "fail-preserve-emoji",
+    "language": "mixed",
+    "input": "안녕하세요 😊👍",
+    "expected": {
+      "canonical": "アンニョンハセヨ 😊👍"
+    },
+    "category": "failure_modes",
+    "tags": [
+      "safe_failure",
+      "emoji",
+      "korean"
+    ],
+    "description": "Safe failure: preserve emojis and symbols without corruption during Katakana conversion"
+  },
+  {
+    "id": "fail-nfd-hangul-coexistence",
+    "language": "ko",
+    "input": "안녕 안녕",
+    "expected": {
+      "canonical": "アンニョンアンニョン"
+    },
+    "category": "failure_modes",
+    "tags": [
+      "safe_failure",
+      "unicode",
+      "nfd",
+      "korean"
+    ],
+    "description": "Safe failure: seamlessly handle decomposed NFD Hangul Jamo alongside precomposed NFC Hangul"
+  },
+  {
+    "id": "fail-safe-kanji-guard-stream",
+    "language": "ja",
+    "input": "了解しました！今日の配信は神回でした！感謝！",
+    "expected": {
+      "canonical": "了解しました！今日の配信は神回でした！感謝！"
+    },
+    "category": "failure_modes",
+    "tags": [
+      "safe_failure",
+      "kanji_guard",
+      "japanese"
+    ],
+    "description": "Safe failure: pure Japanese Kanji stream comment is never falsely identified or corrupted as Chinese"
+  },
+  {
+    "id": "fail-mixed-es-ja-gracias",
+    "language": "mixed",
+    "input": "配信ありがとう muchas gracias",
+    "expected": {
+      "canonical": "配信ありがとう ムチャスグラシアス"
+    },
+    "category": "failure_modes",
+    "tags": [
+      "safe_failure",
+      "spanish",
+      "japanese"
+    ],
+    "description": "Safe failure: convert multi-word Spanish phrase while preserving Japanese comment intact"
+  },
+  {
+    "id": "fail-extreme-repeated-elongation",
+    "language": "mixed",
+    "input": "w www wwww aaaaa",
+    "expected": {
+      "canonical": "わら わらわら わらわら アアアアア"
+    },
+    "category": "failure_modes",
+    "tags": [
+      "safe_failure",
+      "slang",
+      "elongation"
+    ],
+    "description": "Safe failure: handle mixed single/multiple Japanese internet slang w and English vowel elongation"
+  }
+]
