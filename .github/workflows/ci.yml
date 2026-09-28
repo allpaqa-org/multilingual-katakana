@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, "feature/**"]
   pull_request:
     branches: [main]
 
@@ -36,3 +36,24 @@ jobs:
 
       - name: Build Dual ESM/CJS Package
         run: bun run build
+
+  rust-check:
+    name: Rust Core (Test, Clippy & Fmt)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+
+      - name: Run Cargo Tests (100% pass required)
+        run: cargo test --all-targets
+
+      - name: Run Clippy (0 warnings required)
+        run: cargo clippy --all-targets -- -D warnings
+
+      - name: Check Rust formatting
+        run: cargo fmt --check

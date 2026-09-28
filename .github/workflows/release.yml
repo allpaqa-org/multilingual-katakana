@@ -1,0 +1,54 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+
+jobs:
+  draft-release:
+    name: Build Distribution & Create Draft Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Run Cargo Tests (100% pass required)
+        run: cargo test --all-targets
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: cd bindings/node && bun install
+
+      - name: Run Quality Gate
+        run: |
+          bun run test
+          bun run check
+          bun run check:complexity
+          bun run validate:spec
+
+      - name: Build Dual ESM/CJS Package
+        run: bun run build
+
+      - name: Pack npm tarball
+        run: |
+          mkdir -p dist && cd bindings/node && npm pack --pack-destination ../../dist
+
+      - name: Create Draft Release on GitHub
+        uses: softprops/action-gh-release@v2
+        with:
+          draft: true
+          files: dist/*.tgz
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
