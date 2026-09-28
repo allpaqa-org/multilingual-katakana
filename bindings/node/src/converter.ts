@@ -170,9 +170,15 @@ export function resolveWord(match: string, opts: KatakanaOptions): string {
     }
   }
 
-  // 6d. Fallback for slang, non-dictionary elongations (aaaaaaa), or Spanish
-  const preprocessed = spanishPreprocess(match);
-  return phonicsToKatakana(preprocessed);
+  // 6d. Fallback:
+  if (enableEnglish) {
+    const preprocessed = spanishPreprocess(match);
+    return phonicsToKatakana(preprocessed);
+  }
+  if (enableSpanish) {
+    return spanishPreprocess(match);
+  }
+  return match;
 }
 
 export class KatakanaConverter {

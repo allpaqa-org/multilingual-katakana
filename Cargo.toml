@@ -1,0 +1,5 @@
+[workspace]
+members = [
+    "crates/multilingual-katakana-core",
+]
+resolver = "2"
