@@ -26,9 +26,10 @@
     "tags": [
       "taiwan_slang",
       "twitch",
+      "streaming",
       "patron"
     ],
-    "description": "Convert Taiwan Twitch slang (安安, 實況主, 乾爹) and punctuation"
+    "description": "Convert Taiwan live stream slang (安安, 實況主, 乾爹) and punctuation"
   },
   {
     "id": "zh-taiwan-pronunciation-rubbish",

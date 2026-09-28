@@ -286,5 +286,171 @@
       "twitch"
     ],
     "description": "Convert gaming loanword 'streamer'"
+  },
+  {
+    "id": "en-irregular-doubt",
+    "language": "en",
+    "input": "doubt",
+    "expected": {
+      "canonical": "ダウト"
+    },
+    "category": "irregular_words",
+    "tags": [
+      "irregular",
+      "silent_letter",
+      "cmudict"
+    ],
+    "description": "Convert English irregular word 'doubt' with silent b to 'ダウト'"
+  },
+  {
+    "id": "en-irregular-island",
+    "language": "en",
+    "input": "island",
+    "expected": {
+      "canonical": "アイランド"
+    },
+    "category": "irregular_words",
+    "tags": [
+      "irregular",
+      "silent_letter",
+      "cmudict"
+    ],
+    "description": "Convert English irregular word 'island' with silent s to 'アイランド'"
+  },
+  {
+    "id": "en-gaming-cheer",
+    "language": "en",
+    "input": "cheer",
+    "expected": {
+      "canonical": "チアー"
+    },
+    "category": "gaming",
+    "tags": [
+      "gaming",
+      "twitch",
+      "loanwords"
+    ],
+    "description": "Convert Twitch cheer / gaming word 'cheer' to 'チアー'"
+  },
+  {
+    "id": "en-gaming-clutch",
+    "language": "en",
+    "input": "clutch",
+    "expected": {
+      "canonical": "クラッチ"
+    },
+    "category": "gaming",
+    "tags": [
+      "gaming",
+      "fps",
+      "loanwords"
+    ],
+    "description": "Convert gaming term 'clutch' to 'クラッチ'"
+  },
+  {
+    "id": "en-gaming-hype",
+    "language": "en",
+    "input": "hype",
+    "expected": {
+      "canonical": "ハイプ"
+    },
+    "category": "gaming",
+    "tags": [
+      "gaming",
+      "stream",
+      "loanwords"
+    ],
+    "description": "Convert stream gaming term 'hype' to 'ハイプ'"
+  },
+  {
+    "id": "en-gaming-nerf",
+    "language": "en",
+    "input": "nerf",
+    "expected": {
+      "canonical": "ナーフ"
+    },
+    "category": "gaming",
+    "tags": [
+      "gaming",
+      "balance",
+      "loanwords"
+    ],
+    "description": "Convert gaming balance term 'nerf' to 'ナーフ'"
+  },
+  {
+    "id": "en-platform-youtube",
+    "language": "en",
+    "input": "youtube",
+    "expected": {
+      "canonical": "ユーチューブ"
+    },
+    "category": "streaming",
+    "tags": [
+      "streaming",
+      "platform",
+      "loanwords"
+    ],
+    "description": "Convert streaming platform word 'youtube' to 'ユーチューブ'"
+  },
+  {
+    "id": "en-platform-discord",
+    "language": "en",
+    "input": "discord",
+    "expected": {
+      "canonical": "ディスコード"
+    },
+    "category": "streaming",
+    "tags": [
+      "streaming",
+      "platform",
+      "loanwords"
+    ],
+    "description": "Convert streaming community platform word 'discord' to 'ディスコード'"
+  },
+  {
+    "id": "en-platform-superchat",
+    "language": "en",
+    "input": "superchat",
+    "expected": {
+      "canonical": "スーパーチャット"
+    },
+    "category": "streaming",
+    "tags": [
+      "streaming",
+      "youtube",
+      "loanwords"
+    ],
+    "description": "Convert YouTube Live stream donation term 'superchat' to 'スーパーチャット'"
+  },
+  {
+    "id": "en-platform-vtuber",
+    "language": "en",
+    "input": "vtuber",
+    "expected": {
+      "canonical": "ブイチューバー"
+    },
+    "category": "streaming",
+    "tags": [
+      "streaming",
+      "vtuber",
+      "loanwords"
+    ],
+    "description": "Convert stream virtual creator term 'vtuber' to 'ブイチューバー'"
+  },
+  {
+    "id": "en-platform-collab",
+    "language": "en",
+    "input": "collab",
+    "expected": {
+      "canonical": "コラボ"
+    },
+    "category": "streaming",
+    "tags": [
+      "streaming",
+      "collab",
+      "slang",
+      "loanwords"
+    ],
+    "description": "Convert stream collaboration term 'collab' to 'コラボ'"
   }
 ]
