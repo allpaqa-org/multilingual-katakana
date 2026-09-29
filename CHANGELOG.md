@@ -67,13 +67,14 @@ Notable changes to this project are documented here.
 - Native/JS output parity is guaranteed at `spec/cases` conformance level,
   which already tolerates multiple valid pronunciations per input via each
   case's `expected.canonical` / `expected.accepted` fields (e.g. Cyrillic
-  and inverted-punctuation Spanish greetings). Outside of `spec/cases`, the
-  two independently-maintained pipelines may occasionally choose a different
-  (but still valid) phonetic rendering for the same input under uncommon
-  option-flag combinations; this is a pre-existing characteristic of having
-  two parallel implementations, not a regression introduced by the native
-  backend, and does not affect the Safe Kanji Guard / Safe Failure
-  guarantees.
+  and inverted-punctuation Spanish greetings). A small number of these
+  inputs (e.g. Cyrillic "досвидания" and inverted-punctuation Spanish
+  greetings) diverge even with default options: `auto` mode returns the
+  spec's `canonical` form when the native backend loads, and its `accepted`
+  alternative when only the JS pipeline runs. This is a pre-existing
+  characteristic of having two independently-maintained pipelines, not a
+  regression introduced by the native backend, and does not affect the
+  Safe Kanji Guard / Safe Failure guarantees.
 - This release ships the native backend **architecture** and Linux-CI /
   local-dev build support. Publishing per-platform npm packages
   (`optionalDependencies`, e.g. `@allpaqa/multilingual-katakana-darwin-arm64`)
