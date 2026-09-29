@@ -212,6 +212,10 @@ Want a runnable, zero-build starting point? See
 [**multilingual-katakana-samples**](https://github.com/allpaqa-org/multilingual-katakana-samples) —
 copy-pasteable scripts that just `npm install` and run.
 
+**Used in production by**
+[**twitch_text_to_speech_bot**](https://github.com/allpaqa-jgk/twitch_text_to_speech_bot) —
+a real-time Twitch chat-to-speech bot for anime-character voice streaming.
+
 ---
 
 ## ⚙️ Options Reference

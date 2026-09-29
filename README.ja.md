@@ -203,6 +203,10 @@ const output = converter.convert("hello VOICEVOX fan!");
 [**multilingual-katakana-samples**](https://github.com/allpaqa-org/multilingual-katakana-samples)
 をご覧ください。`npm install` するだけでそのまま実行できます。
 
+**実運用での採用事例**
+[**twitch_text_to_speech_bot**](https://github.com/allpaqa-jgk/twitch_text_to_speech_bot) —
+Twitchのコメントをアニメキャラクターボイスでリアルタイム読み上げするBot。
+
 ---
 
 ## ⚙️ オプション一覧 (Options)
