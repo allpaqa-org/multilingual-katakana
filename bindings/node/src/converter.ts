@@ -1,4 +1,4 @@
-import { getNativeBackend } from "./backend/loader";
+import { getNativeBackend } from "#native-backend";
 import { convertChinese } from "./languages/chinese";
 import { convertCyrillic } from "./languages/cyrillic";
 import { getEnglishWord, phonicsToKatakana } from "./languages/english";
@@ -39,6 +39,19 @@ interface MatchInterval {
   start: number;
   end: number;
   text: string;
+}
+
+// A high surrogate (U+D800-U+DBFF) not followed by a matching low surrogate,
+// or a low surrogate (U+DC00-U+DFFF) not preceded by a matching high
+// surrogate. Passing a string containing one of these to the native (Rust)
+// backend would silently replace it with U+FFFD when napi converts it to a
+// Rust `String` (Rust strings must be valid UTF-8/UTF-16), corrupting the
+// original text -- the pure-TypeScript pipeline preserves it byte-for-byte
+// instead, so inputs like this must always take the JS path.
+const LONE_SURROGATE = /[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:[^\uD800-\uDBFF]|^)[\uDC00-\uDFFF]/;
+
+function hasLoneSurrogate(text: string): boolean {
+  return LONE_SURROGATE.test(text);
 }
 
 function collectStringIntervals(text: string, str: string): MatchInterval[] {
@@ -230,9 +243,20 @@ export class KatakanaConverter {
 
     // Prefer the native (NAPI-RS) backend when available: it re-implements
     // this entire pipeline in Rust against the same spec/cases contract.
-    // Only attempt it when `resolveWord` has not been overridden by a
-    // subclass, since a native call would silently bypass that override.
-    if (this.resolveWord === KatakanaConverter.prototype.resolveWord) {
+    // Only attempt it when:
+    // - `resolveWord` has not been overridden by a subclass (a native call
+    //   would silently bypass that override),
+    // - `text` is actually a `string` (non-string input must keep throwing
+    //   the same `TypeError` the JS pipeline has always thrown, instead of
+    //   napi's own "failed to convert JS value" error), and
+    // - `text` contains no lone surrogates (napi/Rust would silently
+    //   replace them with U+FFFD, corrupting the original text; this
+    //   violates the project's Safe Failure principle).
+    if (
+      this.resolveWord === KatakanaConverter.prototype.resolveWord &&
+      typeof text === "string" &&
+      !hasLoneSurrogate(escaped)
+    ) {
       const native = getNativeBackend();
       if (native) {
         const nativeResult = native.toKatakanaNative(escaped, {

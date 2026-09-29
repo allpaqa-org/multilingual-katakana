@@ -8,6 +8,8 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
+      "types": "./dist/index.d.ts",
+      "browser": "./dist/index.browser.js",
       "import": {
         "types": "./dist/index.d.ts",
         "default": "./dist/index.js"
@@ -21,6 +23,12 @@
   "files": [
     "dist"
   ],
+  "imports": {
+    "#native-backend": {
+      "node": "./src/backend/loader.ts",
+      "default": "./src/backend/loader.browser.ts"
+    }
+  },
   "scripts": {
     "build": "tsup",
     "test": "bun test",

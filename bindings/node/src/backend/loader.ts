@@ -1,6 +1,18 @@
 import * as fs from "node:fs";
+import { createRequire } from "node:module";
 import * as os from "node:os";
 import * as path from "node:path";
+
+// `createRequire(import.meta.url)` is required (rather than the bare
+// `require` global) because tsup/esbuild's `shims: true` option only
+// provides `__dirname`/`__filename`-equivalent shims, not a `require`
+// global, in the ESM build output (`dist/index.js`). Without this, dynamic
+// `require()` calls compile to esbuild's `__require` helper, which throws
+// "Dynamic require ... is not supported" under real ESM, silently forcing
+// every ESM consumer onto the JS fallback. `import.meta.url` itself is
+// polyfilled correctly by the same `shims: true` option in the CJS output,
+// so this one expression resolves correctly in both build targets.
+const nodeRequire = createRequire(import.meta.url);
 
 /**
  * Shape of the exports from the NAPI-RS native addon
@@ -36,21 +48,34 @@ function platformArchTriple(): string | null {
 }
 
 /**
- * Walks up from `startDir` looking for a sibling `native/` directory. This
- * avoids hardcoding a relative path depth, which would otherwise differ
- * between running unbundled TypeScript sources (`src/backend/loader.ts`) and
- * the bundled `dist/index.{js,cjs}` output.
+ * Walks up from `startDir` looking for this package's own root (identified
+ * by a `package.json` whose `name` is `@allpaqa/multilingual-katakana`),
+ * then returns its `native/` subdirectory if present. Anchoring on the
+ * package's own manifest (rather than matching any directory literally
+ * named `native`) avoids accidentally resolving into an unrelated
+ * `node_modules/native` package or a consumer's own `native/` folder when
+ * this package is installed as a dependency.
  *
  * Uses `__dirname` (rather than `import.meta.url`) so this resolves
  * identically in both the ESM and CJS build outputs: tsup's `shims: true`
- * option provides a working `__dirname`/`require` in the ESM bundle, while
- * `import.meta` is unavailable in CommonJS output.
+ * option provides a working `__dirname` in both bundles, while `import.meta`
+ * is unavailable in CommonJS output.
  */
 function findNativeDir(startDir: string): string | null {
   let dir = startDir;
   for (let i = 0; i < 6; i++) {
-    const candidate = path.join(dir, "native");
-    if (fs.existsSync(candidate)) return candidate;
+    const pkgJsonPath = path.join(dir, "package.json");
+    if (fs.existsSync(pkgJsonPath)) {
+      try {
+        const pkg = JSON.parse(fs.readFileSync(pkgJsonPath, "utf8")) as { name?: string };
+        if (pkg.name === "@allpaqa/multilingual-katakana") {
+          const candidate = path.join(dir, "native");
+          return fs.existsSync(candidate) ? candidate : null;
+        }
+      } catch {
+        // Malformed package.json; keep walking up.
+      }
+    }
     const parent = path.dirname(dir);
     if (parent === dir) break;
     dir = parent;
@@ -75,7 +100,7 @@ function loadNativeModule(): NativeBackend | null {
 
   for (const candidate of candidates) {
     try {
-      const mod = require(candidate) as NativeBackend;
+      const mod = nodeRequire(candidate) as NativeBackend;
       if (typeof mod.toKatakanaNative === "function" && typeof mod.nativeSelfCheck === "function") {
         return mod;
       }

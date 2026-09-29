@@ -88,3 +88,39 @@ if (isNativeBackendAvailableForTests()) {
     });
   });
 }
+
+/**
+ * Regression coverage for a real js/native divergence found during v0.4.0
+ * review: with `enableEnglish: false`, the Rust core previously chained
+ * both Vietnamese and Spanish preprocessing unconditionally, corrupting
+ * plain English words (e.g. "hello" -> "heリャo") that the JS pipeline
+ * correctly left untouched. See crates/multilingual-katakana-core's
+ * `resolve_word` fallback, which now mirrors the JS if/else-if priority.
+ */
+if (isNativeBackendAvailableForTests()) {
+  describe("Backend parity: option-flag combinations", () => {
+    const optionCases: Array<{
+      input: string;
+      options: Parameters<typeof toKatakana>[1];
+    }> = [
+      { input: "hello", options: { enableEnglish: false } },
+      { input: "collab", options: { enableEnglish: false } },
+      { input: "hello", options: { enableVietnamese: false } },
+      { input: "hello", options: { enableSpanish: false } },
+    ];
+
+    for (const { input, options } of optionCases) {
+      test(`"${input}" with ${JSON.stringify(options)} matches across backends`, () => {
+        let jsResult = "";
+        let nativeResult = "";
+        withForcedBackend("js", () => {
+          jsResult = toKatakana(input, options);
+        });
+        withForcedBackend("native", () => {
+          nativeResult = toKatakana(input, options);
+        });
+        expect(nativeResult).toBe(jsResult);
+      });
+    }
+  });
+}
