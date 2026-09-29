@@ -32,18 +32,69 @@ function getBackendMode(): BackendMode {
 }
 
 /**
- * Maps the current Node.js platform/arch to the napi-rs platform-package
- * triple used for prebuilt binary distribution (matches the
- * `@allpaqa/multilingual-katakana-<triple>` optionalDependencies pattern).
+ * Detects whether the current Linux process is running against musl libc
+ * (e.g. Alpine) rather than glibc, without any runtime dependency (this
+ * mirrors the dependency-free detection used by napi-rs's own generated
+ * `bindings.js`, intentionally reimplemented here rather than pulling in
+ * the `detect-libc` package — see ADR-0005 / ADR-0006).
+ *
+ * `process.report` (available on all supported Node.js versions) reports
+ * `header.glibcVersionRuntime` only when linked against glibc, so its
+ * absence is a reliable glibc-vs-musl signal without shelling out. The
+ * `ldd` fallback only runs on the rare runtime that lacks `process.report`.
  */
-function platformArchTriple(): string | null {
-  const platform = os.platform();
-  const arch = os.arch();
+function isMusl(): boolean {
+  if (typeof process === "undefined" || typeof process.report?.getReport !== "function") {
+    try {
+      const lddPath = nodeRequire("node:child_process").execSync("which ldd").toString().trim();
+      return fs.readFileSync(lddPath, "utf8").includes("musl");
+    } catch {
+      return true;
+    }
+  }
+  try {
+    // `getReport()` is a heavyweight diagnostics API that can enumerate
+    // network/handle state; skip that work and guard against any runtime
+    // that fails to produce a report at all (sandboxed environments etc.)
+    // so a detection hiccup falls back safely instead of throwing out of
+    // every `toKatakana` call.
+    process.report.excludeNetwork = true;
+    const report = process.report.getReport() as { header?: { glibcVersionRuntime?: string } };
+    return !report.header?.glibcVersionRuntime;
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Resolves the `linux-<arch>-gnu`/`linux-<arch>-musl` triple for a given
+ * Linux arch. Split out of `platformArchTriple` purely to keep that
+ * function's cyclomatic complexity within the project's limit.
+ */
+function linuxTriple(arch: string): string | null {
+  if (arch !== "x64" && arch !== "arm64") return null;
+  return isMusl() ? `linux-${arch}-musl` : `linux-${arch}-gnu`;
+}
+
+/**
+ * Maps a Node.js platform/arch pair to the napi-rs platform-package triple
+ * used for prebuilt binary distribution (matches the
+ * `@allpaqa/multilingual-katakana-<triple>` optionalDependencies pattern).
+ * Covers all Tier 1 platforms from `docs/V0.4.0_BINDINGS_SCOPE.md` §5.2.
+ *
+ * Defaults to the real `os.platform()`/`os.arch()`; the parameters exist
+ * only so tests can exercise every branch (including musl detection)
+ * without needing to run on every target platform.
+ */
+function platformArchTriple(
+  platform: string = os.platform(),
+  arch: string = os.arch(),
+): string | null {
   if (platform === "darwin" && arch === "arm64") return "darwin-arm64";
   if (platform === "darwin" && arch === "x64") return "darwin-x64";
-  if (platform === "linux" && arch === "x64") return "linux-x64-gnu";
-  if (platform === "linux" && arch === "arm64") return "linux-arm64-gnu";
+  if (platform === "linux") return linuxTriple(arch);
   if (platform === "win32" && arch === "x64") return "win32-x64-msvc";
+  if (platform === "win32" && arch === "arm64") return "win32-arm64-msvc";
   return null;
 }
 
@@ -169,3 +220,10 @@ export function isNativeBackendAvailableForTests(): boolean {
     return false;
   }
 }
+
+/**
+ * Test-only re-export of the platform/arch-to-triple mapping (including
+ * musl detection) so all Tier 1 platform branches can be exercised without
+ * needing to actually run on every target OS/arch/libc combination.
+ */
+export const platformArchTripleForTests = platformArchTriple;

@@ -1,0 +1,100 @@
+name: Native Build Matrix (Tier 1)
+
+# Builds the NAPI-RS native addon for every Tier 1 platform listed in
+# docs/V0.4.0_BINDINGS_SCOPE.md §5.2, to verify buildability ahead of the
+# per-platform npm distribution work tracked in #15. This workflow only
+# builds and uploads artifacts for inspection/smoke-testing; it does not
+# publish anything to npm.
+on:
+  workflow_dispatch: {}
+  push:
+    tags: ["v*"]
+
+jobs:
+  build:
+    name: Build (${{ matrix.triple }})
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - triple: darwin-arm64
+            os: macos-14
+            target: aarch64-apple-darwin
+            lib-file: libmultilingual_katakana_node.dylib
+          - triple: darwin-x64
+            os: macos-15-intel
+            target: x86_64-apple-darwin
+            lib-file: libmultilingual_katakana_node.dylib
+          - triple: linux-x64-gnu
+            os: ubuntu-24.04
+            target: x86_64-unknown-linux-gnu
+            lib-file: libmultilingual_katakana_node.so
+          - triple: linux-arm64-gnu
+            os: ubuntu-24.04-arm
+            target: aarch64-unknown-linux-gnu
+            lib-file: libmultilingual_katakana_node.so
+          - triple: linux-x64-musl
+            os: ubuntu-24.04
+            target: x86_64-unknown-linux-musl
+            lib-file: libmultilingual_katakana_node.so
+            zigbuild: true
+          - triple: linux-arm64-musl
+            os: ubuntu-24.04
+            target: aarch64-unknown-linux-musl
+            lib-file: libmultilingual_katakana_node.so
+            zigbuild: true
+          - triple: win32-x64-msvc
+            os: windows-latest
+            target: x86_64-pc-windows-msvc
+            lib-file: multilingual_katakana_node.dll
+          - triple: win32-arm64-msvc
+            os: windows-11-arm
+            target: aarch64-pc-windows-msvc
+            lib-file: multilingual_katakana_node.dll
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Zig (musl cross-compilation only)
+        if: matrix.zigbuild
+        uses: korandoru/setup-zig@v1
+        with:
+          zig-version: "0.13.0"
+
+      - name: Install cargo-zigbuild (musl cross-compilation only)
+        if: matrix.zigbuild
+        run: cargo install cargo-zigbuild --locked
+
+      - name: Build (native target)
+        if: ${{ !matrix.zigbuild }}
+        run: cargo build --release -p multilingual-katakana-node --target ${{ matrix.target }}
+
+      - name: Build (cargo-zigbuild, musl cross-compilation)
+        if: matrix.zigbuild
+        # musl targets default to `crt-static` (fully static linking), which
+        # rustc refuses to combine with a cdylib/dylib output. napi-rs's own
+        # musl builds work around this the same way: disable crt-static so
+        # a dynamically-linked .node addon can be produced.
+        env:
+          RUSTFLAGS: "-C target-feature=-crt-static"
+        run: cargo zigbuild --release -p multilingual-katakana-node --target ${{ matrix.target }}
+
+      - name: Rename artifact to the loader's expected filename
+        shell: bash
+        run: |
+          mkdir -p dist-native
+          cp "target/${{ matrix.target }}/release/${{ matrix.lib-file }}" \
+            "dist-native/multilingual-katakana.${{ matrix.triple }}.node"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: multilingual-katakana.${{ matrix.triple }}.node
+          path: dist-native/multilingual-katakana.${{ matrix.triple }}.node
+          retention-days: 7
