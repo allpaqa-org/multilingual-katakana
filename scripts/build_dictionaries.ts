@@ -16,6 +16,10 @@ if (!fs.existsSync(nodeDictsDir)) {
 console.log("=== Building Dictionaries for bindings/node ===");
 
 // 1. Copy & format language dictionaries
+// Note: "chinese.json" (root dicts/) is intentionally excluded here — it is
+// only used as a source for generating chinese_data.json (see step below).
+// Copying it verbatim into bindings/node/src/dicts/ produced an unused file
+// (nothing imports chinese.json; chinese.ts imports chinese_data.json).
 const dictFiles = [
   "slang.json",
   "spanish.json",
@@ -24,7 +28,6 @@ const dictFiles = [
   "thai.json",
   "cyrillic.json",
   "korean.json",
-  "chinese.json",
 ];
 
 for (const file of dictFiles) {
