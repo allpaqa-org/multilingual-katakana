@@ -4,6 +4,8 @@ Notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.3.0] - 2026-09-30
+
 ### Added
 
 - Added French dictionary-based phrase and word conversion.

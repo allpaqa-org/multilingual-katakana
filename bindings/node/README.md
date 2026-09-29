@@ -194,7 +194,7 @@ bun run validate:spec
 
 - [x] **v0.1.0**: Zero-dependency TypeScript implementation (Dual ESM/CJS, PUA interval escaping, 10+ languages/slang).
 - [x] **v0.2.0**: Core Rust engine (`crates/multilingual-katakana-core`) as Single Source of Truth.
-- [ ] **v0.3.0**: Curated French and expanded Spanish dictionaries plus Vietnamese and Thai support. **Breaking change:** Rust `KatakanaOptions` gains public language flags; downstream full struct literals must add them or use `..Default::default()`.
+- [x] **v0.3.0**: Curated French and expanded Spanish dictionaries plus Vietnamese and Thai support. **Breaking change:** Rust `KatakanaOptions` gains public language flags; downstream full struct literals must add them or use `..Default::default()`.
 - [ ] **v0.4.0**: Native/polyglot bindings via NAPI-RS (Node.js native, WebAssembly, Python, and C#).
 
 ---

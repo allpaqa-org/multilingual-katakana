@@ -64,7 +64,7 @@ AI エージェントおよび開発者は本プロトコルに厳格に従っ�
 
 ```bash
 # --- TypeScript バインディング & リポジトリ共通検証 ---
-# 1. 単体テスト全件パス (124 tests PASS)
+# 1. 単体テスト全件パス
 bun run test
 
 # 2. Biome 静的解析・フォーマットチェック (0 errors, 0 warnings)
@@ -80,7 +80,7 @@ bun run validate:spec
 bun run build
 
 # --- Rust コア検証 ---
-# 6. Cargo テスト全件パス (100% PASS, 103 spec cases)
+# 6. Cargo テスト全件パス (100% PASS, 163 shared spec cases)
 cargo test --all-targets
 
 # 7. Clippy 静的解析 (0 warnings required)

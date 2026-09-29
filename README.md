@@ -250,7 +250,7 @@ See [Release Process Documentation](docs/RELEASE_PROCESS.md) for automated CI/CD
 
 - [x] **v0.1.0**: Zero-dependency TypeScript implementation (Dual ESM/CJS, PUA interval escaping, 10+ languages/slang).
 - [x] **v0.2.0**: Core Rust engine (`crates/multilingual-katakana-core`) as Single Source of Truth (<0.005ms latency, self-contained).
-- [ ] **v0.3.0**: Curated French and expanded Spanish dictionaries plus Vietnamese and Thai support. **Breaking change:** adding public language flags to Rust `KatakanaOptions` requires downstream struct-literal callers to add the new fields or use `..Default::default()`.
+- [x] **v0.3.0**: Curated French and expanded Spanish dictionaries plus Vietnamese and Thai support. **Breaking change:** adding public language flags to Rust `KatakanaOptions` requires downstream struct-literal callers to add the new fields or use `..Default::default()`.
 - [ ] **v0.4.0**: Native/polyglot bindings via NAPI-RS (Node.js native, WebAssembly, Python, and C#).
 
 ---
