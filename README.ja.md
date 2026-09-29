@@ -188,6 +188,10 @@ const output = converter.convert("hello VOICEVOX fan!");
 // => "ハロー VOICEVOX ファン！"
 ```
 
+すぐ動かせるビルド不要のサンプルが欲しい方は
+[**multilingual-katakana-samples**](https://github.com/allpaqa-org/multilingual-katakana-samples)
+をご覧ください。`npm install` するだけでそのまま実行できます。
+
 ---
 
 ## ⚙️ オプション一覧 (Options)
