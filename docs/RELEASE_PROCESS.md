@@ -1,100 +1,124 @@
-# リリース自動化 & プロトコル手順書 (Release Process)
+# Release Automation & Protocol (Release Process)
 
-本ドキュメントは、`multilingual-katakana` における完全自律型リリース自動化プロトコル（CI/CD、ドラフトリリース、AI によるリリースノート自律更新、npm 公開）の手順とルールを定めたものです。
-AI エージェントおよび開発者は本プロトコルに厳格に従ってリリース作業を実行してください。
-
----
-
-## 1. リリース理念 (Release Philosophy)
-
-1. **完全ゼロ依存 (Zero Dependencies)**
-   - 外部ランタイム依存を持たず、Pure TypeScript および Pure Rust による軽量・セキュア・決定論的動作を保証します。
-2. **品質検証ゲート 100% 遵守 (Quality Gate 100%)**
-   - CI およびローカル環境において、全単体テスト・Biome 静的解析・コード複雑度（CC <= 15）・仕様スキーマ検証・Rust Clippy/Fmt の全項目が 100% パスすることをリリースの絶対条件とします。
-3. **AI 自律更新プロトコル (`AGENTS.md` 第 5 項準拠)**
-   - GitHub Actions（`release.yml`）がドラフトを作成後、開発環境の AI コーディングエージェント（Antigravity / Gemini CLI 等）が `gh release edit` を自律実行してリリースノートを整形し、ユーザーへ Releases URL を案内する自律完結型リリース運用を行います。
+This document defines the fully autonomous release automation protocol
+(CI/CD, draft releases, AI-driven release-note authoring, and npm
+publishing) for `multilingual-katakana`.
+AI agents and developers must strictly follow this protocol when
+performing a release.
 
 ---
 
-## 2. リリース自動化アーキテクチャ概要
+## 1. Release Philosophy
+
+1. **Fully zero-dependency**
+   - No external runtime dependencies. Pure TypeScript and Pure Rust
+     guarantee lightweight, secure, deterministic behavior.
+2. **100% compliance with the quality gates**
+   - It is an absolute release requirement that, both in CI and locally,
+     all unit tests, Biome static analysis, code complexity (CC <= 15),
+     spec schema validation, and Rust Clippy/Fmt all pass at 100%.
+3. **AI autonomous update protocol (per `AGENTS.md` §5)**
+   - After GitHub Actions (`release.yml`) creates a draft release, an
+     AI coding agent in the development environment (Antigravity /
+     Gemini CLI, etc.) autonomously runs `gh release edit` to format the
+     release notes and hands the Releases URL back to the user — a
+     self-contained, autonomous release operation.
+
+---
+
+## 2. Release Automation Architecture Overview
 
 ```text
-[1. バージョン整合性更新 & ローカル事前検証]
-  - package.json (root), bindings/node/package.json, crates/multilingual-katakana-core/Cargo.toml の同期更新
-  - 品質ゲート（Bun + Cargo）全件グリーン確認
+[1. Sync version numbers & run local pre-release verification]
+  - Update package.json (root), bindings/node/package.json, and
+    crates/multilingual-katakana-core/Cargo.toml in lockstep
+  - Confirm every quality gate (Bun + Cargo) is fully green
        ↓
-[2. コミット & タグ作成 & push]
+[2. Commit, tag, and push]
   - git commit -am "chore(release): vX.Y.Z"
   - git tag vX.Y.Z
   - git push origin main --tags
        ↓
-[3. CD: release.yml 起動]
-  - GitHub Actions がトリガー (push: tags: ['v*'])
-  - 品質ゲート（verify-and-pack）通過後、Dual ESM/CJS ビルド & npm pack
-  - 最小権限ジョブ（draft-release）によりドラフトリリース (draft: true) を自動作成し、dist/*.tgz を添付
+[3. CD: release.yml triggers]
+  - GitHub Actions fires on push (tags: ['v*'])
+  - After the quality gate (verify-and-pack) passes, it builds dual
+    ESM/CJS bundles and runs npm pack
+  - A least-privilege job (draft-release) automatically creates a draft
+    release (draft: true) with dist/*.tgz attached
        ↓
-[4. AI によるリリースノート自律整形]
-  - GitHub Actions 完了後、開発環境の AI コーディングエージェント（Antigravity / Gemini CLI 等）が gh release edit を自律実行
-  - 変更内容・主な新機能・配布アセット一覧を整理した Markdown 本文へ更新し、ユーザーへ Releases URL を案内
+[4. AI autonomously drafts the release notes]
+  - Once GitHub Actions finishes, an AI coding agent in the development
+    environment (Antigravity / Gemini CLI, etc.) autonomously runs
+    gh release edit
+  - It rewrites the body into Markdown summarizing the changes, key new
+    features, and the list of distributed assets, then hands the
+    Releases URL back to the user
        ↓
-[5. ワンクリック公開 (Publish release)]
-  - ユーザーが GitHub Releases 画面で "Publish release" を 1 クリック
+[5. One-click publish]
+  - The user clicks "Publish release" once on the GitHub Releases page
        ↓
-[6. CD: publish.yml 起動 & 自動 npm publish]
-  - release (types: [published]) イベントにより起動
-  - Sigstore Provenance 付きで npm 公式レジストリへ @allpaqa/multilingual-katakana が公開完了
+[6. CD: publish.yml triggers & automatic npm publish]
+  - Triggered by the release (types: [published]) event
+  - @allpaqa/multilingual-katakana is published to the official npm
+    registry with Sigstore provenance attached
 ```
 
 ---
 
-## 3. バージョニング整合性ルール (Monorepo Versioning Rule)
+## 3. Monorepo Versioning Rule
 
-本リポジトリは TypeScript バインディングと Rust コアのモノレポ構造を採用しています。
-セマンティックバージョニング（SemVer）に従い、以下の **3 箇所のバージョン番号を必ず同一（例: `0.2.0`）に同期更新** してください：
+This repository is a monorepo containing the TypeScript bindings and the
+Rust core.
+Following Semantic Versioning (SemVer), the version number in the
+following **3 locations must always be kept in sync** (e.g. `0.2.0`):
 
-1. **ルート `package.json`**: `"version": "X.Y.Z"`
-2. **Node.js バインディング `bindings/node/package.json`**: `"version": "X.Y.Z"`
-3. **Rust コアクレート `crates/multilingual-katakana-core/Cargo.toml`**: `version = "X.Y.Z"`
+1. **Root `package.json`**: `"version": "X.Y.Z"`
+2. **Node.js bindings `bindings/node/package.json`**: `"version": "X.Y.Z"`
+3. **Rust core crate `crates/multilingual-katakana-core/Cargo.toml`**:
+   `version = "X.Y.Z"`
 
 ---
 
-## 4. 事前検証コマンド（品質検証ゲート）
+## 4. Pre-Release Verification Commands (Quality Gates)
 
-リリースタグを作成する前に、ローカル環境で以下の検証コマンドをすべて実行し、**全項目が 100% グリーン（0 errors, 0 warnings）** であることを確認します：
+Before creating a release tag, run all of the following verification
+commands locally and confirm that **every one is 100% green (0 errors,
+0 warnings)**:
 
 ```bash
-# --- TypeScript バインディング & リポジトリ共通検証 ---
-# 1. 単体テスト全件パス
+# --- TypeScript bindings & repo-wide checks ---
+# 1. All unit tests pass
 bun run test
 
-# 2. Biome 静的解析・フォーマットチェック (0 errors, 0 warnings)
+# 2. Biome static analysis / format check (0 errors, 0 warnings)
 bun run check:ci
 
-# 3. 循環的複雑度監査 (Cyclomatic Complexity <= 15)
+# 3. Cyclomatic complexity audit (CC <= 15)
 bun run check:complexity
 
-# 4. 言語仕様・辞書 JSON スキーマ検証 (Spec Schema PASS)
+# 4. Language spec / dictionary JSON schema validation (Spec Schema PASS)
 bun run validate:spec
 
-# 5. Dual ESM/CJS パッケージビルド (dist/ 出力検証)
+# 5. Dual ESM/CJS package build (verify dist/ output)
 bun run build
 
-# --- Rust コア検証 ---
-# 6. Cargo テスト全件パス (100% PASS, 163 shared spec cases)
+# --- Rust core checks ---
+# 6. All Cargo tests pass (100% PASS, 163 shared spec cases)
 cargo test --all-targets
 
-# 7. Clippy 静的解析 (0 warnings required)
+# 7. Clippy static analysis (0 warnings required)
 cargo clippy --all-targets -- -D warnings
 
-# 8. Rust コードフォーマット検証 (0 diffs required)
+# 8. Rust code format check (0 diffs required)
 cargo fmt --check
 ```
 
 ---
 
-## 5. タグ作成と push
+## 5. Creating and Pushing the Tag
 
-全検証をパスしたら、リリースコミットを作成し、バージョンタグを打ってリモートへ push します：
+Once all checks pass, create the release commit, cut a version tag, and
+push it to the remote:
 
 ```bash
 git commit -am "chore(release): vX.Y.Z"
@@ -104,29 +128,43 @@ git push origin main --tags
 
 ---
 
-## 6. ドラフトリリース自動作成と AI による自律更新
+## 6. Automatic Draft Release Creation & AI Autonomous Update
 
-1. **GitHub Actions (`.github/workflows/release.yml`) の自動実行**:
-   - `v*` タグの push を検知してワークフローが起動します。
-   - `verify-and-pack` ジョブ（読み取り権限）で Rust / Bun の品質ゲート（`bun run check:ci` 等）を検証し、Dual ESM/CJS ビルドおよび `npm pack` を実行してアーティファクトを生成。
-   - `draft-release` ジョブ（書き込み権限）で `dist/*.tgz` アセットを添付した **ドラフトリリース (`draft: true`)** を自動生成します。
+1. **`.github/workflows/release.yml` runs automatically**:
+   - The workflow triggers when a `v*` tag is pushed.
+   - The `verify-and-pack` job (read-only permissions) verifies the
+     Rust / Bun quality gates (`bun run check:ci`, etc.), then builds
+     dual ESM/CJS bundles and runs `npm pack` to produce artifacts.
+   - The `draft-release` job (write permissions) automatically creates a
+     **draft release (`draft: true`)** with the `dist/*.tgz` asset
+     attached.
 
-2. **AI によるリリースノート自律更新 (`AGENTS.md` 第 5 項)**:
-   - GitHub Actions（`release.yml`）がドラフトを作成後、開発環境の AI コーディングエージェント（Antigravity / Gemini CLI 等）が `gh release edit` を自律実行してリリースノートを最新の変更点・新機能・アセット情報を含むリッチな Markdown に整形し、ユーザーへ Releases URL を案内します：
+2. **AI autonomously updates the release notes (`AGENTS.md` §5)**:
+   - After GitHub Actions (`release.yml`) creates the draft, an AI coding
+     agent in the development environment (Antigravity / Gemini CLI,
+     etc.) autonomously runs `gh release edit` to rewrite the release
+     notes into rich Markdown covering the latest changes, key new
+     features, and asset information, then hands the Releases URL back
+     to the user:
    ```bash
    gh release edit vX.Y.Z \
-     --title "vX.Y.Z: <リリース概要タイトル>" \
-     --notes "<詳細な変更点・主な新機能・配布アセット一覧>"
+     --title "vX.Y.Z: <Release summary title>" \
+     --notes "<Detailed changes, key new features, list of distributed assets>"
    ```
 
 ---
 
-## 7. ワンクリック公開と自動 npm publish
+## 7. One-Click Publish & Automatic npm Publish
 
-1. **ワンクリック公開**:
-   - リリースノート更新完了後、AI からユーザーへ GitHub Releases の URL が案内されます。
-   - ユーザーは内容を確認し、GitHub 画面上の **「Publish release」** ボタンを 1 クリックします。
+1. **One-click publish**:
+   - Once the release notes are updated, the AI hands the GitHub
+     Releases URL back to the user.
+   - The user reviews the content and clicks **"Publish release"** once
+     on the GitHub UI.
 
-2. **自動 npm publish (`.github/workflows/publish.yml`)**:
-   - リリースが公開（published）されると、`.github/workflows/publish.yml` が自動起動します。
-   - OIDC トークンによる Sigstore 真正性証明書（Provenance）付きで、公式 npm レジストリへ `@allpaqa/multilingual-katakana` が安全に公開されます。
+2. **Automatic npm publish (`.github/workflows/publish.yml`)**:
+   - Once the release is published, `.github/workflows/publish.yml`
+     triggers automatically.
+   - `@allpaqa/multilingual-katakana` is safely published to the
+     official npm registry, with Sigstore provenance attached via an
+     OIDC token.
