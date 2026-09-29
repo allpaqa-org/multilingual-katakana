@@ -11,10 +11,10 @@ permissions:
 jobs:
   verify-and-pack:
     name: Verify Quality Gates & Build Tarball
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -53,7 +53,7 @@ jobs:
           mkdir -p dist && cd bindings/node && npm pack --pack-destination ../../dist
 
       - name: Upload Tarball Artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: npm-tarball
           path: dist/*.tgz
@@ -62,18 +62,18 @@ jobs:
   draft-release:
     name: Create Draft Release on GitHub
     needs: verify-and-pack
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     permissions:
       contents: write
     steps:
       - name: Download Tarball Artifact
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v8
         with:
           name: npm-tarball
           path: dist
 
       - name: Create Draft Release on GitHub
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           draft: true
           files: dist/*.tgz
