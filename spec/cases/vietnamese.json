@@ -1,0 +1,169 @@
+[
+  {
+    "id": "vi-greeting-xin-chao",
+    "language": "vi",
+    "input": "xin chào",
+    "expected": {
+      "canonical": "シンチャオ"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "vietnamese",
+      "multiword"
+    ],
+    "description": "Convert Vietnamese greeting 'xin chào'"
+  },
+  {
+    "id": "vi-greeting-xin-chao-capitalized",
+    "language": "vi",
+    "input": "Xin Chào",
+    "expected": {
+      "canonical": "シンチャオ"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "vietnamese",
+      "multiword",
+      "case_insensitive"
+    ],
+    "description": "Convert capitalized Vietnamese greeting 'Xin Chào'"
+  },
+  {
+    "id": "vi-thanks-cam-on",
+    "language": "vi",
+    "input": "cảm ơn",
+    "expected": {
+      "canonical": "カムオン"
+    },
+    "category": "thanks",
+    "tags": [
+      "thanks",
+      "vietnamese",
+      "multiword",
+      "tone_marks"
+    ],
+    "description": "Convert Vietnamese thanks phrase 'cảm ơn' with tone marks"
+  },
+  {
+    "id": "vi-address-chao-ban",
+    "language": "vi",
+    "input": "chào bạn",
+    "expected": {
+      "canonical": "チャオバン"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "vietnamese",
+      "word_dict"
+    ],
+    "description": "Convert two separate Vietnamese dictionary words 'chào' and 'bạn'"
+  },
+  {
+    "id": "vi-love-anh-yeu-em",
+    "language": "vi",
+    "input": "anh yêu em",
+    "expected": {
+      "canonical": "アインイエウエム"
+    },
+    "category": "affection",
+    "tags": [
+      "affection",
+      "vietnamese",
+      "word_dict"
+    ],
+    "description": "Convert Vietnamese phrase 'anh yêu em' (I love you)"
+  },
+  {
+    "id": "vi-honorific-tro-oi",
+    "language": "vi",
+    "input": "trời ơi",
+    "expected": {
+      "canonical": "チョイオイ"
+    },
+    "category": "exclamations",
+    "tags": [
+      "exclamations",
+      "vietnamese",
+      "digraph_tr"
+    ],
+    "description": "Convert Vietnamese exclamation 'trời ơi' with 'tr' digraph phrase entry"
+  },
+  {
+    "id": "vi-digraph-nh-fallback",
+    "language": "vi",
+    "input": "nhé",
+    "expected": {
+      "canonical": "ニェ"
+    },
+    "category": "fallback",
+    "tags": [
+      "fallback",
+      "vietnamese",
+      "digraph_nh"
+    ],
+    "description": "Convert unlisted Vietnamese word 'nhé' via 'nh' digraph preprocessing and phonics fallback"
+  },
+  {
+    "id": "vi-tone-marked-digraph-vowels",
+    "language": "vi",
+    "input": "nhà giá trẻ",
+    "expected": {
+      "canonical": "ニャジャチェ"
+    },
+    "category": "fallback",
+    "tags": [
+      "vietnamese",
+      "tone_marks",
+      "digraphs"
+    ],
+    "description": "Normalize tone-marked vowels before applying Vietnamese nh, gi, and tr digraph mappings"
+  },
+  {
+    "id": "vi-mixed-english-stream",
+    "language": "vi",
+    "input": "xin chào stream",
+    "expected": {
+      "canonical": "シンチャオストリーム"
+    },
+    "category": "mixed",
+    "tags": [
+      "mixed",
+      "vietnamese",
+      "english"
+    ],
+    "description": "Convert mixed Vietnamese greeting and English streaming word"
+  },
+  {
+    "id": "vi-word-vai-tilde",
+    "language": "vi",
+    "input": "vãi",
+    "expected": {
+      "canonical": "ヴァーイ"
+    },
+    "category": "slang",
+    "tags": [
+      "slang",
+      "vietnamese",
+      "tilde_tone"
+    ],
+    "description": "Convert Vietnamese slang word 'vãi' with tilde (ngã) tone mark"
+  },
+  {
+    "id": "vi-farewell-hen-gap-lai",
+    "language": "vi",
+    "input": "hẹn gặp lại",
+    "expected": {
+      "canonical": "ヘンガプライ"
+    },
+    "category": "farewell",
+    "tags": [
+      "farewell",
+      "vietnamese",
+      "multiword"
+    ],
+    "description": "Convert Vietnamese farewell phrase 'hẹn gặp lại' (see you later)"
+  }
+]

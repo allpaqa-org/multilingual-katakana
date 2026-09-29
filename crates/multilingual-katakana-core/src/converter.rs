@@ -6,15 +6,21 @@ use crate::languages::{
     chinese::convert_chinese,
     cyrillic::convert_cyrillic,
     english::{get_english_word, phonics_to_katakana},
+    french::{get_french_word, replace_french_phrases},
     korean::convert_korean,
     slang::{get_slang_word, replace_slang_phrases},
     spanish::{get_spanish_word, replace_spanish_phrases, spanish_preprocess},
+    thai::convert_thai,
+    vietnamese::{get_vietnamese_word, replace_vietnamese_phrases, vietnamese_preprocess},
 };
 use crate::normalizers::normalize_prosody;
 use crate::types::{ExcludePattern, KatakanaOptions};
 
 static WORD_REGEX: LazyLock<Regex> = LazyLock::new(|| {
-    Regex::new(r"(?i)[a-zñáéíóúüäößàâèêëîïôûùç]+('[a-z]+)?").expect("Valid regex")
+    Regex::new(
+        r"(?i)[a-zñáéíóúüäößàâèêëîïôûùçãõìòœæ\u{0110}\u{0111}\u{1EA0}-\u{1EF9}\u{0102}\u{0103}\u{01A0}\u{01A1}\u{01AF}\u{01B0}]+('[a-z]+)?",
+    )
+    .expect("Valid regex")
 });
 
 #[derive(Debug, Clone)]
@@ -136,7 +142,8 @@ pub fn restore_excluded(text: &str, token_map: &BTreeMap<char, String>) -> Strin
     result
 }
 
-/// Resolves a single word via slang, Spanish, English word dictionary, or phonics fallback.
+/// Resolves a single word via slang, Spanish/Vietnamese dictionaries, English word
+/// dictionary, or phonics fallback.
 pub fn resolve_word(word: &str, opts: &KatakanaOptions) -> String {
     let lower = word.to_lowercase();
 
@@ -147,29 +154,51 @@ pub fn resolve_word(word: &str, opts: &KatakanaOptions) -> String {
         }
     }
 
-    // 2. Check common Spanish words (hola, amigo, gracias, etc.)
+    if opts.enable_french {
+        if let Some(french) = get_french_word(&lower) {
+            return french.to_string();
+        }
+    }
+
+    // 2. Check common Vietnamese words (chào, cảm ơn, bạn, etc.)
+    if opts.enable_vietnamese {
+        if let Some(vietnamese) = get_vietnamese_word(&lower) {
+            return vietnamese.to_string();
+        }
+    }
+
+    // 3. Check common Spanish words (hola, amigo, gracias, etc.)
     if opts.enable_spanish {
         if let Some(spanish) = get_spanish_word(&lower) {
             return spanish.to_string();
         }
     }
 
-    // 3. Check English words dictionary (from CMU dict pre-conversion)
+    // 4. Check English words dictionary (from CMU dict pre-conversion)
     if opts.enable_english {
         if let Some(english) = get_english_word(&lower) {
             return english.to_string();
         }
     }
 
-    // 4. Fallback:
-    // If English is enabled, run Spanish preprocess + phonics fallback
-    // If only Spanish is enabled, run Spanish preprocess
-    // Otherwise return original word
+    // 5. Fallback: apply enabled language-specific preprocessing (Vietnamese
+    // digraphs/tones, then Spanish digraphs/accents), followed by English phonics
+    // if enabled.
+    let mut preprocessed = word.to_string();
+    let mut any_preprocess = false;
+    if opts.enable_vietnamese {
+        preprocessed = vietnamese_preprocess(&preprocessed);
+        any_preprocess = true;
+    }
+    if opts.enable_spanish {
+        preprocessed = spanish_preprocess(&preprocessed);
+        any_preprocess = true;
+    }
+
     if opts.enable_english {
-        let preprocessed = spanish_preprocess(word);
         phonics_to_katakana(&preprocessed)
-    } else if opts.enable_spanish {
-        spanish_preprocess(word)
+    } else if any_preprocess {
+        preprocessed
     } else {
         word.to_string()
     }
@@ -218,9 +247,24 @@ impl KatakanaConverter {
             result = convert_chinese(&result);
         }
 
-        // 5. Spanish multi-word phrases
+        // 4b. Thai script (phrase dictionary + conservative syllable decomposition)
+        if opts.enable_thai {
+            result = convert_thai(&result);
+        }
+
+        // 5. French dictionary phrases
+        if opts.enable_french {
+            result = replace_french_phrases(&result);
+        }
+
+        // 6. Spanish multi-word phrases
         if opts.enable_spanish {
             result = replace_spanish_phrases(&result);
+        }
+
+        // 5b. Vietnamese multi-word phrases
+        if opts.enable_vietnamese {
+            result = replace_vietnamese_phrases(&result);
         }
 
         // 6. Slang multi-word phrases
@@ -228,8 +272,13 @@ impl KatakanaConverter {
             result = replace_slang_phrases(&result);
         }
 
-        // 7. Word-level conversion (Slang -> Spanish -> English words -> Phonics fallback)
-        if opts.enable_english || opts.enable_slang || opts.enable_spanish {
+        // 7. Word-level conversion (Slang -> Vietnamese -> Spanish -> English words -> Phonics fallback)
+        if opts.enable_english
+            || opts.enable_slang
+            || opts.enable_spanish
+            || opts.enable_french
+            || opts.enable_vietnamese
+        {
             result = WORD_REGEX
                 .replace_all(&result, |caps: &regex::Captures| {
                     resolve_word(&caps[0], opts)

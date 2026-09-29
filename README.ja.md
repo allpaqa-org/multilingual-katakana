@@ -9,7 +9,7 @@
 [![CI](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml/badge.svg)](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](package.json)
-[![Tests: 100%](https://img.shields.io/badge/tests-124%20passed-brightgreen.svg)](spec/cases/)
+[![Tests: 100%](https://img.shields.io/badge/tests-163%20passed-brightgreen.svg)](spec/cases/)
 [![Complexity: CC<=15](https://img.shields.io/badge/complexity-CC%20%3C%3D%2015-success.svg)](scripts/check_complexity.ts)
 
 ---
@@ -26,6 +26,9 @@
    - **韓国語**: ハングル音節の数学的分解（初声×588 ＋ 中声×28 ＋ 終声）＋ 連音化 ＋ 配信スラング
    - **ロシア語（キリル文字）**: 発音規則に基づく音素マッピング
    - **スペイン語**: 特殊文字（ñ, ll, rr）、アクセント記号、倒置疑問符/感嘆符（¡, ¿）の正規化
+   - **フランス語**: リエゾンや語末の黙字を含む、フランス語固有性の高い単語・定型句辞書
+   - **ベトナム語**: 声調記号の正規化、フレーズ・単語辞書、二重字の処理
+   - **タイ語**: フレーズ辞書と保守的な開音節変換。曖昧な閉音節は原文を維持
    - **配信スラング**: 各種配信プラットフォーム（YouTube Live, Twitch, Kick, Discord 等）やゲーム特有の用語・略語（`gg`, `gg wp`, `ez`, `pog`, `poggers`, `kekw`, `afk`, `brb`, `lol`, `w`, `ww`, `草`）
 4. **🛡️ 日本語漢字保護 (Safe Kanji Guard)**:
    - 日本語の純粋な漢字（`了解`, `初見歓迎`, `神回`, `配信開始`, `感謝`, `最高`, `優勝` 等）を中国語ピンインと絶対に誤判定しない安全設計。
@@ -43,7 +46,7 @@
 > **「ライブ配信において、発音が多少不格好なのは許容されるが、コメントを消す・URLを破壊する・TTSの読み上げを停止させることは致命的である。」**
 
 `multilingual-katakana` は、以下の **Safe Failure** 原則を絶対契約として遵守します：
-- **変換不能 ➔ 原文をそのまま維持**: 対応外の言語（アラビア文字、タイ文字、グルジア文字等）や未知の記号・絵文字が混在しても、**絶対にテキストを消去・欠落させません**。原文をそのまま残し、TTSエンジンやフォールバック読み上げに委ねます。
+- **変換不能 ➔ 原文をそのまま維持**: 対応外の言語（アラビア文字、デーヴァナーガリー文字、グルジア文字等）や未知の記号・絵文字が混在しても、**絶対にテキストを消去・欠落させません**。原文をそのまま残し、TTSエンジンやフォールバック読み上げに委ねます。
 - **日本語領域の絶対保護**: 平仮名・片仮名および配信で頻出する漢字（`初見歓迎`, `神回`, `了解` 等）を、外国語として誤爆変換することは絶対にありません。
 - **オプションの厳格なスコープ**: 英語を無効（`enableEnglish: false`）にした場合、未知語がフォニックス（英語音声学）で誤って変形されるのを防ぎます。
 
@@ -133,6 +136,10 @@ console.log(toKatakana("¡Hola amigo! Muchas gracias señor"));
 console.log(toKatakana("Привет, как дела? Спасибо!"));
 // => "プリヴィエト、カクジェラ？スパシーバ！"
 
+// ベトナム語・タイ語
+console.log(toKatakana("xin chào! สวัสดีครับ"));
+// => "シンチャオ！サワッディークラップ"
+
 // 中国語 & Safe Kanji Guard（日本語の漢字はピンイン化されず保護されます）
 console.log(toKatakana("初見歓迎！ 886 谢谢大家"));
 // => "初見歓迎！ バイバイ シェシェダージャー"
@@ -193,6 +200,9 @@ const output = converter.convert("hello VOICEVOX fan!");
 | `enableKorean` | `boolean` | `true` | ハングル音節数学的分解・慣用句変換の有効化 |
 | `enableCyrillic` | `boolean` | `true` | ロシア語キリル文字音素マッピングの有効化 |
 | `enableSpanish` | `boolean` | `true` | スペイン語挨拶・特殊文字変換の有効化 |
+| `enableFrench` | `boolean` | `true` | フランス語固有性の高い単語・フレーズ辞書の有効化（未登録語は通常のフォールバック） |
+| `enableVietnamese` | `boolean` | `true` | ベトナム語フレーズ・単語辞書と声調記号処理の有効化 |
+| `enableThai` | `boolean` | `true` | タイ語フレーズ辞書・保守的な音節変換の有効化（曖昧な閉音節は原文維持） |
 | `enableSlang` | `boolean` | `true` | 配信・ゲームスラング（gg, w, pog等）変換の有効化 |
 | `normalizeProsody` | `boolean` | `true` | カタカナ間の空白自動除去・約物正規化の有効化 |
 
@@ -203,9 +213,9 @@ const output = converter.convert("hello VOICEVOX fan!");
 本リポジトリは、言語中立なテスト仕様契約（**Spec-Driven Development**）に基づいて設計されています。
 
 - **仕様契約 (`spec/cases/*.json`)**:
-  9 スイート（英語、中国語、韓国語、ロシア語、スペイン語、スラング、漢字保護、プロソディ、複合コメント）に及ぶ全テストケースが JSON で定義されており、TypeScript 版および将来の Rust コアで同一のテストを 100% パスします。
+  12 スイート（英語、中国語、韓国語、ロシア語、スペイン語、ベトナム語、タイ語、スラング、漢字保護、プロソディ、複合コメント、失敗モード）に及ぶ全テストケースが JSON で定義されており、TypeScript 版と Rust コアで同一のテストを 100% パスします。
 - **品質基準 (Quality Gates)**:
-  - ✅ **テスト全件パス**: 124 件のテストが 100% 成功（約 100ms）
+  - ✅ **テスト全件パス**: TypeScript・Rust 共通の仕様テスト163件がすべて成功
   - ✅ **静的解析**: Biome による 0 errors, 0 warnings
   - ✅ **コード複雑度**: 全関数が **CC（Cyclomatic Complexity） <= 15**、Cognitive Complexity <= 15 を厳守
   - ✅ **超高速 Rust コア**: `crates/multilingual-katakana-core` にて平均 **3.38 µs** / 秒間約30万フレーズの圧倒的性能
@@ -231,7 +241,8 @@ CI/CD 自動化や配布プロトコルについては [リリース手順書 (d
 
 - [x] **v0.1.0**: TypeScript ゼロ依存実装（Dual ESM/CJS, PUA エスケープ保護, 10+言語/スラング対応）
 - [x] **v0.2.0**: Core ロジックの Rust 化（`crates/multilingual-katakana-core` による Single Source of Truth 化、<0.005ms、完全自己完結）
-- [ ] **v0.3.0**: 多言語バインディング展開（NAPI-RS による Node ネイティブ、WASM、Python、C#）
+- [ ] **v0.3.0**: フランス語辞書・スペイン語辞書拡充とベトナム語・タイ語対応。**破壊的変更:** Rust の公開構造体 `KatakanaOptions` に言語フラグを追加するため、全フィールドを指定する既存の構造体リテラルには新フィールドの追加が必要です（または `..Default::default()` を使用）。
+- [ ] **v0.4.0**: NAPI-RS によるネイティブ／多言語バインディング展開（Node.js ネイティブ、WASM、Python、C#）
 
 ---
 

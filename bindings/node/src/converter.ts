@@ -1,9 +1,16 @@
 import { convertChinese } from "./languages/chinese";
 import { convertCyrillic } from "./languages/cyrillic";
 import { getEnglishWord, phonicsToKatakana } from "./languages/english";
+import { getFrenchWord, replaceFrenchPhrases } from "./languages/french";
 import { convertKorean } from "./languages/korean";
 import { getSlangWord, replaceSlangPhrases } from "./languages/slang";
 import { getSpanishWord, replaceSpanishPhrases, spanishPreprocess } from "./languages/spanish";
+import { convertThai } from "./languages/thai";
+import {
+  getVietnameseWord,
+  replaceVietnamesePhrases,
+  vietnamesePreprocess,
+} from "./languages/vietnamese";
 import { normalizeProsody } from "./normalizers/prosody";
 import type { KatakanaOptions } from "./types";
 
@@ -17,6 +24,9 @@ function resolveOptions(
     enableKorean: opts.enableKorean ?? true,
     enableChinese: opts.enableChinese ?? true,
     enableSpanish: opts.enableSpanish ?? true,
+    enableFrench: opts.enableFrench ?? true,
+    enableVietnamese: opts.enableVietnamese ?? true,
+    enableThai: opts.enableThai ?? true,
     enableSlang: opts.enableSlang ?? true,
     enableEnglish: opts.enableEnglish ?? true,
     normalizeProsody: opts.normalizeProsody ?? true,
@@ -142,43 +152,66 @@ export function restoreExcluded(
 
 export function resolveWord(match: string, opts: KatakanaOptions): string {
   const enableSpanish = opts.enableSpanish ?? true;
+  const enableFrench = opts.enableFrench ?? true;
+  const enableVietnamese = opts.enableVietnamese ?? true;
   const enableSlang = opts.enableSlang ?? true;
   const enableEnglish = opts.enableEnglish ?? true;
   const lower = match.toLowerCase();
 
-  // 6a. Check special slang first (gg, ez, w, etc.)
-  if (enableSlang) {
-    const slang = getSlangWord(lower);
-    if (slang !== undefined) {
-      return slang;
-    }
+  const dictionaryResult = resolveDictionaryWord(lower, {
+    enableSlang,
+    enableFrench,
+    enableVietnamese,
+    enableSpanish,
+    enableEnglish,
+  });
+  if (dictionaryResult !== undefined) {
+    return dictionaryResult;
   }
 
-  // 6b. Check common Spanish words (hola, amigo, gracias, etc.)
-  if (enableSpanish) {
-    const spanish = getSpanishWord(lower);
-    if (spanish !== undefined) {
-      return spanish;
-    }
-  }
-
-  // 6c. Check English words dictionary (from CMU dict pre-conversion)
   if (enableEnglish) {
-    const english = getEnglishWord(lower);
-    if (english !== undefined) {
-      return english;
-    }
-  }
-
-  // 6d. Fallback:
-  if (enableEnglish) {
-    const preprocessed = spanishPreprocess(match);
+    const vietnameseProcessed = enableVietnamese ? vietnamesePreprocess(match) : match;
+    const preprocessed = enableSpanish
+      ? spanishPreprocess(vietnameseProcessed)
+      : vietnameseProcessed;
     return phonicsToKatakana(preprocessed);
+  }
+  if (enableVietnamese) {
+    return vietnamesePreprocess(match);
   }
   if (enableSpanish) {
     return spanishPreprocess(match);
   }
   return match;
+}
+
+function resolveDictionaryWord(
+  word: string,
+  flags: {
+    enableSlang: boolean;
+    enableFrench: boolean;
+    enableVietnamese: boolean;
+    enableSpanish: boolean;
+    enableEnglish: boolean;
+  },
+): string | undefined {
+  if (flags.enableSlang) {
+    const slang = getSlangWord(word);
+    if (slang !== undefined) return slang;
+  }
+  if (flags.enableFrench) {
+    const french = getFrenchWord(word);
+    if (french !== undefined) return french;
+  }
+  if (flags.enableVietnamese) {
+    const vietnamese = getVietnameseWord(word);
+    if (vietnamese !== undefined) return vietnamese;
+  }
+  if (flags.enableSpanish) {
+    const spanish = getSpanishWord(word);
+    if (spanish !== undefined) return spanish;
+  }
+  return flags.enableEnglish ? getEnglishWord(word) : undefined;
 }
 
 export class KatakanaConverter {
@@ -212,9 +245,24 @@ export class KatakanaConverter {
       result = convertChinese(result);
     }
 
-    // 5. Spanish multi-word phrases
+    // 4. Thai phrase dictionary and conservative syllable fallback
+    if (opts.enableThai) {
+      result = convertThai(result);
+    }
+
+    // 5. French dictionary phrases
+    if (opts.enableFrench) {
+      result = replaceFrenchPhrases(result);
+    }
+
+    // 6. Spanish multi-word phrases
     if (opts.enableSpanish) {
       result = replaceSpanishPhrases(result);
+    }
+
+    // 5b. Vietnamese multi-word phrases
+    if (opts.enableVietnamese) {
+      result = replaceVietnamesePhrases(result);
     }
 
     // 6. Slang multi-word phrases
@@ -223,9 +271,15 @@ export class KatakanaConverter {
     }
 
     // 7. Word-level conversion (Slang -> Spanish -> English words -> Phonics fallback)
-    if (opts.enableEnglish || opts.enableSlang || opts.enableSpanish) {
+    if (
+      opts.enableEnglish ||
+      opts.enableSlang ||
+      opts.enableSpanish ||
+      opts.enableFrench ||
+      opts.enableVietnamese
+    ) {
       result = result.replace(
-        /[A-Za-zñáéíóúüäößàâèêëîïôûùçÑÁÉÍÓÚÜÄÖÀÂÈÊËÎÏÔÛÙÇ]+('[A-Za-z]+)?/g,
+        /[A-Za-zñáéíóúüäößàâèêëîïôûùçœæãõìòăđĩũơư\u1ea0-\u1ef9\u0102\u0103\u0110\u0111\u0128\u0129\u0168\u0169\u01a0\u01a1\u01af\u01b0ÑÁÉÍÓÚÜÄÖÀÂÈÊËÎÏÔÛÙÇŒÆÃÕÌÒĂĐĨŨƠƯ]+('[A-Za-z]+)?/g,
         (match) => this.resolveWord(match, opts),
       );
     }

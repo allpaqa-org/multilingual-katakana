@@ -15,10 +15,13 @@ if (!fs.existsSync(nodeDictsDir)) {
 
 console.log("=== Building Dictionaries for bindings/node ===");
 
-// 1. Copy & format existing dicts (slang, spanish, cyrillic, korean, chinese)
+// 1. Copy & format language dictionaries
 const dictFiles = [
   "slang.json",
   "spanish.json",
+  "french.json",
+  "vietnamese.json",
+  "thai.json",
   "cyrillic.json",
   "korean.json",
   "chinese.json",
@@ -51,7 +54,7 @@ for (const file of caseFiles) {
     // Extract Latin words / contractions
     const wordMatches =
       normalized.match(
-        /[A-Za-zñáéíóúüäößàâèêëîïôûùçÑÁÉÍÓÚÜÄÖÀÂÈÊËÎÏÔÛÙÇ]+('[A-Za-z]+)?/g
+        /[A-Za-zñáéíóúüäößàâèêëîïôûùçœæãõìòăđĩũơư\u1ea0-\u1ef9\u0102\u0103\u0110\u0111\u0128\u0129\u0168\u0169\u01a0\u01a1\u01af\u01b0ÑÁÉÍÓÚÜÄÖÀÂÈÊËÎÏÔÛÙÇŒÆÃÕÌÒĂĐĨŨƠƯ]+('[A-Za-z]+)?/g
       ) || [];
     for (const w of wordMatches) {
       specWords.add(w.toLowerCase());

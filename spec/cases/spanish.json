@@ -137,5 +137,107 @@
       "spanish"
     ],
     "description": "Convert Spanish farewell 'adios'"
+  },
+  {
+    "id": "es-farewell-hasta-luego",
+    "language": "es",
+    "input": "¡Hasta luego!",
+    "expected": {
+      "canonical": "アスタルエゴ！"
+    },
+    "category": "farewell",
+    "tags": [
+      "spanish",
+      "phrase_dictionary"
+    ],
+    "description": "Convert a common Spanish farewell"
+  },
+  {
+    "id": "es-thanks-for-stream",
+    "language": "es",
+    "input": "Gracias por el stream",
+    "expected": {
+      "canonical": "グラシアスポレルストリーム"
+    },
+    "category": "streaming",
+    "tags": [
+      "spanish",
+      "phrase_dictionary",
+      "mixed"
+    ],
+    "description": "Convert a Spanish thank-you phrase containing the English loanword stream"
+  },
+  {
+    "id": "es-question-que-tal",
+    "language": "es",
+    "input": "¿Qué tal?",
+    "expected": {
+      "canonical": "ケタル？"
+    },
+    "category": "greetings",
+    "tags": [
+      "spanish",
+      "phrase_dictionary",
+      "punctuation"
+    ],
+    "description": "Convert the common Spanish greeting question and normalize inverted punctuation"
+  },
+  {
+    "id": "es-reassurance-no-pasa-nada",
+    "language": "es",
+    "input": "No pasa nada",
+    "expected": {
+      "canonical": "ノパサナダ"
+    },
+    "category": "reassurance",
+    "tags": [
+      "spanish",
+      "phrase_dictionary"
+    ],
+    "description": "Convert the Spanish reassurance phrase no pasa nada"
+  },
+  {
+    "id": "es-phrase-de-nada",
+    "language": "es",
+    "input": "De nada",
+    "expected": {
+      "canonical": "デナダ"
+    },
+    "category": "polite",
+    "tags": [
+      "spanish",
+      "phrase_dictionary"
+    ],
+    "description": "Convert the common Spanish response de nada"
+  },
+  {
+    "id": "es-word-corazon",
+    "language": "es",
+    "input": "corazón",
+    "expected": {
+      "canonical": "コラソン"
+    },
+    "category": "common_words",
+    "tags": [
+      "spanish",
+      "word_dictionary",
+      "accent"
+    ],
+    "description": "Convert the Spanish word corazón including its accent"
+  },
+  {
+    "id": "es-mixed-english-spanish",
+    "language": "mixed",
+    "input": "Hello, gracias por el stream!",
+    "expected": {
+      "canonical": "ハロー、グラシアスポレルストリーム！"
+    },
+    "category": "mixed",
+    "tags": [
+      "english",
+      "spanish",
+      "code_switching"
+    ],
+    "description": "Convert a Spanish phrase correctly within an English sentence"
   }
 ]
