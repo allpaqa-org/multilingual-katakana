@@ -205,7 +205,7 @@ const output = converter.convert("hello VOICEVOX fan!");
 
 **実運用での採用事例**
 [**twitch_text_to_speech_bot**](https://github.com/allpaqa-jgk/twitch_text_to_speech_bot) —
-Twitchのコメントをアニメキャラクターボイスでリアルタイム読み上げするBot。
+COEIROINK・VOICEVOX・Kokoro・Piper・OS標準音声などに対応したTwitchコメントのリアルタイム読み上げBot。
 
 ---
 
