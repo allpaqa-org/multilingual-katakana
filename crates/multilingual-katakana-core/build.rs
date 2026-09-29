@@ -16,6 +16,11 @@ struct SpanishDict {
 }
 
 #[derive(Deserialize)]
+struct FrenchDict {
+    phrases: BTreeMap<String, String>,
+}
+
+#[derive(Deserialize)]
 struct SlangDict {
     phrases: BTreeMap<String, String>,
     slang: BTreeMap<String, String>,
@@ -26,6 +31,16 @@ struct KoreanDict {
     phrases: BTreeMap<String, String>,
     chosung_jungsung_map: Vec<Vec<String>>,
     jongsung_map: Vec<String>,
+}
+
+#[derive(Deserialize)]
+struct VietnameseDict {
+    phrases: BTreeMap<String, String>,
+}
+
+#[derive(Deserialize)]
+struct ThaiDict {
+    phrases: BTreeMap<String, String>,
 }
 
 #[derive(Deserialize)]
@@ -86,6 +101,23 @@ fn main() {
     spanish_phrases.sort_by(|a, b| b.0.len().cmp(&a.0.len()).then_with(|| a.0.cmp(&b.0)));
     spanish_words.sort_by(|a, b| a.0.cmp(&b.0));
 
+    // 2b. French
+    let french_json =
+        fs::read_to_string(dicts_dir.join("french.json")).expect("Failed to read french.json");
+    let french: FrenchDict =
+        serde_json::from_str(&french_json).expect("Failed to parse french.json");
+    let mut french_phrases = Vec::new();
+    let mut french_words = Vec::new();
+    for (k, v) in french.phrases {
+        if k.contains(' ') {
+            french_phrases.push((k.to_lowercase(), v));
+        } else {
+            french_words.push((k.to_lowercase(), v));
+        }
+    }
+    french_phrases.sort_by(|a, b| b.0.len().cmp(&a.0.len()).then_with(|| a.0.cmp(&b.0)));
+    french_words.sort_by(|a, b| a.0.cmp(&b.0));
+
     // 3. Slang
     let slang_json =
         fs::read_to_string(dicts_dir.join("slang.json")).expect("Failed to read slang.json");
@@ -114,7 +146,33 @@ fn main() {
     let mut korean_phrases: Vec<(String, String)> = korean.phrases.into_iter().collect();
     korean_phrases.sort_by(|a, b| b.0.len().cmp(&a.0.len()).then_with(|| a.0.cmp(&b.0)));
 
-    // 5. Chinese
+    // 5. Vietnamese
+    let vietnamese_json = fs::read_to_string(dicts_dir.join("vietnamese.json"))
+        .expect("Failed to read vietnamese.json");
+    let vietnamese: VietnameseDict =
+        serde_json::from_str(&vietnamese_json).expect("Failed to parse vietnamese.json");
+
+    let mut vietnamese_phrases = Vec::new();
+    let mut vietnamese_words = Vec::new();
+    for (k, v) in vietnamese.phrases {
+        if k.contains(' ') {
+            vietnamese_phrases.push((k.to_lowercase(), v));
+        } else {
+            vietnamese_words.push((k.to_lowercase(), v));
+        }
+    }
+    vietnamese_phrases.sort_by(|a, b| b.0.len().cmp(&a.0.len()).then_with(|| a.0.cmp(&b.0)));
+    vietnamese_words.sort_by(|a, b| a.0.cmp(&b.0));
+
+    // 6. Thai
+    let thai_json =
+        fs::read_to_string(dicts_dir.join("thai.json")).expect("Failed to read thai.json");
+    let thai: ThaiDict = serde_json::from_str(&thai_json).expect("Failed to parse thai.json");
+
+    let mut thai_phrases: Vec<(String, String)> = thai.phrases.into_iter().collect();
+    thai_phrases.sort_by(|a, b| b.0.len().cmp(&a.0.len()).then_with(|| a.0.cmp(&b.0)));
+
+    // 7. Chinese
     let chinese_json = fs::read_to_string(node_dicts_dir.join("chinese_data.json"))
         .expect("Failed to read chinese_data.json");
     let chinese: ChineseData =
@@ -150,6 +208,28 @@ fn main() {
     // Cyrillic phrases
     code.push_str("pub static CYRILLIC_PHRASES: &[(&str, &str)] = &[\n");
     for (k, v) in &cyrillic_phrases {
+        code.push_str(&format!(
+            "    (\"{}\", \"{}\"),\n",
+            escape_str(k),
+            escape_str(v)
+        ));
+    }
+    code.push_str("];\n\n");
+
+    // French phrases
+    code.push_str("pub static FRENCH_PHRASES: &[(&str, &str)] = &[\n");
+    for (k, v) in &french_phrases {
+        code.push_str(&format!(
+            "    (\"{}\", \"{}\"),\n",
+            escape_str(k),
+            escape_str(v)
+        ));
+    }
+    code.push_str("];\n\n");
+
+    // French words
+    code.push_str("pub static FRENCH_WORDS: &[(&str, &str)] = &[\n");
+    for (k, v) in &french_words {
         code.push_str(&format!(
             "    (\"{}\", \"{}\"),\n",
             escape_str(k),
@@ -205,6 +285,39 @@ fn main() {
     // Slang words
     code.push_str("pub static SLANG_WORDS: &[(&str, &str)] = &[\n");
     for (k, v) in &slang_words {
+        code.push_str(&format!(
+            "    (\"{}\", \"{}\"),\n",
+            escape_str(k),
+            escape_str(v)
+        ));
+    }
+    code.push_str("];\n\n");
+
+    // Vietnamese phrases
+    code.push_str("pub static VIETNAMESE_PHRASES: &[(&str, &str)] = &[\n");
+    for (k, v) in &vietnamese_phrases {
+        code.push_str(&format!(
+            "    (\"{}\", \"{}\"),\n",
+            escape_str(k),
+            escape_str(v)
+        ));
+    }
+    code.push_str("];\n\n");
+
+    // Vietnamese words
+    code.push_str("pub static VIETNAMESE_WORDS: &[(&str, &str)] = &[\n");
+    for (k, v) in &vietnamese_words {
+        code.push_str(&format!(
+            "    (\"{}\", \"{}\"),\n",
+            escape_str(k),
+            escape_str(v)
+        ));
+    }
+    code.push_str("];\n\n");
+
+    // Thai phrases
+    code.push_str("pub static THAI_PHRASES: &[(&str, &str)] = &[\n");
+    for (k, v) in &thai_phrases {
         code.push_str(&format!(
             "    (\"{}\", \"{}\"),\n",
             escape_str(k),

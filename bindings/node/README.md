@@ -9,7 +9,7 @@
 [![CI](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml/badge.svg)](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](package.json)
-[![Tests: 100%](https://img.shields.io/badge/tests-124%20passed-brightgreen.svg)](spec/cases/)
+[![Tests: 100%](https://img.shields.io/badge/tests-163%20passed-brightgreen.svg)](spec/cases/)
 [![Complexity: CC<=15](https://img.shields.io/badge/complexity-CC%20%3C%3D%2015-success.svg)](scripts/check_complexity.ts)
 
 ---
@@ -36,6 +36,9 @@ Japanese character-voice TTS engines (such as **VOICEVOX, COEIROINK, AivisSpeech
    - **Korean**: Mathematical Hangul decomposition (`choseong * 588 + jungseong * 28 + jongseong`), liaison sound assimilation, and cheering phrases (`화이팅`).
    - **Russian (Cyrillic)**: Phonetic transliteration into Japanese syllabary.
    - **Spanish**: Accented vowels, inverted marks (`¡`, `¿`), and digraphs (`ñ`, `ll`, `rr`).
+   - **French**: Curated French-only words and phrases, including liaison and silent-final-consonant examples.
+   - **Vietnamese**: Tone-mark normalization, common phrase/word mappings, and digraph handling.
+   - **Thai**: Common phrase mappings plus conservative open-syllable conversion; ambiguous closed syllables are preserved.
    - **Streaming & Gaming Slang**: Multi-platform streaming (YouTube Live, Twitch, Kick, Discord) and gaming terms (`gg`, `gg wp`, `ez`, `pog`, `poggers`, `kekw`, `afk`, `brb`, `lol`, `w`, `ww`, `草`).
 4. **🛡️ Safe Kanji Guard (Japanese Kanji Protection)**:
    - Pure Japanese Kanji commonly found in stream titles and comments (`了解`, `初見歓迎`, `神回`, `配信開始`, `感謝`, `最高`, `優勝`, etc.) are strictly protected and never mistakenly converted into Chinese Pinyin.
@@ -87,6 +90,10 @@ console.log(toKatakana("¡Hola amigo! Muchas gracias señor"));
 // Russian (Cyrillic transliteration)
 console.log(toKatakana("Привет, как дела? Спасибо!"));
 // => "プリヴィエト、カクジェラ？スパシーバ！"
+
+// Vietnamese and Thai
+console.log(toKatakana("xin chào! สวัสดีครับ"));
+// => "シンチャオ！サワッディークラップ"
 
 // Chinese with Safe Kanji Guard (Japanese Kanji preserved, Hanzi/slang converted)
 console.log(toKatakana("初見歓迎！ 886 谢谢大家"));
@@ -148,6 +155,9 @@ const output = converter.convert("hello VOICEVOX fan!");
 | `enableKorean` | `boolean` | `true` | Enable mathematical Hangul decomposition and common phrase conversion. |
 | `enableCyrillic` | `boolean` | `true` | Enable Russian Cyrillic phonetic transliteration. |
 | `enableSpanish` | `boolean` | `true` | Enable Spanish greeting phrases, accents, and digraph conversions. |
+| `enableFrench` | `boolean` | `true` | Enable curated French word and phrase mappings; unknown words use the regular fallback. |
+| `enableVietnamese` | `boolean` | `true` | Enable Vietnamese phrase/word mappings and tone-mark handling. |
+| `enableThai` | `boolean` | `true` | Enable Thai phrase mappings and conservative syllable conversion. Ambiguous closed syllables remain unchanged. |
 | `enableSlang` | `boolean` | `true` | Enable gaming/streaming slang conversion (`gg`, `ez`, `w`, `pog`, etc.). |
 | `normalizeProsody` | `boolean` | `true` | Enable Katakana space removal and Japanese punctuation normalization. |
 
@@ -158,9 +168,9 @@ const output = converter.convert("hello VOICEVOX fan!");
 This repository is built following **Spec-Driven Development** with language-neutral conformance suites:
 
 - **Cross-Language Test Specifications (`spec/cases/*.json`)**:
-  103 canonical test cases across 9 suites (English, Chinese, Korean, Cyrillic, Spanish, Slang, Kanji Guard, Prosody, Mixed Stream Comments).
+  163 canonical test cases across 13 suites, including French, Spanish, Vietnamese, and Thai, are shared by the TypeScript and Rust implementations.
 - **Strict Quality Gates**:
-  - ✅ **100% Test Pass Rate**: 124 tests pass in ~35ms.
+  - ✅ **100% Test Pass Rate**: All 163 shared specification cases pass in TypeScript and Rust.
   - ✅ **Biome Linter & Formatter**: 0 errors, 0 warnings.
   - ✅ **Complexity Guard**: Every function enforces **Cyclomatic Complexity <= 15** and Cognitive Complexity <= 15.
 
@@ -183,8 +193,9 @@ bun run validate:spec
 ## 🗺️ Roadmap
 
 - [x] **v0.1.0**: Zero-dependency TypeScript implementation (Dual ESM/CJS, PUA interval escaping, 10+ languages/slang).
-- [ ] **v0.2.0**: Core Rust engine (`crates/multilingual-katakana-core`) as Single Source of Truth.
-- [ ] **v0.3.0**: Native polyglot bindings via NAPI-RS (Node.js native, WebAssembly, Python, and C#).
+- [x] **v0.2.0**: Core Rust engine (`crates/multilingual-katakana-core`) as Single Source of Truth.
+- [ ] **v0.3.0**: Curated French and expanded Spanish dictionaries plus Vietnamese and Thai support. **Breaking change:** Rust `KatakanaOptions` gains public language flags; downstream full struct literals must add them or use `..Default::default()`.
+- [ ] **v0.4.0**: Native/polyglot bindings via NAPI-RS (Node.js native, WebAssembly, Python, and C#).
 
 ---
 

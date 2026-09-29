@@ -63,20 +63,35 @@
     "description": "Safe failure: preserve unsupported script (Georgian) verbatim while converting supported English"
   },
   {
-    "id": "fail-unknown-language-thai",
+    "id": "fail-unknown-language-hindi",
     "language": "mixed",
-    "input": "สวัสดี stream",
+    "input": "नमस्ते stream",
     "expected": {
-      "canonical": "สวัสดี ストリーム"
+      "canonical": "नमस्ते ストリーム"
     },
     "category": "failure_modes",
     "tags": [
       "safe_failure",
       "unknown_language",
-      "thai",
+      "hindi",
       "english"
     ],
-    "description": "Safe failure: preserve unsupported script (Thai) verbatim while converting supported English"
+    "description": "Safe failure: preserve unsupported script (Hindi/Devanagari) verbatim while converting supported English"
+  },
+  {
+    "id": "fail-thai-ambiguous-closed-syllable",
+    "language": "th",
+    "input": "คน",
+    "expected": {
+      "canonical": "คน"
+    },
+    "category": "failure_modes",
+    "tags": [
+      "safe_failure",
+      "thai",
+      "ambiguous_segmentation"
+    ],
+    "description": "Safe failure: Thai closed syllable with no dictionary entry is left untouched because the final consonant is ambiguous without word segmentation"
   },
   {
     "id": "fail-preserve-emoji",

@@ -1,6 +1,6 @@
 {
   "name": "multilingual-katakana-monorepo",
-  "version": "0.2.1",
+  "version": "0.3.0",
   "private": true,
   "description": "Zero-dependency, ultra-fast multilingual Katakana converter monorepo",
   "scripts": {

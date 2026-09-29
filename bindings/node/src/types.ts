@@ -3,6 +3,9 @@ export interface KatakanaOptions {
   enableKorean?: boolean;
   enableChinese?: boolean;
   enableSpanish?: boolean;
+  enableFrench?: boolean;
+  enableVietnamese?: boolean;
+  enableThai?: boolean;
   enableSlang?: boolean;
   enableEnglish?: boolean;
   normalizeProsody?: boolean;

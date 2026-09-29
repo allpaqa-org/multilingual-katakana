@@ -1,0 +1,149 @@
+[
+  {
+    "id": "fr-greeting-bonjour-mon-ami",
+    "language": "fr",
+    "input": "Bonjour mon ami!",
+    "expected": {
+      "canonical": "ボンジュールモナミ！"
+    },
+    "category": "greetings",
+    "tags": [
+      "french",
+      "phrase_dictionary",
+      "liaison"
+    ],
+    "description": "Convert a common French greeting with liaison in 'mon ami'"
+  },
+  {
+    "id": "fr-thanks-merci-beaucoup",
+    "language": "fr",
+    "input": "Merci beaucoup.",
+    "expected": {
+      "canonical": "メルシーボクー。"
+    },
+    "category": "thanks",
+    "tags": [
+      "french",
+      "phrase_dictionary",
+      "silent_consonant"
+    ],
+    "description": "Convert merci beaucoup, with the silent final p in beaucoup"
+  },
+  {
+    "id": "fr-demo-stream-sentence",
+    "language": "fr",
+    "input": "Bonjour mon ami! C'est un super stream, merci beaucoup.",
+    "expected": {
+      "canonical": "ボンジュールモナミ！セタンシュペールストリーム、メルシーボクー。"
+    },
+    "category": "mixed",
+    "tags": [
+      "french",
+      "streaming",
+      "phrase_dictionary"
+    ],
+    "description": "Convert French-specific phrases in a sentence that also contains the English word stream"
+  },
+  {
+    "id": "fr-mixed-spanish-word-in-french-sentence",
+    "language": "mixed",
+    "input": "Bonjour gracias merci beaucoup",
+    "expected": {
+      "canonical": "ボンジュールグラシアスメルシーボクー"
+    },
+    "category": "mixed",
+    "tags": [
+      "french",
+      "spanish",
+      "code_switching"
+    ],
+    "description": "Resolve each distinctive word with its own language dictionary in a code-switched sentence"
+  },
+  {
+    "id": "fr-greeting-bonsoir",
+    "language": "fr",
+    "input": "Bonsoir à tous!",
+    "expected": {
+      "canonical": "ボンソワールアトゥス！"
+    },
+    "category": "greetings",
+    "tags": [
+      "french",
+      "phrase_dictionary"
+    ],
+    "description": "Convert a French evening greeting"
+  },
+  {
+    "id": "fr-polite-sil-vous-plait",
+    "language": "fr",
+    "input": "S'il vous plaît",
+    "expected": {
+      "canonical": "シルヴプレ"
+    },
+    "category": "polite",
+    "tags": [
+      "french",
+      "phrase_dictionary",
+      "apostrophe"
+    ],
+    "description": "Convert the common French polite expression"
+  },
+  {
+    "id": "fr-farewell-au-revoir",
+    "language": "fr",
+    "input": "Au revoir!",
+    "expected": {
+      "canonical": "オルヴォワール！"
+    },
+    "category": "farewell",
+    "tags": [
+      "french",
+      "phrase_dictionary"
+    ],
+    "description": "Convert the French farewell expression"
+  },
+  {
+    "id": "fr-comment-allez-vous",
+    "language": "fr",
+    "input": "Comment allez-vous?",
+    "expected": {
+      "canonical": "コマンタレヴ？"
+    },
+    "category": "greetings",
+    "tags": [
+      "french",
+      "phrase_dictionary"
+    ],
+    "description": "Convert comment allez-vous as a phrase instead of interpreting comment as an English word"
+  },
+  {
+    "id": "fr-accented-frequent-words",
+    "language": "fr",
+    "input": "Déjà très bientôt",
+    "expected": {
+      "canonical": "デジャトレビヤント"
+    },
+    "category": "common_words",
+    "tags": [
+      "french",
+      "accented_words",
+      "word_dictionary"
+    ],
+    "description": "Convert a sequence of characteristic French accented words"
+  },
+  {
+    "id": "fr-expression-cest-la-vie",
+    "language": "fr",
+    "input": "C'est la vie!",
+    "expected": {
+      "canonical": "セラヴィ！"
+    },
+    "category": "expressions",
+    "tags": [
+      "french",
+      "phrase_dictionary",
+      "apostrophe"
+    ],
+    "description": "Convert the common French expression c'est la vie"
+  }
+]

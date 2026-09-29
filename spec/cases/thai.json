@@ -1,0 +1,138 @@
+[
+  {
+    "id": "th-greeting-sawasdee-krap",
+    "language": "th",
+    "input": "สวัสดีครับ",
+    "expected": {
+      "canonical": "サワッディークラップ"
+    },
+    "category": "greetings",
+    "tags": [
+      "greetings",
+      "thai",
+      "phrase_dict"
+    ],
+    "description": "Convert Thai greeting 'สวัสดีครับ' (male polite particle) via phrase dictionary"
+  },
+  {
+    "id": "th-thanks-khob-khun-kha",
+    "language": "th",
+    "input": "ขอบคุณค่ะ",
+    "expected": {
+      "canonical": "コープクンカー"
+    },
+    "category": "thanks",
+    "tags": [
+      "thanks",
+      "thai",
+      "phrase_dict"
+    ],
+    "description": "Convert Thai thanks phrase 'ขอบคุณค่ะ' (female polite particle) via phrase dictionary"
+  },
+  {
+    "id": "th-noworries-mai-pen-rai",
+    "language": "th",
+    "input": "ไม่เป็นไร",
+    "expected": {
+      "canonical": "マイペンライ"
+    },
+    "category": "reassurance",
+    "tags": [
+      "reassurance",
+      "thai",
+      "phrase_dict"
+    ],
+    "description": "Convert Thai reassurance phrase 'ไม่เป็นไร' (no worries / it's okay)"
+  },
+  {
+    "id": "th-mixed-english-stream",
+    "language": "th",
+    "input": "สวัสดี stream",
+    "expected": {
+      "canonical": "サワッディーストリーム"
+    },
+    "category": "mixed",
+    "tags": [
+      "mixed",
+      "thai",
+      "english"
+    ],
+    "description": "Convert mixed Thai greeting and English streaming word"
+  },
+  {
+    "id": "th-particle-kha",
+    "language": "th",
+    "input": "ค่ะ",
+    "expected": {
+      "canonical": "カー"
+    },
+    "category": "particles",
+    "tags": [
+      "particles",
+      "thai",
+      "phrase_dict"
+    ],
+    "description": "Convert Thai female polite particle 'ค่ะ'"
+  },
+  {
+    "id": "th-particle-krap",
+    "language": "th",
+    "input": "ครับ",
+    "expected": {
+      "canonical": "クラップ"
+    },
+    "category": "particles",
+    "tags": [
+      "particles",
+      "thai",
+      "phrase_dict"
+    ],
+    "description": "Convert Thai male polite particle 'ครับ'"
+  },
+  {
+    "id": "th-syllable-jaa-open",
+    "language": "th",
+    "input": "จ้า",
+    "expected": {
+      "canonical": "チャー"
+    },
+    "category": "particles",
+    "tags": [
+      "particles",
+      "thai",
+      "syllable_decomposition",
+      "tone_mark"
+    ],
+    "description": "Convert unlisted Thai open-syllable particle 'จ้า' via syllable decomposition (tone mark stripped)"
+  },
+  {
+    "id": "th-syllable-pai-diphthong",
+    "language": "th",
+    "input": "ไป",
+    "expected": {
+      "canonical": "パイ"
+    },
+    "category": "syllables",
+    "tags": [
+      "thai",
+      "syllable_decomposition",
+      "diphthong"
+    ],
+    "description": "Convert unlisted Thai word 'ไป' (go) via leading-vowel 'ai' diphthong syllable decomposition"
+  },
+  {
+    "id": "th-love-rak-thoe",
+    "language": "th",
+    "input": "รักเธอ",
+    "expected": {
+      "canonical": "ラックトゥー"
+    },
+    "category": "affection",
+    "tags": [
+      "affection",
+      "thai",
+      "phrase_dict"
+    ],
+    "description": "Convert Thai affection phrase 'รักเธอ' (love you) via phrase dictionary"
+  }
+]
