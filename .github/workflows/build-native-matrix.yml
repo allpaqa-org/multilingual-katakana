@@ -7,6 +7,9 @@ name: Native Build Matrix (Tier 1)
 # publish anything to npm.
 on:
   workflow_dispatch: {}
+  pull_request:
+    paths:
+      - ".github/workflows/build-native-matrix.yml"
   push:
     tags: ["v*"]
 
