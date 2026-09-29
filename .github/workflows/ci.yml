@@ -50,6 +50,43 @@ jobs:
       - name: Build Dual ESM/CJS Package
         run: bun run build
 
+  test-darwin-x64:
+    name: Test & Native Backend (darwin-x64, real hardware)
+    # `macos-15-intel` is a real Intel (x86_64) macOS GitHub-hosted runner,
+    # free and unlimited on public repos (see
+    # https://docs.github.com/en/actions/reference/runners/github-hosted-runners).
+    # This verifies the native backend on real darwin-x64 hardware instead
+    # of relying on cross-build + Rosetta emulation (see docs/adr and
+    # docs/V0.4.0_BINDINGS_SCOPE.md §8.1).
+    runs-on: macos-15-intel
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build NAPI-RS native addon for this runner
+        run: |
+          cargo build --release -p multilingual-katakana-node
+          mkdir -p bindings/node/native
+          cp target/release/libmultilingual_katakana_node.dylib \
+            bindings/node/native/multilingual-katakana.darwin-x64.node
+
+      - name: Install dependencies
+        run: cd bindings/node && bun install
+
+      - name: Run Tests (100% pass required)
+        run: bun run test
+
+      - name: Run Tests with native backend forced (must not silently fall back)
+        run: cd bindings/node && MULTILINGUAL_KATAKANA_BACKEND=native bun test
+
   rust-check:
     name: Rust Core (Test, Clippy & Fmt)
     runs-on: ubuntu-24.04
