@@ -52,8 +52,18 @@ function isMusl(): boolean {
       return true;
     }
   }
-  const report = process.report.getReport() as { header?: { glibcVersionRuntime?: string } };
-  return !report.header?.glibcVersionRuntime;
+  try {
+    // `getReport()` is a heavyweight diagnostics API that can enumerate
+    // network/handle state; skip that work and guard against any runtime
+    // that fails to produce a report at all (sandboxed environments etc.)
+    // so a detection hiccup falls back safely instead of throwing out of
+    // every `toKatakana` call.
+    process.report.excludeNetwork = true;
+    const report = process.report.getReport() as { header?: { glibcVersionRuntime?: string } };
+    return !report.header?.glibcVersionRuntime;
+  } catch {
+    return false;
+  }
 }
 
 /**
