@@ -181,24 +181,27 @@ pub fn resolve_word(word: &str, opts: &KatakanaOptions) -> String {
         }
     }
 
-    // 5. Fallback: apply enabled language-specific preprocessing (Vietnamese
-    // digraphs/tones, then Spanish digraphs/accents), followed by English phonics
-    // if enabled.
-    let mut preprocessed = word.to_string();
-    let mut any_preprocess = false;
-    if opts.enable_vietnamese {
-        preprocessed = vietnamese_preprocess(&preprocessed);
-        any_preprocess = true;
-    }
-    if opts.enable_spanish {
-        preprocessed = spanish_preprocess(&preprocessed);
-        any_preprocess = true;
-    }
-
+    // 5. Fallback: mirrors the TS `resolveWord` priority exactly. When
+    // English romanization is enabled, chain Vietnamese then Spanish
+    // preprocessing before phonics. When it is disabled, apply *only one*
+    // preprocessor (Vietnamese takes priority over Spanish) instead of
+    // chaining both, and never touch the word if neither applies -- e.g.
+    // an English word like "hello" must stay untouched when
+    // `enable_english=false`, not partially rewritten by Spanish digraph
+    // preprocessing.
     if opts.enable_english {
+        let mut preprocessed = word.to_string();
+        if opts.enable_vietnamese {
+            preprocessed = vietnamese_preprocess(&preprocessed);
+        }
+        if opts.enable_spanish {
+            preprocessed = spanish_preprocess(&preprocessed);
+        }
         phonics_to_katakana(&preprocessed)
-    } else if any_preprocess {
-        preprocessed
+    } else if opts.enable_vietnamese {
+        vietnamese_preprocess(word)
+    } else if opts.enable_spanish {
+        spanish_preprocess(word)
     } else {
         word.to_string()
     }

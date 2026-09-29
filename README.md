@@ -120,6 +120,17 @@ yarn add @allpaqa/multilingual-katakana
 
 Full support for Dual ESM (ECMAScript Modules), CommonJS (CJS), and TypeScript type declarations (`.d.ts`).
 
+### 🪶 Lightweight, Pure-TypeScript by Default
+
+Today, `@allpaqa/multilingual-katakana` ships as **pure TypeScript only** — no native binaries, no `optionalDependencies`, zero runtime dependencies. Every install is already the lightweight footprint (~124 KB unpacked, ~26 KB gzipped).
+
+A native NAPI-RS backend (Rust, auto-selected for extra speed) is being rolled out as an **opt-in accelerator** in upcoming v0.4.x releases, published as small per-platform `optionalDependencies` (~1–3 MB each). It will never be required:
+
+- **Prefer the lightweight, pure-JS install?** Skip the native binary entirely with `npm install @allpaqa/multilingual-katakana --omit=optional` (or `pnpm add --no-optional`, `yarn add --ignore-optional`). Output is identical — you just get the existing pure-TypeScript pipeline.
+- **Installed the native binary but still want to force pure JS at runtime** (e.g. for byte-identical behavior across environments)? Set `MULTILINGUAL_KATAKANA_BACKEND=js` before your process starts.
+
+See [`docs/V0.4.0_BINDINGS_SCOPE.md`](docs/V0.4.0_BINDINGS_SCOPE.md) for the full native-backend rollout plan.
+
 ---
 
 ## 🚀 Quick Start
@@ -255,7 +266,7 @@ See [Release Process Documentation](docs/RELEASE_PROCESS.md) for automated CI/CD
 - [x] **v0.1.0**: Zero-dependency TypeScript implementation (Dual ESM/CJS, PUA interval escaping, 10+ languages/slang).
 - [x] **v0.2.0**: Core Rust engine (`crates/multilingual-katakana-core`) as Single Source of Truth (<0.005ms latency, self-contained).
 - [x] **v0.3.0**: Curated French and expanded Spanish dictionaries plus Vietnamese and Thai support. **Breaking change:** adding public language flags to Rust `KatakanaOptions` requires downstream struct-literal callers to add the new fields or use `..Default::default()`.
-- [ ] **v0.4.0**: Node.js native backend via NAPI-RS as a drop-in accelerator behind the unchanged `toKatakana` / `KatakanaConverter` API (prebuilt platform packages via `optionalDependencies`, automatic pure-TypeScript fallback, `dependencies` stays `{}`). See the [v0.4.0 bindings scope](docs/V0.4.0_BINDINGS_SCOPE.md).
+- [x] **v0.4.0**: Node.js native backend architecture via NAPI-RS as a drop-in accelerator behind the unchanged `toKatakana` / `KatakanaConverter` API, with automatic pure-TypeScript fallback and `dependencies` staying `{}`. Verified for the Linux CI runner and local `darwin-arm64` dev builds; publishing prebuilt platform packages via `optionalDependencies` for zero-build end-user installs follows in v0.4.x. See the [v0.4.0 bindings scope](docs/V0.4.0_BINDINGS_SCOPE.md).
 - [ ] **v0.5.0**: Python bindings (PyO3 + maturin, abi3 wheels on PyPI).
 - [ ] **v0.6.0**: C# / .NET bindings (C ABI + NuGet with RID-specific native assets).
 - [ ] **Later (on demand)**: Standalone WebAssembly package (`@allpaqa/multilingual-katakana-wasm`) for browsers and edge runtimes.

@@ -7,6 +7,8 @@ bun.lockb
 dist/
 target/
 *.tgz
+bindings/node/native/*
+!bindings/node/native/README.md
 
 # Logs
 *.log

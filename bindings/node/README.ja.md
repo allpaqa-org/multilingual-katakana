@@ -57,6 +57,17 @@ yarn add @allpaqa/multilingual-katakana
 
 ESM (ECMAScript Modules) および CommonJS (CJS)、TypeScript 型定義（`.d.ts`）に完全対応しています。
 
+### 🪶 デフォルトは軽量・純粋 TypeScript
+
+現時点の `@allpaqa/multilingual-katakana` は **純粋 TypeScript のみ**で構成されており、ネイティブバイナリや `optionalDependencies` は一切含まれず、ランタイム依存はゼロです。インストールするだけで、すでに軽量な構成（未圧縮 約124KB、gzip後 約26KB）になっています。
+
+今後の v0.4.x リリースでは、Rust 製のネイティブ NAPI-RS バックエンド（速度向上のため自動選択、任意）を、プラットフォームごとの小さな `optionalDependencies`（各 約1〜3MB）として段階的に提供予定です。ネイティブバイナリは**必須にはなりません**：
+
+- **軽量な純粋 JS インストールを優先したい場合**: `npm install @allpaqa/multilingual-katakana --omit=optional`（または `pnpm add --no-optional`、`yarn add --ignore-optional`）でネイティブバイナリのインストールを完全にスキップできます。出力結果は変わらず、既存の純粋 TypeScript パイプラインがそのまま使われます。
+- **ネイティブバイナリをインストール済みだが、実行時に強制的に純粋 JS を使いたい場合**（環境間で挙動を完全に統一したい場合など）: プロセス起動前に `MULTILINGUAL_KATAKANA_BACKEND=js` を設定してください。
+
+ネイティブバックエンドの提供計画の詳細は [`docs/V0.4.0_BINDINGS_SCOPE.md`](../../docs/V0.4.0_BINDINGS_SCOPE.md) をご覧ください。
+
 ---
 
 ## 🚀 クイックスタート (Usage)
@@ -186,7 +197,7 @@ bun run validate:spec
 - [x] **v0.1.0**: TypeScript ゼロ依存実装（Dual ESM/CJS, PUA エスケープ保護, 10+言語/スラング対応）
 - [x] **v0.2.0**: Core ロジックの Rust 化（`crates/multilingual-katakana-core` による Single Source of Truth 化）
 - [x] **v0.3.0**: フランス語辞書・スペイン語辞書拡充とベトナム語・タイ語対応。**破壊的変更:** Rust の公開構造体 `KatakanaOptions` に言語フラグを追加するため、全フィールドを指定する既存の構造体リテラルには新フィールドの追加が必要です（または `..Default::default()` を使用）。
-- [ ] **v0.4.0**: NAPI-RS による Node.js ネイティブバックエンド（`toKatakana` / `KatakanaConverter` の API は無変更のドロップイン高速化。プラットフォーム別バイナリを `optionalDependencies` で配布し、非対応環境では Pure TypeScript へ自動フォールバック、`dependencies` は `{}` を維持）。詳細は [v0.4.0 バインディング スコープ定義](https://github.com/allpaqa-org/multilingual-katakana/blob/main/docs/V0.4.0_BINDINGS_SCOPE.md) を参照。
+- [x] **v0.4.0**: NAPI-RS による Node.js ネイティブバックエンド（`toKatakana` / `KatakanaConverter` の API は無変更のドロップイン高速化。非対応環境では Pure TypeScript へ自動フォールバック、`dependencies` は `{}` を維持）。CI の Linux ランナーおよびローカルの `darwin-arm64` 開発ビルドで動作確認済み。エンドユーザー向けのビルド不要インストールを実現する `optionalDependencies` 経由のプラットフォーム別バイナリ配布は v0.4.x で対応予定。詳細は [v0.4.0 バインディング スコープ定義](https://github.com/allpaqa-org/multilingual-katakana/blob/main/docs/V0.4.0_BINDINGS_SCOPE.md) を参照。
 - [ ] **v0.5.0**: Python バインディング（PyO3 + maturin、PyPI への abi3 wheel 配布）
 - [ ] **v0.6.0**: C# / .NET バインディング（C ABI + RID 別ネイティブアセット同梱の NuGet 配布）
 - [ ] **今後（需要次第）**: ブラウザ・Edge ランタイム向けスタンドアロン WebAssembly パッケージ（`@allpaqa/multilingual-katakana-wasm`）
