@@ -19,11 +19,24 @@ jobs:
         with:
           bun-version: latest
 
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Build NAPI-RS native addon for this runner
+        run: |
+          cargo build --release -p multilingual-katakana-node
+          mkdir -p bindings/node/native
+          cp target/release/libmultilingual_katakana_node.so \
+            bindings/node/native/multilingual-katakana.linux-x64-gnu.node
+
       - name: Install dependencies
         run: cd bindings/node && bun install
 
       - name: Run Tests (100% pass required)
         run: bun run test
+
+      - name: Run Tests with native backend forced (must not silently fall back)
+        run: cd bindings/node && MULTILINGUAL_KATAKANA_BACKEND=native bun test
 
       - name: Run Biome Linter & Formatter (0 errors required)
         run: bun run check:ci

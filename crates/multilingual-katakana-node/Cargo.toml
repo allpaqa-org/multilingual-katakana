@@ -1,0 +1,18 @@
+[package]
+name = "multilingual-katakana-node"
+version = "0.4.0"
+edition = "2021"
+license = "MIT"
+description = "NAPI-RS native accelerator for @allpaqa/multilingual-katakana (internal, not published to crates.io)"
+publish = false
+
+[lib]
+crate-type = ["cdylib"]
+
+[dependencies]
+multilingual-katakana-core = { path = "../multilingual-katakana-core" }
+napi = { version = "3", default-features = false, features = ["napi4"] }
+napi-derive = "3"
+
+[build-dependencies]
+napi-build = "2"

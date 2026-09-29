@@ -1,5 +1,6 @@
 [workspace]
 members = [
     "crates/multilingual-katakana-core",
+    "crates/multilingual-katakana-node",
 ]
 resolver = "2"

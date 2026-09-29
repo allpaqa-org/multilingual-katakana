@@ -1,3 +1,4 @@
+import { getNativeBackend } from "./backend/loader";
 import { convertChinese } from "./languages/chinese";
 import { convertCyrillic } from "./languages/cyrillic";
 import { getEnglishWord, phonicsToKatakana } from "./languages/english";
@@ -227,6 +228,33 @@ export class KatakanaConverter {
     // 0. Escape excluded patterns (protect user-defined words, URLs, mentions, etc.)
     const { text: escaped, tokenMap } = escapeExcluded(text, opts.exclude);
 
+    // Prefer the native (NAPI-RS) backend when available: it re-implements
+    // this entire pipeline in Rust against the same spec/cases contract.
+    // Only attempt it when `resolveWord` has not been overridden by a
+    // subclass, since a native call would silently bypass that override.
+    if (this.resolveWord === KatakanaConverter.prototype.resolveWord) {
+      const native = getNativeBackend();
+      if (native) {
+        const nativeResult = native.toKatakanaNative(escaped, {
+          enableCyrillic: opts.enableCyrillic,
+          enableKorean: opts.enableKorean,
+          enableChinese: opts.enableChinese,
+          enableSpanish: opts.enableSpanish,
+          enableFrench: opts.enableFrench,
+          enableVietnamese: opts.enableVietnamese,
+          enableThai: opts.enableThai,
+          enableSlang: opts.enableSlang,
+          enableEnglish: opts.enableEnglish,
+          normalizeProsody: opts.normalizeProsody,
+        });
+        return restoreExcluded(nativeResult, tokenMap);
+      }
+    }
+
+    return restoreExcluded(this.convertWithJsPipeline(escaped, opts), tokenMap);
+  }
+
+  private convertWithJsPipeline(escaped: string, opts: Required<KatakanaOptions>): string {
     // 1. Normalize smart curly apostrophes (from mobile / macOS) to standard ASCII apostrophe
     let result = escaped.replace(/[\u2018\u2019]/g, "'");
 
@@ -289,8 +317,7 @@ export class KatakanaConverter {
       result = normalizeProsody(result);
     }
 
-    // 9. Restore excluded tokens
-    return restoreExcluded(result, tokenMap);
+    return result;
   }
 
   public transform(text: string, options?: KatakanaOptions): string {
