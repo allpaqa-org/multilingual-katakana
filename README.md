@@ -251,7 +251,10 @@ See [Release Process Documentation](docs/RELEASE_PROCESS.md) for automated CI/CD
 - [x] **v0.1.0**: Zero-dependency TypeScript implementation (Dual ESM/CJS, PUA interval escaping, 10+ languages/slang).
 - [x] **v0.2.0**: Core Rust engine (`crates/multilingual-katakana-core`) as Single Source of Truth (<0.005ms latency, self-contained).
 - [x] **v0.3.0**: Curated French and expanded Spanish dictionaries plus Vietnamese and Thai support. **Breaking change:** adding public language flags to Rust `KatakanaOptions` requires downstream struct-literal callers to add the new fields or use `..Default::default()`.
-- [ ] **v0.4.0**: Native/polyglot bindings via NAPI-RS (Node.js native, WebAssembly, Python, and C#).
+- [ ] **v0.4.0**: Node.js native backend via NAPI-RS as a drop-in accelerator behind the unchanged `toKatakana` / `KatakanaConverter` API (prebuilt platform packages via `optionalDependencies`, automatic pure-TypeScript fallback, `dependencies` stays `{}`). See the [v0.4.0 bindings scope](docs/V0.4.0_BINDINGS_SCOPE.md).
+- [ ] **v0.5.0**: Python bindings (PyO3 + maturin, abi3 wheels on PyPI).
+- [ ] **v0.6.0**: C# / .NET bindings (C ABI + NuGet with RID-specific native assets).
+- [ ] **Later (on demand)**: Standalone WebAssembly package (`@allpaqa/multilingual-katakana-wasm`) for browsers and edge runtimes.
 
 ---
 
