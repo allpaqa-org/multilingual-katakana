@@ -66,6 +66,17 @@ yarn add @allpaqa/multilingual-katakana
 
 Full support for Dual ESM (ECMAScript Modules), CommonJS (CJS), and TypeScript type declarations (`.d.ts`).
 
+### 🪶 Lightweight, Pure-TypeScript by Default
+
+Today, `@allpaqa/multilingual-katakana` ships as **pure TypeScript only** — no native binaries, no `optionalDependencies`, zero runtime dependencies. Every install is already the lightweight footprint (~124 KB unpacked, ~26 KB gzipped).
+
+A native NAPI-RS backend (Rust, auto-selected for extra speed) is being rolled out as an **opt-in accelerator** in upcoming v0.4.x releases, published as small per-platform `optionalDependencies` (~1–3 MB each). It will never be required:
+
+- **Prefer the lightweight, pure-JS install?** Skip the native binary entirely with `npm install @allpaqa/multilingual-katakana --omit=optional` (or `pnpm add --no-optional`, `yarn add --ignore-optional`). Output is identical — you just get the existing pure-TypeScript pipeline.
+- **Installed the native binary but still want to force pure JS at runtime** (e.g. for byte-identical behavior across environments)? Set `MULTILINGUAL_KATAKANA_BACKEND=js` before your process starts.
+
+See [`docs/V0.4.0_BINDINGS_SCOPE.md`](../../docs/V0.4.0_BINDINGS_SCOPE.md) for the full native-backend rollout plan.
+
 ---
 
 ## 🚀 Quick Start

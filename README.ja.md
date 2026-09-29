@@ -111,6 +111,17 @@ yarn add @allpaqa/multilingual-katakana
 
 ESM (ECMAScript Modules) および CommonJS (CJS)、TypeScript 型定義（`.d.ts`）に完全対応しています。
 
+### 🪶 デフォルトは軽量・純粋 TypeScript
+
+現時点の `@allpaqa/multilingual-katakana` は **純粋 TypeScript のみ**で構成されており、ネイティブバイナリや `optionalDependencies` は一切含まれず、ランタイム依存はゼロです。インストールするだけで、すでに軽量な構成（未圧縮 約124KB、gzip後 約26KB）になっています。
+
+今後の v0.4.x リリースでは、Rust 製のネイティブ NAPI-RS バックエンド（速度向上のため自動選択、任意）を、プラットフォームごとの小さな `optionalDependencies`（各 約1〜3MB）として段階的に提供予定です。ネイティブバイナリは**必須にはなりません**：
+
+- **軽量な純粋 JS インストールを優先したい場合**: `npm install @allpaqa/multilingual-katakana --omit=optional`（または `pnpm add --no-optional`、`yarn add --ignore-optional`）でネイティブバイナリのインストールを完全にスキップできます。出力結果は変わらず、既存の純粋 TypeScript パイプラインがそのまま使われます。
+- **ネイティブバイナリをインストール済みだが、実行時に強制的に純粋 JS を使いたい場合**（環境間で挙動を完全に統一したい場合など）: プロセス起動前に `MULTILINGUAL_KATAKANA_BACKEND=js` を設定してください。
+
+ネイティブバックエンドの提供計画の詳細は [`docs/V0.4.0_BINDINGS_SCOPE.md`](docs/V0.4.0_BINDINGS_SCOPE.md) をご覧ください。
+
 ---
 
 ## 🚀 クイックスタート (Usage)
