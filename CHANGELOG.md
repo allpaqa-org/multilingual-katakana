@@ -4,6 +4,13 @@ Notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Documentation
+
+- Defined the v0.4.0 bindings scope in `docs/V0.4.0_BINDINGS_SCOPE.md`: v0.4.0
+  ships a NAPI-RS Node.js native backend behind the unchanged TypeScript API,
+  while Python (v0.5.0), C# (v0.6.0), and a standalone WebAssembly package
+  follow in later releases.
+
 ## [0.3.0] - 2026-09-30
 
 ### Added
