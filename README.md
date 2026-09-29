@@ -197,6 +197,10 @@ const output = converter.convert("hello VOICEVOX fan!");
 // => "ハロー VOICEVOX ファン！"
 ```
 
+Want a runnable, zero-build starting point? See
+[**multilingual-katakana-samples**](https://github.com/allpaqa-org/multilingual-katakana-samples) —
+copy-pasteable scripts that just `npm install` and run.
+
 ---
 
 ## ⚙️ Options Reference
