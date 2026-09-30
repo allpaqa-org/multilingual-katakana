@@ -11,6 +11,7 @@
     "check:ci": "cd bindings/node && bun run check:ci",
     "build": "cd bindings/node && bun run build",
     "check:complexity": "bun run scripts/check_complexity.ts",
-    "validate:spec": "bun run scripts/validate_spec.ts"
+    "validate:spec": "bun run scripts/validate_spec.ts",
+    "generate:native-packages": "bun run scripts/generate_native_packages.ts"
   }
 }

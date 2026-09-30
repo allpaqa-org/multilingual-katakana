@@ -31,15 +31,37 @@ on:
     types: [published]
 
 jobs:
+  load-platforms:
+    name: Load platform matrix
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.load.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Load .github/native-platforms.json
+        # Single source of truth for the 8 Tier 1 platforms (CI build
+        # metadata + npm packaging metadata) — see
+        # scripts/generate_native_packages.ts for the npm-package side.
+        id: load
+        shell: bash
+        run: echo "matrix=$(jq -c . .github/native-platforms.json)" >> "$GITHUB_OUTPUT"
+
   verify-versions:
-    name: Verify tag matches package versions
+    name: Verify tag and platform packages match
     runs-on: ubuntu-24.04
     if: github.event_name == 'push' || github.event_name == 'release'
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Check lockstep versioning across tag, main package, and platform packages
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Check tag matches bindings/node/package.json version
         # Guards against publishing a platform package under a stale version
         # number (npm versions are immutable, so a mismatch here can never
         # be corrected after the fact — see docs/V0.4.0_BINDINGS_SCOPE.md §7.4).
@@ -47,38 +69,29 @@ jobs:
         run: |
           set -euo pipefail
           tag_version="${GITHUB_REF_NAME#v}"
-          echo "Tag version: ${tag_version}"
-
           root_version="$(node -p "require('./bindings/node/package.json').version")"
           if [ "${root_version}" != "${tag_version}" ]; then
             echo "::error::bindings/node/package.json version (${root_version}) does not match tag (${tag_version})"
             exit 1
           fi
+          echo "Tag ${tag_version} matches bindings/node/package.json."
 
-          for triple in darwin-arm64 darwin-x64 linux-x64-gnu linux-arm64-gnu linux-x64-musl linux-arm64-musl win32-x64-msvc win32-arm64-msvc; do
-            pkg_version="$(node -p "require('./bindings/node/npm/${triple}/package.json').version")"
-            if [ "${pkg_version}" != "${tag_version}" ]; then
-              echo "::error::bindings/node/npm/${triple}/package.json version (${pkg_version}) does not match tag (${tag_version})"
-              exit 1
-            fi
-
-            dep_version="$(node -p "require('./bindings/node/package.json').optionalDependencies['@allpaqa/multilingual-katakana-${triple}']")"
-            if [ "${dep_version}" != "${tag_version}" ]; then
-              echo "::error::optionalDependencies pin for ${triple} (${dep_version}) does not match tag (${tag_version})"
-              exit 1
-            fi
-          done
-
-          echo "All 17 version fields (root + 8 platform packages + 8 optionalDependencies pins) match tag ${tag_version}."
+      - name: Check platform packages match .github/native-platforms.json
+        # Regenerates every bindings/node/npm/<triple>/package.json plus the
+        # optionalDependencies pins from .github/native-platforms.json and
+        # fails if the committed files differ from what's generated — this
+        # is what replaced the old hand-written 17-field version comparison.
+        run: bun run generate:native-packages -- --check
 
   build:
     name: Build (${{ matrix.triple }})
-    needs: verify-versions
+    needs: [load-platforms, verify-versions]
     # verify-versions is skipped entirely on workflow_dispatch (no tag to
     # check against), so accept "skipped" as well as "success" here —
     # otherwise `needs:` would also skip this job on workflow_dispatch runs.
     if: |
       always() &&
+      needs.load-platforms.result == 'success' &&
       (needs.verify-versions.result == 'success' || needs.verify-versions.result == 'skipped')
     runs-on: ${{ matrix.os }}
     permissions:
@@ -87,43 +100,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        include:
-          - triple: darwin-arm64
-            os: macos-14
-            target: aarch64-apple-darwin
-            lib-file: libmultilingual_katakana_node.dylib
-          - triple: darwin-x64
-            os: macos-15-intel
-            target: x86_64-apple-darwin
-            lib-file: libmultilingual_katakana_node.dylib
-          - triple: linux-x64-gnu
-            os: ubuntu-24.04
-            target: x86_64-unknown-linux-gnu
-            lib-file: libmultilingual_katakana_node.so
-          - triple: linux-arm64-gnu
-            os: ubuntu-24.04-arm
-            target: aarch64-unknown-linux-gnu
-            lib-file: libmultilingual_katakana_node.so
-          - triple: linux-x64-musl
-            os: ubuntu-24.04
-            target: x86_64-unknown-linux-musl
-            lib-file: libmultilingual_katakana_node.so
-            zigbuild: true
-            docker-arch: amd64
-          - triple: linux-arm64-musl
-            os: ubuntu-24.04
-            target: aarch64-unknown-linux-musl
-            lib-file: libmultilingual_katakana_node.so
-            zigbuild: true
-            docker-arch: arm64
-          - triple: win32-x64-msvc
-            os: windows-latest
-            target: x86_64-pc-windows-msvc
-            lib-file: multilingual_katakana_node.dll
-          - triple: win32-arm64-msvc
-            os: windows-11-arm
-            target: aarch64-pc-windows-msvc
-            lib-file: multilingual_katakana_node.dll
+        include: ${{ fromJSON(needs.load-platforms.outputs.matrix) }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7

@@ -93,12 +93,21 @@ Once native distribution ships (see `docs/V0.4.0_BINDINGS_SCOPE.md` §7.4,
    the exact same `"X.Y.Z"` (no `^`/`~` range — see §3 of the bindings
    scope doc for the zero-dependency rationale).
 
+Items 4 and 5 are **generated, not hand-edited** — they, along with the
+platform list itself, come from the single source of truth
+`.github/native-platforms.json` via `scripts/generate_native_packages.ts`
+(run `bun run generate:native-packages` after bumping the version so the
+version bump propagates into all 8 files). See
+`bindings/node/npm/README.md` for details.
+
 `.github/workflows/build-native-matrix.yml` enforces this automatically:
 its `verify-versions` job fails the release build if the git tag doesn't
-match all 17 version fields (root + 8 platform packages + 8
-`optionalDependencies` pins) before any platform package is published,
-because **npm versions are immutable** — a mismatch published under the
-wrong version number can never be corrected after the fact.
+match `bindings/node/package.json`'s version, or if the committed platform
+package files (item 4/5 above) don't match what
+`scripts/generate_native_packages.ts` would generate, before any platform
+package is published — because **npm versions are immutable** — a
+mismatch published under the wrong version number can never be corrected
+after the fact.
 
 ---
 
