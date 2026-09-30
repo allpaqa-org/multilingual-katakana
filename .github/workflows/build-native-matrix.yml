@@ -17,12 +17,11 @@ name: Native Build Matrix (Tier 1)
 #   packages are never published before the release's own quality gates
 #   and human approval have completed.
 #
-# Publishing currently uses NPM_TOKEN (classic automation token) because
-# npm Trusted Publishing (OIDC) cannot be configured for a package that
-# does not exist on npm yet. Once all 8 platform packages have been
-# published at least once and Trusted Publishing is configured for each
-# on npmjs.com, remove the `NODE_AUTH_TOKEN` env below — npm CLI will use
-# OIDC automatically (the `id-token: write` permission is already granted).
+# Publishing uses npm Trusted Publishing (OIDC) — no long-lived token is
+# stored in this repo. This requires the `id-token: write` permission
+# below plus a Trusted Publisher configured for each of the 8 platform
+# packages on npmjs.com (done once all 8 existed on npm after their
+# initial NPM_TOKEN-based publish).
 on:
   workflow_dispatch: {}
   push:
@@ -240,5 +239,9 @@ jobs:
           else
             npm publish --access public --provenance
           fi
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        # Uses npm Trusted Publishing (OIDC) — no long-lived token needed.
+        # Requires the `id-token: write` permission above and a Trusted
+        # Publisher configured for each of the 8 platform packages on
+        # npmjs.com (Settings -> Publishing access -> Trusted Publisher ->
+        # GitHub Actions -> repo allpaqa-org/multilingual-katakana,
+        # workflow build-native-matrix.yml).

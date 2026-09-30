@@ -70,6 +70,9 @@ jobs:
         run: bun run build
 
       - name: Publish to npm with Provenance
+        # Uses npm Trusted Publishing (OIDC) — no long-lived token needed.
+        # Requires the `id-token: write` permission above and a Trusted
+        # Publisher configured for this package on npmjs.com (Settings ->
+        # Publishing access -> Trusted Publisher -> GitHub Actions ->
+        # repo allpaqa-org/multilingual-katakana, workflow publish.yml).
         run: cd bindings/node && npm publish --access public --provenance
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

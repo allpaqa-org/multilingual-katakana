@@ -48,9 +48,9 @@ publishes the main package — since both workflows trigger on the same
 from silently getting the pure-TypeScript fallback if the platform packages
 haven't finished publishing yet.
 
-The **first** publish of each of the 8 packages uses the classic `NPM_TOKEN`
+The **first** publish of each of the 8 packages used the classic `NPM_TOKEN`
 secret, because npm Trusted Publishing (OIDC) cannot be configured for a
-package that doesn't exist on npm yet (tracked in issue #15). Once all 8
-exist on npm, Trusted Publishing should be configured for each on
-npmjs.com, and the `NODE_AUTH_TOKEN` env var can be removed from the publish
-step so npm CLI uses OIDC automatically.
+package that doesn't exist on npm yet. Since all 8 (plus the main package)
+now exist on npm, every one has Trusted Publishing configured on npmjs.com,
+and both `publish.yml` and `build-native-matrix.yml` publish via OIDC —
+no long-lived token is used or stored for publishing anymore.
