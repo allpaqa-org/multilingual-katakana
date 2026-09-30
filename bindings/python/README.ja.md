@@ -7,9 +7,16 @@
 
 [🇬🇧 English](README.md) | **日本語**
 
-[![PyPI version](https://img.shields.io/pypi/v/allpaqa-multilingual-katakana.svg)](https://pypi.org/project/allpaqa-multilingual-katakana/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../../LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](pyproject.toml)
+
+> ⚠️ **まだPyPIには公開されていません。** 現時点では
+> [maturin](https://www.maturin.rs/) によるローカルソースビルドのみで
+> す。Tier 1 全プラットフォームの事前ビルド済みwheel配布とPyPI Trusted
+> PublishingによるCIパイプラインは、Node.jsネイティブバインディングと
+> 同様にフォローアップissueで追跡しています
+> （[#28](https://github.com/allpaqa-org/multilingual-katakana/issues/28)
+> 参照）。
 
 ---
 
@@ -27,18 +34,22 @@
 と同じ[言語中立の仕様契約](https://github.com/allpaqa-org/multilingual-katakana/tree/main/spec/cases)
 （`spec/cases/*.json` の100%）をパスします。
 
-## インストール
+## インストール（ソースからビルド）
+
+上記の通りまだPyPI未公開のため、[maturin](https://www.maturin.rs/) で
+仮想環境にビルド・インストールしてください:
 
 ```bash
-pip install allpaqa-multilingual-katakana
+git clone https://github.com/allpaqa-org/multilingual-katakana.git
+cd multilingual-katakana/bindings/python
+python -m venv .venv && source .venv/bin/activate
+pip install maturin
+maturin develop --release   # 有効化中のvenvへエディタブルインストール
+# または: maturin build --release -o dist && pip install dist/*.whl
 ```
 
-> **注記**: 現時点ではローカルビルド・テストの段階です。Tier 1 全プラット
-> フォームの事前ビルド済みwheel配布とPyPI Trusted PublishingによるCI
-> パイプラインは、Node.jsネイティブバインディングと同様にフォローアップ
-> issueで追跡しています（[#15](https://github.com/allpaqa-org/multilingual-katakana/issues/15)
-> 参照）。いずれの場合もランタイム依存はゼロです（`pyproject.toml` の
-> `dependencies = []`）。
+いずれの場合もランタイム依存はゼロです（`pyproject.toml` の
+`dependencies = []`）。
 
 ## クイックスタート
 

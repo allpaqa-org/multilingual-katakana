@@ -152,6 +152,13 @@ bun run validate:spec
 bun run build
 
 # --- Rust core checks ---
+# NOTE: crates/multilingual-katakana-python (PyO3) is a workspace member
+# without the `extension-module` feature here, so commands 6-8 link
+# against libpython and need a *discoverable* Python 3 with a linkable
+# shared library (e.g. python.org installers, Homebrew, or CI's
+# actions/setup-python all work; some system/Xcode-stub pythons on macOS
+# do not — point PYO3_PYTHON at a working interpreter if you hit a
+# "library 'pythonX.Y' not found" linker error).
 # 6. All Cargo tests pass (100% PASS, 163 shared spec cases)
 cargo test --all-targets
 
@@ -162,6 +169,9 @@ cargo clippy --all-targets -- -D warnings
 cargo fmt --check
 
 # --- Python binding checks (v0.5.0+) ---
+# `maturin develop` requires an active virtualenv/conda env (or a `.venv`
+# next to pyproject.toml) — plain `pip install maturin` into a system
+# Python is not enough.
 # 9. Build native extension and run the spec + API test suite
 cd bindings/python && maturin develop --release && python -m pytest
 ```

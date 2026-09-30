@@ -95,8 +95,15 @@ jobs:
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Install maturin & pytest
-        run: pip install maturin pytest
+      - name: Create venv and install maturin & pytest
+        # `maturin develop` refuses to run without an active virtualenv/conda
+        # env (or a `.venv` next to pyproject.toml) — actions/setup-python
+        # alone does not provide one.
+        run: |
+          python -m venv .venv
+          echo "VIRTUAL_ENV=$PWD/.venv" >> "$GITHUB_ENV"
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          .venv/bin/pip install maturin pytest
 
       - name: Build native extension and install editable
         run: cd bindings/python && maturin develop --release

@@ -7,9 +7,15 @@
 
 **English** | [🇯🇵 日本語](README.ja.md)
 
-[![PyPI version](https://img.shields.io/pypi/v/allpaqa-multilingual-katakana.svg)](https://pypi.org/project/allpaqa-multilingual-katakana/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../../LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](pyproject.toml)
+
+> ⚠️ **Not yet published to PyPI.** This binding currently only ships as
+> source, built locally with [maturin](https://www.maturin.rs/). Pre-built
+> wheels for all Tier 1 platforms and a PyPI Trusted Publishing CI
+> pipeline are tracked in a fast-follow issue (mirroring the Node.js
+> native binding's own rollout — see
+> [#28](https://github.com/allpaqa-org/multilingual-katakana/issues/28)).
 
 ---
 
@@ -29,19 +35,22 @@ built with [PyO3](https://pyo3.rs/). It passes the same
 [language-neutral spec contract](https://github.com/allpaqa-org/multilingual-katakana/tree/main/spec/cases)
 (100% of `spec/cases/*.json`) as every other binding.
 
-## Installation
+## Installation (build from source)
+
+Not yet on PyPI (see the note above) — build and install it into a
+virtualenv with [maturin](https://www.maturin.rs/):
 
 ```bash
-pip install allpaqa-multilingual-katakana
+git clone https://github.com/allpaqa-org/multilingual-katakana.git
+cd multilingual-katakana/bindings/python
+python -m venv .venv && source .venv/bin/activate
+pip install maturin
+maturin develop --release   # editable install into the active venv
+# or: maturin build --release -o dist && pip install dist/*.whl
 ```
 
-> **Note**: as of this release, wheels are built and tested locally for
-> development; pre-built wheels for all Tier 1 platforms plus a PyPI
-> Trusted Publishing CI pipeline are tracked as a fast-follow issue
-> (mirroring the Node.js native binding's own rollout — see
-> [#15](https://github.com/allpaqa-org/multilingual-katakana/issues/15)).
-> Zero runtime dependencies either way (`dependencies = []` in
-> `pyproject.toml`).
+Zero runtime dependencies either way (`dependencies = []` in
+`pyproject.toml`).
 
 ## Quick Start
 
