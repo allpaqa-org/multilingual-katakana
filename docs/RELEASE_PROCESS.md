@@ -121,10 +121,14 @@ add the following to the same lockstep `"X.Y.Z"`:
    `bindings/python/python/multilingual_katakana/__init__.py`'s
    `__version__`.
 
-A Tier 1 wheel build matrix and PyPI Trusted Publishing pipeline
-(mirroring `build-native-matrix.yml` / `publish.yml` for npm) are tracked
-as follow-up work; there is no automated version-sync check for these
-files yet, so bump them by hand until that lands.
+`.github/workflows/build-python-matrix.yml` enforces this automatically:
+its `verify-versions` job fails the build if the git tag doesn't match
+items 6/7 above (before any wheel is published) — because **PyPI
+versions are immutable**, a mismatch published under the wrong version
+number can never be corrected after the fact. Unlike the native platform
+packages (§3.1), there are no generated per-platform files to keep in
+sync here — abi3 wheels are tagged per-platform automatically by
+maturin/auditwheel, not by hand-edited JSON.
 
 ---
 
@@ -231,3 +235,17 @@ git push origin main --tags
    - `@allpaqa/multilingual-katakana` is safely published to the
      official npm registry, with Sigstore provenance attached via an
      OIDC token.
+
+3. **Automatic PyPI publish (`.github/workflows/build-python-matrix.yml`,
+   v0.5.0+)**:
+   - The same `release: published` event also triggers this workflow's
+     `build` job for all 8 Tier 1 platforms, followed by its `publish`
+     job.
+   - `allpaqa-multilingual-katakana` abi3 wheels are published to PyPI via
+     Trusted Publishing (OIDC) — no long-lived API token is stored in
+     this repo.
+   - This runs as an independent job from the npm publish above; if
+     either fails, re-run only the failed workflow (both are idempotent —
+     already-published versions are skipped, not re-uploaded) and note
+     the failure in the release notes per §7.5 of
+     `docs/V0.4.0_BINDINGS_SCOPE.md`.

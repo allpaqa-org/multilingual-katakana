@@ -1,0 +1,62 @@
+[
+  {
+    "triple": "darwin-arm64",
+    "label": "macOS arm64",
+    "os": "macos-14",
+    "target": "aarch64-apple-darwin",
+    "manylinux": "off"
+  },
+  {
+    "triple": "darwin-x64",
+    "label": "macOS x64",
+    "os": "macos-15-intel",
+    "target": "x86_64-apple-darwin",
+    "manylinux": "off"
+  },
+  {
+    "triple": "linux-x64-gnu",
+    "label": "Linux x64 (glibc)",
+    "os": "ubuntu-24.04",
+    "target": "x86_64-unknown-linux-gnu",
+    "manylinux": "2_28"
+  },
+  {
+    "triple": "linux-arm64-gnu",
+    "label": "Linux arm64 (glibc)",
+    "os": "ubuntu-24.04-arm",
+    "target": "aarch64-unknown-linux-gnu",
+    "manylinux": "2_28"
+  },
+  {
+    "triple": "linux-x64-musl",
+    "label": "Linux x64 (musl)",
+    "os": "ubuntu-24.04",
+    "target": "x86_64-unknown-linux-musl",
+    "manylinux": "musllinux_1_2",
+    "musl": true,
+    "docker-arch": "amd64"
+  },
+  {
+    "triple": "linux-arm64-musl",
+    "label": "Linux arm64 (musl)",
+    "os": "ubuntu-24.04-arm",
+    "target": "aarch64-unknown-linux-musl",
+    "manylinux": "musllinux_1_2",
+    "musl": true,
+    "docker-arch": "arm64"
+  },
+  {
+    "triple": "win32-x64-msvc",
+    "label": "Windows x64",
+    "os": "windows-latest",
+    "target": "x86_64-pc-windows-msvc",
+    "manylinux": "off"
+  },
+  {
+    "triple": "win32-arm64-msvc",
+    "label": "Windows arm64",
+    "os": "windows-11-arm",
+    "target": "aarch64-pc-windows-msvc",
+    "manylinux": "off"
+  }
+]

@@ -1,0 +1,217 @@
+name: Python Wheel Build Matrix (Tier 1)
+
+# Builds abi3 wheels (PyO3 + maturin) for every Tier 1 platform listed in
+# docs/V0.4.0_BINDINGS_SCOPE.md §7.3, mirroring the pattern established by
+# build-native-matrix.yml / publish.yml for the Node.js native addon (#15).
+#
+# - workflow_dispatch runs: build + smoke-test only (no publish), for
+#   manual verification ahead of a release.
+# - push (tag `v*`) runs: verify-versions, then build + smoke-test only
+#   (no publish yet) — early feedback right after tagging, before
+#   release.yml's own quality gates and the human release-approval step
+#   have run.
+# - release (published) runs: verify-versions, then build + smoke-test,
+#   then publishes the collected wheels to PyPI. This fires only after a
+#   human clicks "Publish release" on GitHub (the same trigger/gate
+#   publish.yml uses for the npm package), so wheels are never published
+#   before the release's own quality gates and human approval have
+#   completed.
+#
+# Publishing uses PyPI Trusted Publishing (OIDC) — no long-lived API
+# token is stored in this repo. This requires the `id-token: write`
+# permission below plus a Trusted Publisher configured for the
+# `allpaqa-multilingual-katakana` project on pypi.org (Publishing ->
+# Trusted Publisher -> GitHub Actions -> repo
+# allpaqa-org/multilingual-katakana, workflow
+# build-python-matrix.yml, environment: pypi).
+on:
+  workflow_dispatch: {}
+  push:
+    tags: ["v*"]
+  release:
+    types: [published]
+
+jobs:
+  load-platforms:
+    name: Load platform matrix
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.load.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Load .github/python-platforms.json
+        # Single source of truth for the 8 Tier 1 platforms (CI build
+        # metadata for maturin-action) — mirrors
+        # .github/native-platforms.json for the Node.js native addon.
+        id: load
+        shell: bash
+        run: echo "matrix=$(jq -c . .github/python-platforms.json)" >> "$GITHUB_OUTPUT"
+
+  verify-versions:
+    name: Verify tag matches Python package versions
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' || github.event_name == 'release'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Check tag matches the 3 lockstep Python version locations
+        # Guards against publishing a wheel under a stale version number
+        # (PyPI versions are immutable, so a mismatch here can never be
+        # corrected after the fact) — see docs/RELEASE_PROCESS.md §3.2.
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag_version="${GITHUB_REF_NAME#v}"
+
+          pyproject_version="$(python -c "
+          import tomllib
+          with open('bindings/python/pyproject.toml', 'rb') as f:
+              print(tomllib.load(f)['project']['version'])
+          ")"
+          if [ "${pyproject_version}" != "${tag_version}" ]; then
+            echo "::error::bindings/python/pyproject.toml version (${pyproject_version}) does not match tag (${tag_version})"
+            exit 1
+          fi
+
+          cargo_version="$(grep -m1 '^version' crates/multilingual-katakana-python/Cargo.toml | sed -E 's/version = "(.*)"/\1/')"
+          if [ "${cargo_version}" != "${tag_version}" ]; then
+            echo "::error::crates/multilingual-katakana-python/Cargo.toml version (${cargo_version}) does not match tag (${tag_version})"
+            exit 1
+          fi
+
+          init_version="$(grep -m1 '__version__' bindings/python/python/multilingual_katakana/__init__.py | sed -E 's/__version__ = "(.*)"/\1/')"
+          if [ "${init_version}" != "${tag_version}" ]; then
+            echo "::error::bindings/python/python/multilingual_katakana/__init__.py __version__ (${init_version}) does not match tag (${tag_version})"
+            exit 1
+          fi
+
+          echo "Tag ${tag_version} matches pyproject.toml, Cargo.toml, and __init__.py."
+
+  build:
+    name: Build (${{ matrix.triple }})
+    needs: [load-platforms, verify-versions]
+    # verify-versions is skipped entirely on workflow_dispatch (no tag to
+    # check against), so accept "skipped" as well as "success" here —
+    # otherwise `needs:` would also skip this job on workflow_dispatch runs.
+    if: |
+      always() &&
+      needs.load-platforms.result == 'success' &&
+      (needs.verify-versions.result == 'success' || needs.verify-versions.result == 'skipped')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.load-platforms.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        # Not used by containerized manylinux/musllinux builds (maturin-action
+        # runs those inside a Docker image with its own interpreters), but
+        # required as the build/host interpreter for macOS and Windows, and
+        # for running the post-build smoke test on every platform.
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Build wheel (maturin)
+        uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.target }}
+          manylinux: ${{ matrix.manylinux }}
+          working-directory: bindings/python
+          # --compatibility pypi activates maturin's pre-upload wheel tag
+          # check (see PyO3/maturin-action hardening guidance).
+          args: --release --out dist --compatibility pypi
+
+      - name: Upload wheel artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wheel-${{ matrix.triple }}
+          path: bindings/python/dist/*.whl
+          retention-days: 7
+
+      - name: Smoke-test wheel via local pip install (host Python)
+        if: ${{ !matrix.musl }}
+        shell: bash
+        # This proves the wheel actually installs (zero runtime deps) and
+        # that all 163 shared spec cases pass against the *built artifact*,
+        # not the source tree — see docs/V0.4.0_BINDINGS_SCOPE.md §2.4.4.
+        run: |
+          set -euo pipefail
+          python -m venv smoke-venv
+          if [ -f smoke-venv/bin/python ]; then
+            venv_python="smoke-venv/bin/python"
+          else
+            venv_python="smoke-venv/Scripts/python.exe"
+          fi
+          "$venv_python" -m pip install --upgrade pip
+          "$venv_python" -m pip install bindings/python/dist/*.whl pytest
+          "$venv_python" -c "
+          import tomllib
+          with open('bindings/python/pyproject.toml', 'rb') as f:
+              deps = tomllib.load(f)['project'].get('dependencies', [])
+          assert deps == [], f'dependencies must be empty, got: {deps}'
+          print('OK: dependencies = []')
+          "
+          "$venv_python" -m pytest bindings/python/tests -v
+
+      - name: Smoke-test wheel inside an Alpine (musl) container
+        if: matrix.musl
+        shell: bash
+        # musl-linked wheels cannot be verified on this runner's glibc host
+        # directly. Each musl target now runs on a *native* arm64/amd64
+        # runner (ubuntu-24.04-arm / ubuntu-24.04), so no QEMU emulation is
+        # needed — only a musl (Alpine) userland via a short-lived container.
+        run: |
+          docker run --rm \
+            --platform "linux/${{ matrix.docker-arch }}" \
+            -v "${PWD}:/repo:ro" \
+            python:3.12-alpine \
+            sh -c "cd /repo && python -m venv /tmp/venv && /tmp/venv/bin/pip install --upgrade pip && /tmp/venv/bin/pip install bindings/python/dist/*.whl pytest && /tmp/venv/bin/python -m pytest bindings/python/tests -v"
+
+  publish:
+    name: Publish wheels to PyPI
+    needs: build
+    if: github.event_name == 'release'
+    runs-on: ubuntu-24.04
+    environment: pypi
+    permissions:
+      id-token: write
+    steps:
+      - name: Download all wheel artifacts
+        uses: actions/download-artifact@v5
+        with:
+          pattern: wheel-*
+          path: dist
+          merge-multiple: true
+
+      - name: Publish to PyPI
+        # Uses PyPI Trusted Publishing (OIDC) — no long-lived API token
+        # needed. Requires the `id-token: write` permission above and a
+        # Trusted Publisher configured for `allpaqa-multilingual-katakana`
+        # on pypi.org (Publishing -> Trusted Publisher -> GitHub Actions ->
+        # repo allpaqa-org/multilingual-katakana, workflow
+        # build-python-matrix.yml, environment: pypi).
+        uses: pypa/gh-action-pypi-publish@release/v1
+        with:
+          packages-dir: dist
+          # Guards against a failed re-run of this workflow trying to
+          # publish a version that already succeeded on a previous
+          # attempt — PyPI rejects republishing an existing file outright,
+          # so skip cleanly instead of failing the whole job again.
+          skip-existing: true

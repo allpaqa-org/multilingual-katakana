@@ -10,13 +10,13 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../../LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](pyproject.toml)
 
-> ⚠️ **まだPyPIには公開されていません。** 現時点では
-> [maturin](https://www.maturin.rs/) によるローカルソースビルドのみで
-> す。Tier 1 全プラットフォームの事前ビルド済みwheel配布とPyPI Trusted
-> PublishingによるCIパイプラインは、Node.jsネイティブバインディングと
-> 同様にフォローアップissueで追跡しています
-> （[#28](https://github.com/allpaqa-org/multilingual-katakana/issues/28)
-> 参照）。
+> ⚠️ **まだPyPIには公開されていません。** Tier 1 abi3 wheel ビルド行列と
+> PyPI Trusted Publishing パイプライン
+> （[#28](https://github.com/allpaqa-org/multilingual-katakana/issues/28)、
+> `.github/workflows/build-python-matrix.yml`）自体は整備済みですが、
+> このパイプライン経由のリリースはまだ実行されていません。それまでは
+> [maturin](https://www.maturin.rs/) によるローカルソースビルドで
+> ご利用ください。
 
 ---
 
