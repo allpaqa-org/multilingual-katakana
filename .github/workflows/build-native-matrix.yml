@@ -1,60 +1,115 @@
 name: Native Build Matrix (Tier 1)
 
 # Builds the NAPI-RS native addon for every Tier 1 platform listed in
-# docs/V0.4.0_BINDINGS_SCOPE.md §5.2, to verify buildability ahead of the
-# per-platform npm distribution work tracked in #15. This workflow only
-# builds and uploads artifacts for inspection/smoke-testing; it does not
-# publish anything to npm.
+# docs/V0.4.0_BINDINGS_SCOPE.md §5.2, ahead of the per-platform npm
+# distribution work tracked in #15.
+#
+# - workflow_dispatch runs: build + pack + smoke-test only (no publish),
+#   for manual verification ahead of a release.
+# - push (tag `v*`) runs: verify-versions, then build + pack + smoke-test
+#   only (no publish yet) — this is early feedback right after tagging,
+#   before release.yml's own quality gates and the human release-approval
+#   step have run.
+# - release (published) runs: verify-versions, then build + pack +
+#   smoke-test, then publishes each platform package to npm. This fires
+#   only after a human clicks "Publish release" on GitHub (the same
+#   trigger/gate publish.yml uses for the main package), so platform
+#   packages are never published before the release's own quality gates
+#   and human approval have completed.
+#
+# Publishing currently uses NPM_TOKEN (classic automation token) because
+# npm Trusted Publishing (OIDC) cannot be configured for a package that
+# does not exist on npm yet. Once all 8 platform packages have been
+# published at least once and Trusted Publishing is configured for each
+# on npmjs.com, remove the `NODE_AUTH_TOKEN` env below — npm CLI will use
+# OIDC automatically (the `id-token: write` permission is already granted).
 on:
   workflow_dispatch: {}
   push:
     tags: ["v*"]
+  release:
+    types: [published]
 
 jobs:
-  build:
-    name: Build (${{ matrix.triple }})
-    runs-on: ${{ matrix.os }}
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - triple: darwin-arm64
-            os: macos-14
-            target: aarch64-apple-darwin
-            lib-file: libmultilingual_katakana_node.dylib
-          - triple: darwin-x64
-            os: macos-15-intel
-            target: x86_64-apple-darwin
-            lib-file: libmultilingual_katakana_node.dylib
-          - triple: linux-x64-gnu
-            os: ubuntu-24.04
-            target: x86_64-unknown-linux-gnu
-            lib-file: libmultilingual_katakana_node.so
-          - triple: linux-arm64-gnu
-            os: ubuntu-24.04-arm
-            target: aarch64-unknown-linux-gnu
-            lib-file: libmultilingual_katakana_node.so
-          - triple: linux-x64-musl
-            os: ubuntu-24.04
-            target: x86_64-unknown-linux-musl
-            lib-file: libmultilingual_katakana_node.so
-            zigbuild: true
-          - triple: linux-arm64-musl
-            os: ubuntu-24.04
-            target: aarch64-unknown-linux-musl
-            lib-file: libmultilingual_katakana_node.so
-            zigbuild: true
-          - triple: win32-x64-msvc
-            os: windows-latest
-            target: x86_64-pc-windows-msvc
-            lib-file: multilingual_katakana_node.dll
-          - triple: win32-arm64-msvc
-            os: windows-11-arm
-            target: aarch64-pc-windows-msvc
-            lib-file: multilingual_katakana_node.dll
+  load-platforms:
+    name: Load platform matrix
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.load.outputs.matrix }}
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+
+      - name: Load .github/native-platforms.json
+        # Single source of truth for the 8 Tier 1 platforms (CI build
+        # metadata + npm packaging metadata) — see
+        # scripts/generate_native_packages.ts for the npm-package side.
+        id: load
+        shell: bash
+        run: echo "matrix=$(jq -c . .github/native-platforms.json)" >> "$GITHUB_OUTPUT"
+
+  verify-versions:
+    name: Verify tag and platform packages match
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' || github.event_name == 'release'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Check tag matches bindings/node/package.json version
+        # Guards against publishing a platform package under a stale version
+        # number (npm versions are immutable, so a mismatch here can never
+        # be corrected after the fact — see docs/V0.4.0_BINDINGS_SCOPE.md §7.4).
+        shell: bash
+        run: |
+          set -euo pipefail
+          tag_version="${GITHUB_REF_NAME#v}"
+          root_version="$(node -p "require('./bindings/node/package.json').version")"
+          if [ "${root_version}" != "${tag_version}" ]; then
+            echo "::error::bindings/node/package.json version (${root_version}) does not match tag (${tag_version})"
+            exit 1
+          fi
+          echo "Tag ${tag_version} matches bindings/node/package.json."
+
+      - name: Check platform packages match .github/native-platforms.json
+        # Regenerates every bindings/node/npm/<triple>/package.json plus the
+        # optionalDependencies pins from .github/native-platforms.json and
+        # fails if the committed files differ from what's generated — this
+        # is what replaced the old hand-written 17-field version comparison.
+        run: bun run generate:native-packages -- --check
+
+  build:
+    name: Build (${{ matrix.triple }})
+    needs: [load-platforms, verify-versions]
+    # verify-versions is skipped entirely on workflow_dispatch (no tag to
+    # check against), so accept "skipped" as well as "success" here —
+    # otherwise `needs:` would also skip this job on workflow_dispatch runs.
+    if: |
+      always() &&
+      needs.load-platforms.result == 'success' &&
+      (needs.verify-versions.result == 'success' || needs.verify-versions.result == 'skipped')
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.load-platforms.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -92,9 +147,98 @@ jobs:
           cp "target/${{ matrix.target }}/release/${{ matrix.lib-file }}" \
             "dist-native/multilingual-katakana.${{ matrix.triple }}.node"
 
-      - name: Upload artifact
+      - name: Stage binary in the platform package template
+        shell: bash
+        run: |
+          cp "dist-native/multilingual-katakana.${{ matrix.triple }}.node" \
+            "bindings/node/npm/${{ matrix.triple }}/multilingual-katakana.${{ matrix.triple }}.node"
+
+      - name: Pack installable npm tarball
+        id: pack
+        shell: bash
+        run: |
+          repo_root="$PWD"
+          tarball_name="$(
+            cd "bindings/node/npm/${{ matrix.triple }}" &&
+            npm pack --pack-destination ../../../../dist-native
+          )"
+          echo "tarball_name=${tarball_name}" >> "$GITHUB_OUTPUT"
+          echo "tarball_path=${repo_root}/dist-native/${tarball_name}" >> "$GITHUB_OUTPUT"
+
+      # Artifacts are uploaded before the smoke test so build output is never
+      # hidden by a smoke-test failure (the smoke test only gates publishing).
+      - name: Upload raw binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: multilingual-katakana.${{ matrix.triple }}.node
           path: dist-native/multilingual-katakana.${{ matrix.triple }}.node
           retention-days: 7
+
+      - name: Upload npm tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pack.outputs.tarball_name }}
+          path: ${{ steps.pack.outputs.tarball_path }}
+          retention-days: 7
+
+      - name: Smoke-test platform tarball via local npm install
+        if: ${{ !matrix.zigbuild }}
+        shell: bash
+        # This proves the exact `require("@allpaqa/multilingual-katakana-<triple>")`
+        # path used by bindings/node/src/backend/loader.ts resolves to a
+        # self-contained npm package on the matching real runner hardware.
+        run: |
+          scratch_dir="${RUNNER_TEMP}/smoke-test-${{ matrix.triple }}"
+          rm -rf "$scratch_dir"
+          mkdir -p "$scratch_dir"
+          cd "$scratch_dir"
+          npm init -y
+          npm install "${{ steps.pack.outputs.tarball_path }}"
+          node -e "const mod = require('@allpaqa/multilingual-katakana-${{ matrix.triple }}'); if (typeof mod.toKatakanaNative !== 'function') throw new Error('Missing toKatakanaNative export'); if (typeof mod.nativeSelfCheck !== 'function') throw new Error('Missing nativeSelfCheck export'); if (mod.nativeSelfCheck() !== true) throw new Error('nativeSelfCheck() must return true');"
+
+      - name: Set up QEMU (musl cross-arch smoke test only)
+        if: matrix.zigbuild
+        uses: docker/setup-qemu-action@v3
+        with:
+          platforms: ${{ matrix.docker-arch }}
+
+      - name: Smoke-test platform tarball inside an Alpine (musl) container
+        if: matrix.zigbuild
+        shell: bash
+        # musl-linked .node addons cannot be loaded on this runner's glibc
+        # host directly (`npm install` on a non-optional dependency would
+        # also reject the os/cpu/libc mismatch outright). Instead, verify
+        # the tarball actually installs and loads inside a real musl
+        # (Alpine) userland, for the matching CPU architecture, via a
+        # short-lived container. linux/amd64 runs natively on this host;
+        # linux/arm64 runs under QEMU emulation registered above.
+        run: |
+          docker run --rm \
+            --platform "linux/${{ matrix.docker-arch }}" \
+            -v "${{ steps.pack.outputs.tarball_path }}:/tmp/pkg.tgz:ro" \
+            node:20-alpine \
+            sh -c "mkdir /smoke && cd /smoke && npm init -y >/dev/null && npm install /tmp/pkg.tgz && node -e \"const mod = require('@allpaqa/multilingual-katakana-${{ matrix.triple }}'); if (typeof mod.toKatakanaNative !== 'function') throw new Error('Missing toKatakanaNative export'); if (typeof mod.nativeSelfCheck !== 'function') throw new Error('Missing nativeSelfCheck export'); if (mod.nativeSelfCheck() !== true) throw new Error('nativeSelfCheck() must return true');\""
+
+      - name: Publish platform package to npm
+        # Only publish once the release has actually been published (human
+        # approval + release.yml's own quality gates already ran) — never
+        # on a plain tag push (early build/smoke-test feedback only) or a
+        # manual workflow_dispatch run.
+        if: github.event_name == 'release'
+        shell: bash
+        # Guard against a failed re-run of this workflow trying to publish
+        # a version that already succeeded on a previous attempt — npm
+        # rejects republishing an existing version outright (E403), so
+        # skip cleanly instead of failing the whole matrix again.
+        run: |
+          set -euo pipefail
+          cd "bindings/node/npm/${{ matrix.triple }}"
+          pkg_name="$(node -p "require('./package.json').name")"
+          pkg_version="$(node -p "require('./package.json').version")"
+          if npm view "${pkg_name}@${pkg_version}" version >/dev/null 2>&1; then
+            echo "${pkg_name}@${pkg_version} is already published to npm; skipping."
+          else
+            npm publish --access public --provenance
+          fi
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

@@ -1,0 +1,82 @@
+[
+  {
+    "triple": "darwin-arm64",
+    "label": "macOS arm64",
+    "os": "macos-14",
+    "target": "aarch64-apple-darwin",
+    "lib-file": "libmultilingual_katakana_node.dylib",
+    "npm-os": ["darwin"],
+    "npm-cpu": ["arm64"]
+  },
+  {
+    "triple": "darwin-x64",
+    "label": "macOS x64",
+    "os": "macos-15-intel",
+    "target": "x86_64-apple-darwin",
+    "lib-file": "libmultilingual_katakana_node.dylib",
+    "npm-os": ["darwin"],
+    "npm-cpu": ["x64"]
+  },
+  {
+    "triple": "linux-x64-gnu",
+    "label": "Linux x64 (glibc)",
+    "os": "ubuntu-24.04",
+    "target": "x86_64-unknown-linux-gnu",
+    "lib-file": "libmultilingual_katakana_node.so",
+    "npm-os": ["linux"],
+    "npm-cpu": ["x64"],
+    "npm-libc": ["glibc"]
+  },
+  {
+    "triple": "linux-arm64-gnu",
+    "label": "Linux arm64 (glibc)",
+    "os": "ubuntu-24.04-arm",
+    "target": "aarch64-unknown-linux-gnu",
+    "lib-file": "libmultilingual_katakana_node.so",
+    "npm-os": ["linux"],
+    "npm-cpu": ["arm64"],
+    "npm-libc": ["glibc"]
+  },
+  {
+    "triple": "linux-x64-musl",
+    "label": "Linux x64 (musl)",
+    "os": "ubuntu-24.04",
+    "target": "x86_64-unknown-linux-musl",
+    "lib-file": "libmultilingual_katakana_node.so",
+    "zigbuild": true,
+    "docker-arch": "amd64",
+    "npm-os": ["linux"],
+    "npm-cpu": ["x64"],
+    "npm-libc": ["musl"]
+  },
+  {
+    "triple": "linux-arm64-musl",
+    "label": "Linux arm64 (musl)",
+    "os": "ubuntu-24.04",
+    "target": "aarch64-unknown-linux-musl",
+    "lib-file": "libmultilingual_katakana_node.so",
+    "zigbuild": true,
+    "docker-arch": "arm64",
+    "npm-os": ["linux"],
+    "npm-cpu": ["arm64"],
+    "npm-libc": ["musl"]
+  },
+  {
+    "triple": "win32-x64-msvc",
+    "label": "Windows x64",
+    "os": "windows-latest",
+    "target": "x86_64-pc-windows-msvc",
+    "lib-file": "multilingual_katakana_node.dll",
+    "npm-os": ["win32"],
+    "npm-cpu": ["x64"]
+  },
+  {
+    "triple": "win32-arm64-msvc",
+    "label": "Windows arm64",
+    "os": "windows-11-arm",
+    "target": "aarch64-pc-windows-msvc",
+    "lib-file": "multilingual_katakana_node.dll",
+    "npm-os": ["win32"],
+    "npm-cpu": ["arm64"]
+  }
+]

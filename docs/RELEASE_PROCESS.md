@@ -77,6 +77,38 @@ following **3 locations must always be kept in sync** (e.g. `0.2.0`):
 3. **Rust core crate `crates/multilingual-katakana-core/Cargo.toml`**:
    `version = "X.Y.Z"`
 
+### 3.1 Native platform packages (v0.4.0+)
+
+Once native distribution ships (see `docs/V0.4.0_BINDINGS_SCOPE.md` §7.4,
+"lockstep versioning"), the following **must also match the same
+`X.Y.Z`** as the 3 locations above before tagging a release:
+
+4. **Each of the 8 platform packages**:
+   `bindings/node/npm/<triple>/package.json` → `"version": "X.Y.Z"`
+   (triples: `darwin-arm64`, `darwin-x64`, `linux-x64-gnu`,
+   `linux-arm64-gnu`, `linux-x64-musl`, `linux-arm64-musl`,
+   `win32-x64-msvc`, `win32-arm64-msvc`)
+5. **`bindings/node/package.json`'s `optionalDependencies`**: each of the
+   8 `@allpaqa/multilingual-katakana-<triple>` entries must be pinned to
+   the exact same `"X.Y.Z"` (no `^`/`~` range — see §3 of the bindings
+   scope doc for the zero-dependency rationale).
+
+Items 4 and 5 are **generated, not hand-edited** — they, along with the
+platform list itself, come from the single source of truth
+`.github/native-platforms.json` via `scripts/generate_native_packages.ts`
+(run `bun run generate:native-packages` after bumping the version so the
+version bump propagates into all 8 files). See
+`bindings/node/npm/README.md` for details.
+
+`.github/workflows/build-native-matrix.yml` enforces this automatically:
+its `verify-versions` job fails the release build if the git tag doesn't
+match `bindings/node/package.json`'s version, or if the committed platform
+package files (item 4/5 above) don't match what
+`scripts/generate_native_packages.ts` would generate, before any platform
+package is published — because **npm versions are immutable** — a
+mismatch published under the wrong version number can never be corrected
+after the fact.
+
 ---
 
 ## 4. Pre-Release Verification Commands (Quality Gates)

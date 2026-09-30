@@ -9,6 +9,7 @@ target/
 *.tgz
 bindings/node/native/*
 !bindings/node/native/README.md
+bindings/node/npm/*/*.node
 
 # Logs
 *.log

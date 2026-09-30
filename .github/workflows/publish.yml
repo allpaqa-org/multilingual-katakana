@@ -27,6 +27,36 @@ jobs:
           node-version: 24
           registry-url: 'https://registry.npmjs.org'
 
+      - name: Verify platform packages are published
+        # build-native-matrix.yml publishes the native platform packages on
+        # the same `release: published` event as this workflow, so they may
+        # not exist on npm yet if this workflow happens to finish first.
+        # Confirm every optionalDependencies platform package already
+        # exists at its pinned version before publishing the main package —
+        # otherwise users installing this version would silently fall back
+        # to the pure TypeScript implementation with no indication that a
+        # native package was ever supposed to exist. If this fails, wait
+        # for "Native Build Matrix (Tier 1)" to finish publishing all
+        # platform packages for this release, then re-run this job.
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t specs < <(node -e "
+            const deps = require('./bindings/node/package.json').optionalDependencies || {};
+            for (const [name, version] of Object.entries(deps)) console.log(\`\${name}@\${version}\`);
+          ")
+          if [ "${#specs[@]}" -eq 0 ]; then
+            echo "No optionalDependencies declared in bindings/node/package.json; skipping platform package check."
+            exit 0
+          fi
+          for spec in "${specs[@]}"; do
+            if ! npm view "${spec}" version >/dev/null 2>&1; then
+              echo "::error::${spec} is not yet published to npm. Wait for the 'Native Build Matrix (Tier 1)' workflow to finish publishing all platform packages for this release, then re-run this job."
+              exit 1
+            fi
+            echo "Confirmed: ${spec} exists on npm."
+          done
+
       - name: Install dependencies
         run: cd bindings/node && bun install
 

@@ -1,0 +1,32 @@
+{
+  "name": "@allpaqa/multilingual-katakana-linux-arm64-gnu",
+  "version": "0.4.0",
+  "description": "Native NAPI-RS addon for Linux arm64 (glibc) — internal platform binary for @allpaqa/multilingual-katakana. Not intended for direct use.",
+  "main": "multilingual-katakana.linux-arm64-gnu.node",
+  "files": [
+    "multilingual-katakana.linux-arm64-gnu.node"
+  ],
+  "author": "allpaqa",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allpaqa-org/multilingual-katakana.git",
+    "directory": "bindings/node/npm/linux-arm64-gnu"
+  },
+  "homepage": "https://github.com/allpaqa-org/multilingual-katakana#readme",
+  "bugs": {
+    "url": "https://github.com/allpaqa-org/multilingual-katakana/issues"
+  },
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "libc": [
+    "glibc"
+  ]
+}

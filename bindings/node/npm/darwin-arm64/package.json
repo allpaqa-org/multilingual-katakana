@@ -1,0 +1,29 @@
+{
+  "name": "@allpaqa/multilingual-katakana-darwin-arm64",
+  "version": "0.4.0",
+  "description": "Native NAPI-RS addon for macOS arm64 — internal platform binary for @allpaqa/multilingual-katakana. Not intended for direct use.",
+  "main": "multilingual-katakana.darwin-arm64.node",
+  "files": [
+    "multilingual-katakana.darwin-arm64.node"
+  ],
+  "author": "allpaqa",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allpaqa-org/multilingual-katakana.git",
+    "directory": "bindings/node/npm/darwin-arm64"
+  },
+  "homepage": "https://github.com/allpaqa-org/multilingual-katakana#readme",
+  "bugs": {
+    "url": "https://github.com/allpaqa-org/multilingual-katakana/issues"
+  },
+  "os": [
+    "darwin"
+  ],
+  "cpu": [
+    "arm64"
+  ],
+  "publishConfig": {
+    "access": "public"
+  }
+}

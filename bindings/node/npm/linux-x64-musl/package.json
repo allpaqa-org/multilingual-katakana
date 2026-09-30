@@ -1,0 +1,32 @@
+{
+  "name": "@allpaqa/multilingual-katakana-linux-x64-musl",
+  "version": "0.4.0",
+  "description": "Native NAPI-RS addon for Linux x64 (musl) — internal platform binary for @allpaqa/multilingual-katakana. Not intended for direct use.",
+  "main": "multilingual-katakana.linux-x64-musl.node",
+  "files": [
+    "multilingual-katakana.linux-x64-musl.node"
+  ],
+  "author": "allpaqa",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/allpaqa-org/multilingual-katakana.git",
+    "directory": "bindings/node/npm/linux-x64-musl"
+  },
+  "homepage": "https://github.com/allpaqa-org/multilingual-katakana#readme",
+  "bugs": {
+    "url": "https://github.com/allpaqa-org/multilingual-katakana/issues"
+  },
+  "os": [
+    "linux"
+  ],
+  "cpu": [
+    "x64"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "libc": [
+    "musl"
+  ]
+}
