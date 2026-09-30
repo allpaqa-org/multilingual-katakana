@@ -1,10 +1,20 @@
 name: Native Build Matrix (Tier 1)
 
 # Builds the NAPI-RS native addon for every Tier 1 platform listed in
-# docs/V0.4.0_BINDINGS_SCOPE.md §5.2, to verify buildability ahead of the
-# per-platform npm distribution work tracked in #15. This workflow only
-# builds and uploads artifacts for inspection/smoke-testing; it does not
-# publish anything to npm.
+# docs/V0.4.0_BINDINGS_SCOPE.md §5.2, ahead of the per-platform npm
+# distribution work tracked in #15.
+#
+# - workflow_dispatch runs: build + pack + smoke-test only (no publish),
+#   for manual verification ahead of a release.
+# - push (tag `v*`) runs: build + pack + smoke-test, then publishes each
+#   platform package to npm.
+#
+# Publishing currently uses NPM_TOKEN (classic automation token) because
+# npm Trusted Publishing (OIDC) cannot be configured for a package that
+# does not exist on npm yet. Once all 8 platform packages have been
+# published at least once and Trusted Publishing is configured for each
+# on npmjs.com, remove the `NODE_AUTH_TOKEN` env below — npm CLI will use
+# OIDC automatically (the `id-token: write` permission is already granted).
 on:
   workflow_dispatch: {}
   push:
@@ -14,6 +24,9 @@ jobs:
   build:
     name: Build (${{ matrix.triple }})
     runs-on: ${{ matrix.os }}
+    permissions:
+      contents: read
+      id-token: write
     strategy:
       fail-fast: false
       matrix:
@@ -55,6 +68,12 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 24
+          registry-url: 'https://registry.npmjs.org'
 
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
@@ -123,6 +142,15 @@ jobs:
           npm init -y
           npm install "${{ steps.pack.outputs.tarball_path }}"
           node -e "const mod = require('@allpaqa/multilingual-katakana-${{ matrix.triple }}'); if (typeof mod.toKatakanaNative !== 'function') throw new Error('Missing toKatakanaNative export'); if (typeof mod.nativeSelfCheck !== 'function') throw new Error('Missing nativeSelfCheck export'); if (mod.nativeSelfCheck() !== true) throw new Error('nativeSelfCheck() must return true');"
+
+      - name: Publish platform package to npm
+        # Only publish on real releases (tag push), never on manual
+        # workflow_dispatch runs used for build/smoke-test verification.
+        if: github.event_name == 'push'
+        shell: bash
+        run: cd "bindings/node/npm/${{ matrix.triple }}" && npm publish --access public --provenance
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
 
       - name: Upload raw binary artifact
         uses: actions/upload-artifact@v4
