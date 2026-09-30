@@ -10,12 +10,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](../../LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](pyproject.toml)
 
-> ⚠️ **Not yet published to PyPI.** This binding currently only ships as
-> source, built locally with [maturin](https://www.maturin.rs/). Pre-built
-> wheels for all Tier 1 platforms and a PyPI Trusted Publishing CI
-> pipeline are tracked in a fast-follow issue (mirroring the Node.js
-> native binding's own rollout — see
-> [#28](https://github.com/allpaqa-org/multilingual-katakana/issues/28)).
+> ⚠️ **Not yet published to PyPI.** The Tier 1 abi3 wheel build matrix and
+> PyPI Trusted Publishing pipeline
+> ([#28](https://github.com/allpaqa-org/multilingual-katakana/issues/28),
+> `.github/workflows/build-python-matrix.yml`) are in place, but no
+> release has been published through it yet — until then, build and
+> install from source locally with [maturin](https://www.maturin.rs/).
 
 ---
 
