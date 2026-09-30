@@ -16,34 +16,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
+      - name: Rust Quality Gate (test, clippy, fmt)
+        uses: ./.github/actions/rust-quality-gate
 
-      - name: Run Cargo Tests (100% pass required)
-        run: cargo test --all-targets
-
-      - name: Run Clippy (0 warnings required)
-        run: cargo clippy --all-targets -- -D warnings
-
-      - name: Check Rust formatting
-        run: cargo fmt --check
-
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
-      - name: Install dependencies
-        run: cd bindings/node && bun install
-
-      - name: Run Quality Gate
-        run: |
-          bun run test
-          bun run check:ci
-          bun run check:complexity
-          bun run validate:spec
+      - name: Bun Quality Gate (test, lint, complexity, spec)
+        uses: ./.github/actions/bun-quality-gate
 
       - name: Build Dual ESM/CJS Package
         run: bun run build

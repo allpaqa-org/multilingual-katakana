@@ -16,11 +16,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
@@ -57,14 +52,11 @@ jobs:
             echo "Confirmed: ${spec} exists on npm."
           done
 
-      - name: Install dependencies
-        run: cd bindings/node && bun install
-
-      - name: Run Quality Gate
-        run: |
-          bun run test
-          bun run check
-          bun run check:complexity
+      - name: Bun Quality Gate (test, lint, complexity)
+        uses: ./.github/actions/bun-quality-gate
+        with:
+          lint-command: check
+          run-spec-validation: 'false'
 
       - name: Build Package
         run: bun run build

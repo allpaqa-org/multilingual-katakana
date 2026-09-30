@@ -14,11 +14,6 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Setup Bun
-        uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: latest
-
       - name: Setup Rust toolchain
         uses: dtolnay/rust-toolchain@stable
 
@@ -29,23 +24,11 @@ jobs:
           cp target/release/libmultilingual_katakana_node.so \
             bindings/node/native/multilingual-katakana.linux-x64-gnu.node
 
-      - name: Install dependencies
-        run: cd bindings/node && bun install
-
-      - name: Run Tests (100% pass required)
-        run: bun run test
+      - name: Bun Quality Gate (test, lint, complexity, spec)
+        uses: ./.github/actions/bun-quality-gate
 
       - name: Run Tests with native backend forced (must not silently fall back)
         run: cd bindings/node && MULTILINGUAL_KATAKANA_BACKEND=native bun test
-
-      - name: Run Biome Linter & Formatter (0 errors required)
-        run: bun run check:ci
-
-      - name: Audit Code Complexity (CC <= 15 required)
-        run: bun run check:complexity
-
-      - name: Validate Cross-Language Spec Schemas
-        run: bun run validate:spec
 
       - name: Build Dual ESM/CJS Package
         run: bun run build
@@ -94,16 +77,5 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v7
 
-      - name: Setup Rust toolchain
-        uses: dtolnay/rust-toolchain@stable
-        with:
-          components: clippy, rustfmt
-
-      - name: Run Cargo Tests (100% pass required)
-        run: cargo test --all-targets
-
-      - name: Run Clippy (0 warnings required)
-        run: cargo clippy --all-targets -- -D warnings
-
-      - name: Check Rust formatting
-        run: cargo fmt --check
+      - name: Rust Quality Gate (test, clippy, fmt)
+        uses: ./.github/actions/rust-quality-gate
