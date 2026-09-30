@@ -1,0 +1,24 @@
+name: 'Rust Quality Gate'
+description: >-
+  Runs the shared Rust Core quality gate: cargo test, clippy (0 warnings) and
+  a formatting check. Assumes the repository has already been checked out.
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Rust toolchain
+      uses: dtolnay/rust-toolchain@stable
+      with:
+        components: clippy, rustfmt
+
+    - name: Run Cargo Tests (100% pass required)
+      shell: bash
+      run: cargo test --all-targets
+
+    - name: Run Clippy (0 warnings required)
+      shell: bash
+      run: cargo clippy --all-targets -- -D warnings
+
+    - name: Check Rust formatting
+      shell: bash
+      run: cargo fmt --check

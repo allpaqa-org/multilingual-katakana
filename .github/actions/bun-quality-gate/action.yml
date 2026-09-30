@@ -1,0 +1,52 @@
+name: 'Bun Quality Gate'
+description: >-
+  Runs the shared Bun/Node quality gate: install dependencies, run tests,
+  lint, complexity audit, and (optionally) the cross-language spec schema
+  validation. Assumes the repository has already been checked out.
+
+inputs:
+  bun-version:
+    description: 'Bun version to install via oven-sh/setup-bun.'
+    required: false
+    default: 'latest'
+  lint-command:
+    description: >-
+      Root `bun run` script used for linting/formatting checks (e.g.
+      `check:ci` for a read-only CI check, `check` for an auto-fixing check).
+    required: false
+    default: 'check:ci'
+  run-spec-validation:
+    description: >-
+      Whether to run the cross-language spec schema validation
+      (`bun run validate:spec`). Set to 'false' to skip.
+    required: false
+    default: 'true'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Setup Bun
+      uses: oven-sh/setup-bun@v2
+      with:
+        bun-version: ${{ inputs.bun-version }}
+
+    - name: Install dependencies
+      shell: bash
+      run: cd bindings/node && bun install
+
+    - name: Run Tests (100% pass required)
+      shell: bash
+      run: bun run test
+
+    - name: Run Biome Linter & Formatter (0 errors required)
+      shell: bash
+      run: bun run ${{ inputs.lint-command }}
+
+    - name: Audit Code Complexity (CC <= 15 required)
+      shell: bash
+      run: bun run check:complexity
+
+    - name: Validate Cross-Language Spec Schemas
+      if: ${{ inputs.run-spec-validation == 'true' }}
+      shell: bash
+      run: bun run validate:spec
