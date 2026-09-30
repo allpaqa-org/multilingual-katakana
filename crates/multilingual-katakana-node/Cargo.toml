@@ -1,6 +1,6 @@
 [package]
 name = "multilingual-katakana-node"
-version = "0.4.0"
+version = "0.4.1"
 edition = "2021"
 license = "MIT"
 description = "NAPI-RS native accelerator for @allpaqa/multilingual-katakana (internal, not published to crates.io)"

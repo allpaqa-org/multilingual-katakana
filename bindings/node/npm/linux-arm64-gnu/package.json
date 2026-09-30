@@ -1,6 +1,6 @@
 {
   "name": "@allpaqa/multilingual-katakana-linux-arm64-gnu",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Native NAPI-RS addon for Linux arm64 (glibc) — internal platform binary for @allpaqa/multilingual-katakana. Not intended for direct use.",
   "main": "multilingual-katakana.linux-arm64-gnu.node",
   "files": [
