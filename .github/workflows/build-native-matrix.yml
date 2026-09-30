@@ -6,8 +6,16 @@ name: Native Build Matrix (Tier 1)
 #
 # - workflow_dispatch runs: build + pack + smoke-test only (no publish),
 #   for manual verification ahead of a release.
-# - push (tag `v*`) runs: verify-versions, then build + pack + smoke-test,
-#   then publishes each platform package to npm.
+# - push (tag `v*`) runs: verify-versions, then build + pack + smoke-test
+#   only (no publish yet) — this is early feedback right after tagging,
+#   before release.yml's own quality gates and the human release-approval
+#   step have run.
+# - release (published) runs: verify-versions, then build + pack +
+#   smoke-test, then publishes each platform package to npm. This fires
+#   only after a human clicks "Publish release" on GitHub (the same
+#   trigger/gate publish.yml uses for the main package), so platform
+#   packages are never published before the release's own quality gates
+#   and human approval have completed.
 #
 # Publishing currently uses NPM_TOKEN (classic automation token) because
 # npm Trusted Publishing (OIDC) cannot be configured for a package that
@@ -19,12 +27,14 @@ on:
   workflow_dispatch: {}
   push:
     tags: ["v*"]
+  release:
+    types: [published]
 
 jobs:
   verify-versions:
     name: Verify tag matches package versions
     runs-on: ubuntu-24.04
-    if: github.event_name == 'push'
+    if: github.event_name == 'push' || github.event_name == 'release'
     steps:
       - name: Checkout code
         uses: actions/checkout@v7
@@ -233,10 +243,25 @@ jobs:
             sh -c "mkdir /smoke && cd /smoke && npm init -y >/dev/null && npm install /tmp/pkg.tgz && node -e \"const mod = require('@allpaqa/multilingual-katakana-${{ matrix.triple }}'); if (typeof mod.toKatakanaNative !== 'function') throw new Error('Missing toKatakanaNative export'); if (typeof mod.nativeSelfCheck !== 'function') throw new Error('Missing nativeSelfCheck export'); if (mod.nativeSelfCheck() !== true) throw new Error('nativeSelfCheck() must return true');\""
 
       - name: Publish platform package to npm
-        # Only publish on real releases (tag push), never on manual
-        # workflow_dispatch runs used for build/smoke-test verification.
-        if: github.event_name == 'push'
+        # Only publish once the release has actually been published (human
+        # approval + release.yml's own quality gates already ran) — never
+        # on a plain tag push (early build/smoke-test feedback only) or a
+        # manual workflow_dispatch run.
+        if: github.event_name == 'release'
         shell: bash
-        run: cd "bindings/node/npm/${{ matrix.triple }}" && npm publish --access public --provenance
+        # Guard against a failed re-run of this workflow trying to publish
+        # a version that already succeeded on a previous attempt — npm
+        # rejects republishing an existing version outright (E403), so
+        # skip cleanly instead of failing the whole matrix again.
+        run: |
+          set -euo pipefail
+          cd "bindings/node/npm/${{ matrix.triple }}"
+          pkg_name="$(node -p "require('./package.json').name")"
+          pkg_version="$(node -p "require('./package.json').version")"
+          if npm view "${pkg_name}@${pkg_version}" version >/dev/null 2>&1; then
+            echo "${pkg_name}@${pkg_version} is already published to npm; skipping."
+          else
+            npm publish --access public --provenance
+          fi
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
