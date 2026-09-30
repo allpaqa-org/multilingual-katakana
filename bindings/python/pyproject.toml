@@ -1,0 +1,39 @@
+[build-system]
+requires = ["maturin>=1.5,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "allpaqa-multilingual-katakana"
+version = "0.4.1"
+description = "Zero-dependency, ultra-fast multilingual foreign language to Japanese Katakana phonetic converter"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+authors = [{ name = "allpaqa" }]
+keywords = ["katakana", "tts", "japanese", "multilingual", "phonetics", "voicevox"]
+classifiers = [
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Rust",
+  "License :: OSI Approved :: MIT License",
+  "Operating System :: OS Independent",
+  "Topic :: Text Processing :: Linguistic",
+]
+# Zero runtime dependencies (see AGENTS.md Core Architectural Principle #1) —
+# this list must stay empty, verified in CI (see #26 follow-up issue).
+dependencies = []
+
+[project.urls]
+Homepage = "https://github.com/allpaqa-org/multilingual-katakana"
+Repository = "https://github.com/allpaqa-org/multilingual-katakana"
+Issues = "https://github.com/allpaqa-org/multilingual-katakana/issues"
+
+[tool.maturin]
+# Rust glue crate lives under crates/ (workspace member), separate from this
+# distributable Python package directory — mirrors how
+# crates/multilingual-katakana-node is separate from bindings/node.
+manifest-path = "../../crates/multilingual-katakana-python/Cargo.toml"
+# Compiled extension is placed at python/multilingual_katakana/_native*.so;
+# __init__.py (pure Python, hand-written) wraps it into the public API.
+module-name = "multilingual_katakana._native"
+python-source = "python"
+features = ["pyo3/extension-module"]

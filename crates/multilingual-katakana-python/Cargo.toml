@@ -1,0 +1,20 @@
+[package]
+name = "multilingual-katakana-python"
+version = "0.4.1"
+edition = "2021"
+license = "MIT"
+description = "PyO3 native accelerator for allpaqa-multilingual-katakana (internal, not published to crates.io)"
+publish = false
+
+[lib]
+# `cdylib` is required for Python to load this as an extension module; `rlib`
+# is kept so `cargo test` can still exercise this crate directly (mirrors the
+# node glue crate's lib target shape).
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+multilingual-katakana-core = { path = "../multilingual-katakana-core" }
+# `abi3-py38`: build against the Stable ABI floor (CPython 3.8), so a single
+# wheel per platform works for Python 3.8+ instead of one wheel per
+# (platform, Python minor version) combination — see #26.
+pyo3 = { version = "0.22", features = ["abi3-py38"] }

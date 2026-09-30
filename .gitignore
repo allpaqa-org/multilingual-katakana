@@ -11,6 +11,14 @@ bindings/node/native/*
 !bindings/node/native/README.md
 bindings/node/npm/*/*.node
 
+# Python binding build outputs (maturin develop / pytest)
+bindings/python/python/multilingual_katakana/*.so
+bindings/python/python/multilingual_katakana/*.pyd
+__pycache__/
+*.pyc
+.pytest_cache/
+*.egg-info/
+
 # Logs
 *.log
 npm-debug.log*

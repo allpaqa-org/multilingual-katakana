@@ -79,3 +79,45 @@ jobs:
 
       - name: Rust Quality Gate (test, clippy, fmt)
         uses: ./.github/actions/rust-quality-gate
+
+  python-binding:
+    name: Python Binding (spec + API tests)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Create venv and install maturin & pytest
+        # `maturin develop` refuses to run without an active virtualenv/conda
+        # env (or a `.venv` next to pyproject.toml) — actions/setup-python
+        # alone does not provide one.
+        run: |
+          python -m venv .venv
+          echo "VIRTUAL_ENV=$PWD/.venv" >> "$GITHUB_ENV"
+          echo "$PWD/.venv/bin" >> "$GITHUB_PATH"
+          .venv/bin/pip install maturin pytest
+
+      - name: Build native extension and install editable
+        run: cd bindings/python && maturin develop --release
+
+      - name: Verify zero runtime dependencies
+        run: |
+          python -c "
+          import tomllib
+          with open('bindings/python/pyproject.toml', 'rb') as f:
+              data = tomllib.load(f)
+          deps = data['project'].get('dependencies', [])
+          assert deps == [], f'dependencies must be empty, got: {deps}'
+          print('OK: dependencies = []')
+          "
+
+      - name: Run Tests (100% pass required, 163 spec cases)
+        run: cd bindings/python && python -m pytest -v
