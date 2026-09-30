@@ -68,9 +68,9 @@ Full support for Dual ESM (ECMAScript Modules), CommonJS (CJS), and TypeScript t
 
 ### 🪶 Lightweight, Pure-TypeScript by Default
 
-Today, `@allpaqa/multilingual-katakana` ships as **pure TypeScript only** — no native binaries, no `optionalDependencies`, zero runtime dependencies. Every install is already the lightweight footprint (~124 KB unpacked, ~26 KB gzipped).
+The currently published `0.4.0` package on npm is still **pure TypeScript only**. In this repository, the upcoming per-platform native package scaffolding and `optionalDependencies` wiring now exist for a future v0.4.x release, but those platform packages are not published yet. Runtime dependencies remain zero, and the default install footprint is still lightweight (~124 KB unpacked, ~26 KB gzipped) until that follow-up release ships.
 
-A native NAPI-RS backend (Rust, auto-selected for extra speed) is being rolled out as an **opt-in accelerator** in upcoming v0.4.x releases, published as small per-platform `optionalDependencies` (~1–3 MB each). It will never be required:
+When those native packages are published, the Rust NAPI-RS backend (auto-selected for extra speed) will remain an **optional accelerator** via small per-platform `optionalDependencies` (~1–3 MB each). It will never be required:
 
 - **Prefer the lightweight, pure-JS install?** Skip the native binary entirely with `npm install @allpaqa/multilingual-katakana --omit=optional` (or `pnpm add --no-optional`, `yarn add --ignore-optional`). Output is identical — you just get the existing pure-TypeScript pipeline.
 - **Installed the native binary but still want to force pure JS at runtime** (e.g. for byte-identical behavior across environments)? Set `MULTILINGUAL_KATAKANA_BACKEND=js` before your process starts.

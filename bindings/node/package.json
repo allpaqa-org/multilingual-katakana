@@ -63,6 +63,16 @@
     "access": "public"
   },
   "dependencies": {},
+  "optionalDependencies": {
+    "@allpaqa/multilingual-katakana-darwin-arm64": "0.4.0",
+    "@allpaqa/multilingual-katakana-darwin-x64": "0.4.0",
+    "@allpaqa/multilingual-katakana-linux-x64-gnu": "0.4.0",
+    "@allpaqa/multilingual-katakana-linux-arm64-gnu": "0.4.0",
+    "@allpaqa/multilingual-katakana-linux-x64-musl": "0.4.0",
+    "@allpaqa/multilingual-katakana-linux-arm64-musl": "0.4.0",
+    "@allpaqa/multilingual-katakana-win32-x64-msvc": "0.4.0",
+    "@allpaqa/multilingual-katakana-win32-arm64-msvc": "0.4.0"
+  },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",
     "tsup": "^8.5.1",

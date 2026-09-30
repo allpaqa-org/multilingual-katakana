@@ -92,9 +92,48 @@ jobs:
           cp "target/${{ matrix.target }}/release/${{ matrix.lib-file }}" \
             "dist-native/multilingual-katakana.${{ matrix.triple }}.node"
 
-      - name: Upload artifact
+      - name: Stage binary in the platform package template
+        shell: bash
+        run: |
+          cp "dist-native/multilingual-katakana.${{ matrix.triple }}.node" \
+            "bindings/node/npm/${{ matrix.triple }}/multilingual-katakana.${{ matrix.triple }}.node"
+
+      - name: Pack installable npm tarball
+        id: pack
+        shell: bash
+        run: |
+          repo_root="$PWD"
+          tarball_name="$(
+            cd "bindings/node/npm/${{ matrix.triple }}" &&
+            npm pack --pack-destination ../../../dist-native
+          )"
+          echo "tarball_name=${tarball_name}" >> "$GITHUB_OUTPUT"
+          echo "tarball_path=${repo_root}/dist-native/${tarball_name}" >> "$GITHUB_OUTPUT"
+
+      - name: Smoke-test platform tarball via local npm install
+        shell: bash
+        # This proves the exact `require("@allpaqa/multilingual-katakana-<triple>")`
+        # path used by bindings/node/src/backend/loader.ts resolves to a
+        # self-contained npm package on the matching real runner hardware.
+        run: |
+          scratch_dir="${RUNNER_TEMP}/smoke-test-${{ matrix.triple }}"
+          rm -rf "$scratch_dir"
+          mkdir -p "$scratch_dir"
+          cd "$scratch_dir"
+          npm init -y
+          npm install "${{ steps.pack.outputs.tarball_path }}"
+          node -e "const mod = require('@allpaqa/multilingual-katakana-${{ matrix.triple }}'); if (typeof mod.toKatakanaNative !== 'function') throw new Error('Missing toKatakanaNative export'); if (typeof mod.nativeSelfCheck !== 'function') throw new Error('Missing nativeSelfCheck export'); if (mod.nativeSelfCheck() !== true) throw new Error('nativeSelfCheck() must return true');"
+
+      - name: Upload raw binary artifact
         uses: actions/upload-artifact@v4
         with:
           name: multilingual-katakana.${{ matrix.triple }}.node
           path: dist-native/multilingual-katakana.${{ matrix.triple }}.node
+          retention-days: 7
+
+      - name: Upload npm tarball artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: ${{ steps.pack.outputs.tarball_name }}
+          path: ${{ steps.pack.outputs.tarball_path }}
           retention-days: 7
