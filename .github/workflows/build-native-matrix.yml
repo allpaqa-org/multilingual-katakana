@@ -173,7 +173,7 @@ jobs:
           repo_root="$PWD"
           tarball_name="$(
             cd "bindings/node/npm/${{ matrix.triple }}" &&
-            npm pack --pack-destination ../../../dist-native
+            npm pack --pack-destination ../../../../dist-native
           )"
           echo "tarball_name=${tarball_name}" >> "$GITHUB_OUTPUT"
           echo "tarball_path=${repo_root}/dist-native/${tarball_name}" >> "$GITHUB_OUTPUT"
