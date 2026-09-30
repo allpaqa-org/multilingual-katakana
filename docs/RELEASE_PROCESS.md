@@ -109,6 +109,23 @@ package is published — because **npm versions are immutable** — a
 mismatch published under the wrong version number can never be corrected
 after the fact.
 
+### 3.2 Python binding (v0.5.0+)
+
+Once the Python binding ships (see `docs/V0.4.0_BINDINGS_SCOPE.md` §7.3),
+add the following to the same lockstep `"X.Y.Z"`:
+
+6. **PyO3 glue crate `crates/multilingual-katakana-python/Cargo.toml`**:
+   `version = "X.Y.Z"`
+7. **Python package `bindings/python/pyproject.toml`**:
+   `version = "X.Y.Z"` (under `[project]`) — also mirrored in
+   `bindings/python/python/multilingual_katakana/__init__.py`'s
+   `__version__`.
+
+A Tier 1 wheel build matrix and PyPI Trusted Publishing pipeline
+(mirroring `build-native-matrix.yml` / `publish.yml` for npm) are tracked
+as follow-up work; there is no automated version-sync check for these
+files yet, so bump them by hand until that lands.
+
 ---
 
 ## 4. Pre-Release Verification Commands (Quality Gates)
@@ -143,6 +160,10 @@ cargo clippy --all-targets -- -D warnings
 
 # 8. Rust code format check (0 diffs required)
 cargo fmt --check
+
+# --- Python binding checks (v0.5.0+) ---
+# 9. Build native extension and run the spec + API test suite
+cd bindings/python && maturin develop --release && python -m pytest
 ```
 
 ---

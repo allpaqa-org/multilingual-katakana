@@ -2,5 +2,6 @@
 members = [
     "crates/multilingual-katakana-core",
     "crates/multilingual-katakana-node",
+    "crates/multilingual-katakana-python",
 ]
 resolver = "2"

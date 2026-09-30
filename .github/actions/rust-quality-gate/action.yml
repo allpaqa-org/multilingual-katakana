@@ -6,6 +6,14 @@ description: >-
 runs:
   using: 'composite'
   steps:
+    - name: Setup Python
+      # Required so `cargo test --all-targets` / `cargo clippy --all-targets`
+      # / `cargo fmt --check` can build crates/multilingual-katakana-python
+      # (PyO3 glue crate needs a discoverable libpython at build time).
+      uses: actions/setup-python@v5
+      with:
+        python-version: '3.12'
+
     - name: Setup Rust toolchain
       uses: dtolnay/rust-toolchain@stable
       with:
