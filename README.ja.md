@@ -264,6 +264,18 @@ CI/CD 自動化や配布プロトコルについては [リリース手順書 (d
 
 ---
 
+## 🏢 パッケージレジストリと組織管理 (Registries & Organizations)
+
+| レジストリ | 組織 (Organization) | パッケージ | 公開方式 |
+|---|---|---|---|
+| GitHub | `allpaqa-org` | `allpaqa-org/multilingual-katakana` | — |
+| npm | `@allpaqa` | `@allpaqa/multilingual-katakana` + プラットフォーム別ネイティブパッケージ | OIDC Trusted Publishing |
+| PyPI | `allpaqa`（承認待ち） | `allpaqa-multilingual-katakana` | OIDC Trusted Publishing（準備中） |
+
+いずれのレジストリでも長期の公開トークンは保持しません。PyPI には npm の `@scope` のような名前空間機能がないため、プロジェクト名に `allpaqa-` プレフィックスを付けています。
+
+---
+
 ## 🗺️ ロードマップ (Roadmap)
 
 - [x] **v0.1.0**: TypeScript ゼロ依存実装（Dual ESM/CJS, PUA エスケープ保護, 10+言語/スラング対応）

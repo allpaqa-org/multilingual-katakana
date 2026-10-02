@@ -273,6 +273,18 @@ See [Release Process Documentation](docs/RELEASE_PROCESS.md) for automated CI/CD
 
 ---
 
+## 🏢 Package Registries & Organizations
+
+| Registry | Organization | Package | Publishing |
+|---|---|---|---|
+| GitHub | `allpaqa-org` | `allpaqa-org/multilingual-katakana` | — |
+| npm | `@allpaqa` | `@allpaqa/multilingual-katakana` + per-platform native packages | OIDC Trusted Publishing |
+| PyPI | `allpaqa` (pending approval) | `allpaqa-multilingual-katakana` | OIDC Trusted Publishing (in preparation) |
+
+No long-lived publish tokens are stored for any registry. PyPI has no scoped namespaces like npm, so the project name uses an `allpaqa-` prefix instead.
+
+---
+
 ## 🗺️ Roadmap
 
 - [x] **v0.1.0**: Zero-dependency TypeScript implementation (Dual ESM/CJS, PUA interval escaping, 10+ languages/slang).
