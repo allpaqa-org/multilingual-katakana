@@ -9,7 +9,7 @@
 [![CI](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml/badge.svg)](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](package.json)
-[![Tests: 100%](https://img.shields.io/badge/tests-199%20passed-brightgreen.svg)](spec/cases/)
+[![Tests: 100%](https://img.shields.io/badge/tests-206%20passed-brightgreen.svg)](spec/cases/)
 [![Complexity: CC<=15](https://img.shields.io/badge/complexity-CC%20%3C%3D%2015-success.svg)](scripts/check_complexity.ts)
 
 ---
@@ -242,7 +242,7 @@ COEIROINK・VOICEVOX・Kokoro・Piper・OS標準音声などに対応したTwitc
 - **仕様契約 (`spec/cases/*.json`)**:
   12 スイート（英語、中国語、韓国語、ロシア語、スペイン語、ベトナム語、タイ語、スラング、漢字保護、プロソディ、複合コメント、失敗モード）に及ぶ全テストケースが JSON で定義されており、TypeScript 版と Rust コアで同一のテストを 100% パスします。
 - **品質基準 (Quality Gates)**:
-  - ✅ **テスト全件パス**: TypeScript・Rust 共通の仕様テスト199件がすべて成功
+  - ✅ **テスト全件パス**: TypeScript・Rust 共通の仕様テスト206件がすべて成功
   - ✅ **静的解析**: Biome による 0 errors, 0 warnings
   - ✅ **コード複雑度**: 全関数が **CC（Cyclomatic Complexity） <= 15**、Cognitive Complexity <= 15 を厳守
   - ✅ **超高速 Rust コア**: `crates/multilingual-katakana-core` にて平均 **3.38 µs** / 秒間約30万フレーズの圧倒的性能

@@ -107,13 +107,12 @@ fn is_hws(c: char) -> bool {
 }
 
 #[inline]
-fn is_fullwidth_punct(c: char) -> bool {
-    matches!(c, '、' | '。' | '！' | '？')
+fn is_punct(c: char) -> bool {
+    matches!(c, '、' | '。' | '！' | '？' | '!' | '?' | ',' | '.')
 }
 
-#[inline]
-fn is_ascii_punct(c: char) -> bool {
-    matches!(c, '!' | '?' | ',' | '.')
+fn is_punct_only(part: &str) -> bool {
+    !part.is_empty() && part.chars().all(is_punct)
 }
 
 fn has_char(text: &str, table: &[char]) -> bool {
@@ -140,7 +139,7 @@ fn guard_edge(run: &str, at_end: bool) -> usize {
 /// Japanese-only characters always win (with Chinese evidence too -> mixed).
 /// Strong Chinese evidence beats guard words; a guard word at the very start
 /// or end of such a run is split off and kept as Japanese.
-fn new_run(start: usize, text: &str) -> HanziRun {
+fn new_run(start: usize, text: &str, relax_guards: bool) -> HanziRun {
     let mut run = HanziRun {
         start,
         end: start + text.len(),
@@ -165,26 +164,32 @@ fn new_run(start: usize, text: &str) -> HanziRun {
             0
         };
     } else if JAPANESE_GUARD_WORDS.iter().any(|&w| text.contains(w)) {
-        run.cls = RunClass::Ja;
+        // In a kana-free comment that reads as Chinese, a run that itself shows
+        // Chinese markers / common words is not forced Japanese by guard words.
+        run.cls = if relax_guards && is_chinese(text) {
+            RunClass::Undecided
+        } else {
+            RunClass::Ja
+        };
     }
     run
 }
 
-fn find_runs(text: &str) -> Vec<HanziRun> {
+fn find_runs(text: &str, relax_guards: bool) -> Vec<HanziRun> {
     let mut runs = Vec::new();
     let mut start: Option<usize> = None;
     for (i, c) in text.char_indices() {
         match (is_hanzi(c), start) {
             (true, None) => start = Some(i),
             (false, Some(s)) => {
-                runs.push(new_run(s, &text[s..i]));
+                runs.push(new_run(s, &text[s..i], relax_guards));
                 start = None;
             }
             _ => {}
         }
     }
     if let Some(s) = start {
-        runs.push(new_run(s, &text[s..]));
+        runs.push(new_run(s, &text[s..], relax_guards));
     }
     runs
 }
@@ -223,7 +228,7 @@ fn is_linked(text: &str, left: &HanziRun, right: &HanziRun) -> bool {
         .any(|c| is_japanese_script(c) || is_sentence_break(c))
 }
 
-/// Class a run shows to its neighbour on one side (a kept guard edge shows `Ja`).
+/// Class a run shows to its neighbour on one side (a kept guard edge is neutral).
 fn edge_class(run: &HanziRun, cls: RunClass, right_side: bool) -> RunClass {
     let kept = if right_side {
         run.keep_tail
@@ -231,9 +236,31 @@ fn edge_class(run: &HanziRun, cls: RunClass, right_side: bool) -> RunClass {
         run.keep_head
     };
     if cls == RunClass::Zh && kept > 0 {
-        RunClass::Ja
+        RunClass::Undecided
     } else {
         cls
+    }
+}
+
+/// A linked neighbour that is not Japanese can continue the Chinese sentence.
+fn continues_sentence(text: &str, left: &HanziRun, right: &HanziRun, other: &HanziRun) -> bool {
+    is_linked(text, left, right) && !matches!(other.cls, RunClass::Ja | RunClass::Mixed)
+}
+
+/// A guard word at the edge of a Chinese-evidence run is kept Japanese only
+/// when nothing non-Japanese is linked on that side (`了解谢谢` keeps 了解,
+/// `我是台灣人，感謝你們` converts 感謝 as part of the Chinese sentence).
+fn settle_guard_edges(text: &str, runs: &mut [HanziRun]) {
+    for i in 0..runs.len() {
+        if runs[i].cls != RunClass::Zh {
+            continue;
+        }
+        if i > 0 && continues_sentence(text, &runs[i - 1], &runs[i], &runs[i - 1]) {
+            runs[i].keep_head = 0;
+        }
+        if i + 1 < runs.len() && continues_sentence(text, &runs[i], &runs[i + 1], &runs[i + 1]) {
+            runs[i].keep_tail = 0;
+        }
     }
 }
 
@@ -314,14 +341,16 @@ fn apply_fallback(text: &str, runs: &mut [HanziRun], comment_has_kana: bool) {
 
 /// Classify every maximal CJK run of `text` as zh / ja / mixed.
 fn classify_runs(text: &str) -> Vec<HanziRun> {
-    let mut runs = find_runs(text);
+    let comment_has_kana = text.chars().any(is_japanese_script);
+    let mut runs = find_runs(text, !comment_has_kana && is_chinese(text));
     for run in runs.iter_mut() {
         if run.cls == RunClass::Undecided {
             run.cls = classify_by_context(text, run);
         }
     }
+    settle_guard_edges(text, &mut runs);
     propagate_links(text, &mut runs);
-    apply_fallback(text, &mut runs, text.chars().any(is_japanese_script));
+    apply_fallback(text, &mut runs, comment_has_kana);
     runs
 }
 
@@ -400,17 +429,15 @@ enum Side {
     Edge(Edge),
 }
 
+/// Whitespace rule (only next to a converted run): removed between the run
+/// and punctuation / the text boundary, collapsed to one space otherwise.
 fn clean_whitespace(prev: Side, next: Side) -> Option<&'static str> {
-    let fullwidth = |s: Side| matches!(s, Side::Char(c) if is_fullwidth_punct(c));
-    let ascii = |s: Side| matches!(s, Side::Char(c) if is_ascii_punct(c));
+    let punct = |s: Side| matches!(s, Side::Char(c) if is_punct(c));
     let is_edge = |s: Side, e: Edge| matches!(s, Side::Edge(x) if x == e);
-    if fullwidth(prev) || fullwidth(next) {
+    if is_edge(prev, Edge::Zh) && (punct(next) || is_edge(next, Edge::Boundary)) {
         return Some("");
     }
-    if is_edge(prev, Edge::Zh) && (ascii(next) || is_edge(next, Edge::Boundary)) {
-        return Some("");
-    }
-    if is_edge(next, Edge::Zh) && (ascii(prev) || is_edge(prev, Edge::Boundary)) {
+    if is_edge(next, Edge::Zh) && (punct(prev) || is_edge(prev, Edge::Boundary)) {
         return Some("");
     }
     if is_edge(prev, Edge::Zh) || is_edge(next, Edge::Zh) {
@@ -441,7 +468,7 @@ fn split_hws(text: &str) -> Vec<&str> {
 }
 
 /// Normalize one gap between runs: `，` -> `、`, `886` slang, and horizontal
-/// whitespace cleanup only next to full-width punctuation or a converted run.
+/// whitespace cleanup only next to a converted run (or punctuation attached to it).
 /// Line breaks and spacing between non-CJK text are never touched.
 fn normalize_gap(gap: &str, left: Edge, right: Edge, out: &mut String) {
     let gap = replace_context_slang(&gap.replace('，', "、"));
@@ -459,6 +486,12 @@ fn normalize_gap(gap: &str, left: Edge, right: Edge, out: &mut String) {
             Some(c) => Side::Char(c),
             None => Side::Edge(right),
         };
+        // Punctuation directly attached to a converted run: `谢谢！ 大家` -> `谢谢！大家`.
+        let bridged = (i == 1 && left == Edge::Zh && is_punct_only(parts[0]))
+            || (i + 2 == parts.len() && right == Edge::Zh && is_punct_only(parts[i + 1]));
+        if bridged {
+            continue;
+        }
         out.push_str(clean_whitespace(prev, next).unwrap_or(part));
     }
 }
@@ -590,7 +623,25 @@ mod tests {
         assert_eq!(convert_chinese("初見歓迎！ 谢谢"), "初見歓迎！シエシエ");
         assert_eq!(
             convert_chinese("初見歓迎！ 886 谢谢大家"),
-            "初見歓迎！バイバイ シエシエダージア"
+            "初見歓迎！ バイバイ シエシエダージア"
+        );
+        // A kept guard edge never spreads Japanese; Chinese sentences convert fully.
+        assert_eq!(
+            convert_chinese("我是台灣人，感謝你們"),
+            "ウォシー台灣レン、ガンシエニー們"
+        );
+        assert_eq!(
+            convert_chinese("謝謝 大家 感謝你們"),
+            "シエシエ ダージア ガンシエニー們"
+        );
+        assert_eq!(
+            convert_chinese("這個真的最高，大家好"),
+            "ジャーガージェンドゥズイガオ、ダージアハオ"
+        );
+        // Japanese spacing next to full-width punctuation is kept.
+        assert_eq!(
+            convert_chinese("初見です！ よろしく 谢谢"),
+            "初見です！ よろしく シエシエ"
         );
         assert_eq!(
             convert_chinese("初見です 谢谢大家"),

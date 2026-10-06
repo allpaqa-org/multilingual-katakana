@@ -675,5 +675,117 @@
       "issue_36"
     ],
     "description": "Same as the left-to-right case in reverse order"
+  },
+  {
+    "id": "kanji-guard-trad-guard-edge-linked",
+    "language": "zh",
+    "input": "我是台灣人，感謝你們",
+    "expected": {
+      "canonical": "ウォシー台灣レン、ガンシエニー們"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "A guard word at the edge of a Chinese run is converted when a non-Japanese run is linked on that side (no ja spreading)"
+  },
+  {
+    "id": "kanji-guard-trad-guard-edge-linked-3",
+    "language": "zh",
+    "input": "你好，我是台灣人，感謝你們",
+    "expected": {
+      "canonical": "ニーハオ、ウォシー台灣レン、ガンシエニー們"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "Three linked Traditional Chinese runs convert fully"
+  },
+  {
+    "id": "kanji-guard-trad-guard-edge-space",
+    "language": "zh",
+    "input": "謝謝 大家 感謝你們",
+    "expected": {
+      "canonical": "シエシエダージアガンシエニー們"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "Space-linked Traditional Chinese runs convert fully, including the guard word '感謝'"
+  },
+  {
+    "id": "kanji-guard-trad-relaxed-guard-comma",
+    "language": "zh",
+    "input": "這個真的最高，大家好",
+    "expected": {
+      "canonical": "ジャーガージェンドゥズイガオ、ダージアハオ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "In a kana-free Chinese comment, a run that itself reads as Chinese is not forced Japanese by the guard word '最高'"
+  },
+  {
+    "id": "kanji-guard-trad-relaxed-guard-space",
+    "language": "zh",
+    "input": "這個真的最高 大家好",
+    "expected": {
+      "canonical": "ジャーガージェンドゥズイガオダージアハオ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "Same as the '，' case with a space separator"
+  },
+  {
+    "id": "kanji-guard-guard-edge-after-japanese",
+    "language": "mixed",
+    "input": "初見 了解谢谢",
+    "expected": {
+      "canonical": "初見 了解シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "mixed_run",
+      "issue_36"
+    ],
+    "description": "A guard edge linked only to a Japanese run stays Japanese"
+  },
+  {
+    "id": "kanji-guard-japanese-spacing-kept",
+    "language": "mixed",
+    "input": "初見です！ よろしく 谢谢",
+    "expected": {
+      "canonical": "初見です！よろしく シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "spacing",
+      "issue_36"
+    ],
+    "description": "Japanese part with full-width punctuation is preserved; only the Chinese run is converted"
   }
 ]

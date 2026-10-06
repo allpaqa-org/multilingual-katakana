@@ -71,3 +71,10 @@ describe("Chinese run classification cleanup (#36)", () => {
     }
   });
 });
+
+describe("Chinese run classification spacing (#36)", () => {
+  test("keeps spaces after full-width punctuation away from converted runs", () => {
+    expect(convertChinese("初見です！ よろしく 谢谢")).toBe("初見です！ よろしく シエシエ");
+    expect(convertChinese("你好！ 玩得很好")).toBe("ニーハオ！ワンドゥヘンハオ");
+  });
+});

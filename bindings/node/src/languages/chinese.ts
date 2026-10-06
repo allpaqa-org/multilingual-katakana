@@ -23,8 +23,7 @@ const SENTENCE_BREAK_REGEX = /[、。！？!?.\n\r]/;
 const HWS = "\\t\\u000B\\u000C \\u00A0\\u1680\\u2000-\\u200A\\u202F\\u205F\\u3000";
 const HWS_REGEX = new RegExp(`[${HWS}]`);
 const HWS_SPLIT_REGEX = new RegExp(`([${HWS}]+)`);
-const FULLWIDTH_PUNCT = "、。！？";
-const ASCII_PUNCT = "!?,.";
+const PUNCT = "、。！？!?,.";
 
 /** Classification of one maximal CJK ideograph run. */
 type RunClass = "zh" | "ja" | "mixed" | "undecided";
@@ -100,7 +99,7 @@ function guardEdge(run: string, atEnd: boolean): number {
  * Strong Chinese evidence beats guard words; a guard word at the very start
  * or end of such a run is split off and kept as Japanese.
  */
-function newRun(start: number, text: string): HanziRun {
+function newRun(start: number, text: string, relaxGuards: boolean): HanziRun {
   const run: HanziRun = {
     start,
     end: start + text.length,
@@ -120,15 +119,17 @@ function newRun(start: number, text: string): HanziRun {
     run.keepHead = guardEdge(text, false);
     run.keepTail = run.keepHead < text.length ? guardEdge(text.slice(run.keepHead), true) : 0;
   } else if (JAPANESE_GUARD_WORDS.some((w) => text.includes(w))) {
-    run.cls = "ja";
+    // In a kana-free comment that reads as Chinese, a run that itself shows
+    // Chinese markers / common words is not forced Japanese by guard words.
+    run.cls = relaxGuards && isChinese(text) ? "undecided" : "ja";
   }
   return run;
 }
 
-function findRuns(text: string): HanziRun[] {
+function findRuns(text: string, relaxGuards: boolean): HanziRun[] {
   const runs: HanziRun[] = [];
   for (const m of text.matchAll(HANZI_RUN_REGEX)) {
-    runs.push(newRun(m.index ?? 0, m[0]));
+    runs.push(newRun(m.index ?? 0, m[0], relaxGuards));
   }
   return runs;
 }
@@ -157,10 +158,31 @@ function isLinked(text: string, left: HanziRun, right: HanziRun): boolean {
   return !JAPANESE_SCRIPT_REGEX.test(gap) && !SENTENCE_BREAK_REGEX.test(gap);
 }
 
-/** Class a run shows to its neighbour on one side (a kept guard edge shows `ja`). */
+/** Class a run shows to its neighbour on one side (a kept guard edge is neutral). */
 function edgeClass(run: HanziRun, cls: RunClass, rightSide: boolean): RunClass {
-  if (cls === "zh" && (rightSide ? run.keepTail : run.keepHead) > 0) return "ja";
+  if (cls === "zh" && (rightSide ? run.keepTail : run.keepHead) > 0) return "undecided";
   return cls;
+}
+
+/** A linked neighbour that is not Japanese can continue the Chinese sentence. */
+function continuesSentence(text: string, left: HanziRun, right: HanziRun, other: HanziRun) {
+  return isLinked(text, left, right) && other.cls !== "ja" && other.cls !== "mixed";
+}
+
+/**
+ * A guard word at the edge of a Chinese-evidence run is kept Japanese only
+ * when nothing non-Japanese is linked on that side (`了解谢谢` keeps 了解,
+ * `我是台灣人，感謝你們` converts 感謝 as part of the Chinese sentence).
+ */
+function settleGuardEdges(text: string, runs: HanziRun[]): void {
+  for (let i = 0; i < runs.length; i++) {
+    const run = runs[i];
+    if (run.cls !== "zh") continue;
+    if (i > 0 && continuesSentence(text, runs[i - 1], run, runs[i - 1])) run.keepHead = 0;
+    if (i + 1 < runs.length && continuesSentence(text, run, runs[i + 1], runs[i + 1])) {
+      run.keepTail = 0;
+    }
+  }
 }
 
 function touchesClass(
@@ -232,12 +254,14 @@ function applyFallback(text: string, runs: HanziRun[], commentHasKana: boolean):
 
 /** Classify every maximal CJK run of `text` as zh / ja / mixed. */
 function classifyRuns(text: string): HanziRun[] {
-  const runs = findRuns(text);
+  const commentHasKana = JAPANESE_SCRIPT_REGEX.test(text);
+  const runs = findRuns(text, !commentHasKana && isChinese(text));
   for (const run of runs) {
     if (run.cls === "undecided") run.cls = classifyByContext(text, run);
   }
+  settleGuardEdges(text, runs);
   propagateLinks(text, runs);
-  applyFallback(text, runs, JAPANESE_SCRIPT_REGEX.test(text));
+  applyFallback(text, runs, commentHasKana);
   return runs;
 }
 
@@ -293,17 +317,25 @@ function replaceContextSlang(text: string): string {
 /** Marker for a gap edge: a converted Chinese run, another run, or the text boundary. */
 type Edge = "zh" | "run" | "boundary";
 
+const isPunct = (c: string) => c.length === 1 && PUNCT.includes(c);
+
+/**
+ * Whitespace rule (only next to a converted run): removed between the run
+ * and punctuation / the text boundary, collapsed to one space otherwise.
+ */
 function cleanWhitespace(prev: string | Edge, next: string | Edge): string | null {
-  if (FULLWIDTH_PUNCT.includes(prev) || FULLWIDTH_PUNCT.includes(next)) return "";
-  const asciiPunct = (c: string) => c.length === 1 && ASCII_PUNCT.includes(c);
-  if (prev === "zh" && (asciiPunct(next) || next === "boundary")) return "";
-  if (next === "zh" && (asciiPunct(prev) || prev === "boundary")) return "";
+  if (prev === "zh" && (isPunct(next) || next === "boundary")) return "";
+  if (next === "zh" && (isPunct(prev) || prev === "boundary")) return "";
   return prev === "zh" || next === "zh" ? " " : null;
+}
+
+function isPunctOnly(part: string): boolean {
+  return part.length > 0 && [...part].every(isPunct);
 }
 
 /**
  * Normalize one gap between runs: `，` -> `、`, `886` slang, and horizontal
- * whitespace cleanup only next to full-width punctuation or a converted run.
+ * whitespace cleanup only next to a converted run (or punctuation attached to it).
  * Line breaks and spacing between non-CJK text are never touched.
  */
 function normalizeGap(gap: string, left: Edge, right: Edge): string {
@@ -316,7 +348,11 @@ function normalizeGap(gap: string, left: Edge, right: Edge): string {
     }
     const prev = i === 1 && parts[0] === "" ? left : parts[i - 1].slice(-1);
     const next = i === parts.length - 2 && parts[i + 1] === "" ? right : parts[i + 1].slice(0, 1);
-    out += cleanWhitespace(prev, next) ?? parts[i];
+    // Punctuation directly attached to a converted run: `谢谢！ 大家` -> `谢谢！大家`.
+    const bridged =
+      (i === 1 && left === "zh" && isPunctOnly(parts[0])) ||
+      (i === parts.length - 2 && right === "zh" && isPunctOnly(parts[i + 1]));
+    out += bridged ? "" : (cleanWhitespace(prev, next) ?? parts[i]);
   }
   return out;
 }

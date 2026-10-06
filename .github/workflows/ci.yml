@@ -125,7 +125,7 @@ jobs:
           print('OK: dependencies = []')
           "
 
-      - name: Run Tests (100% pass required, 199 spec cases)
+      - name: Run Tests (100% pass required, 206 spec cases)
         run: cd bindings/python && python -m pytest -v
 
   dotnet-binding:
@@ -155,7 +155,7 @@ jobs:
       - name: Build C ABI library and stage it for this runner
         run: bun run scripts/stage_dotnet_native.ts
 
-      - name: Build, test (100% pass required, 199 spec cases) and format check
+      - name: Build, test (100% pass required, 206 spec cases) and format check
         run: |
           cd bindings/dotnet
           dotnet build -c Release

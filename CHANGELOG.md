@@ -15,7 +15,11 @@ Notable changes to this project are documented here.
   between linked runs and a whole-comment fallback (where `，` only breaks
   ties when the comment already has Chinese evidence). Strong Chinese
   evidence beats guard words; a guard word at the very start/end of a Chinese
-  run is kept as Japanese (`了解谢谢` → `了解シエシエ`). Space cleanup is now
+  run is kept as Japanese only when no non-Japanese run is linked on that
+  side (`了解谢谢` → `了解シエシエ`, but `我是台灣人，感謝你們` converts fully),
+  and a kept guard edge never spreads Japanese to its neighbours. In kana-free
+  comments that read as Chinese, guard words do not force Japanese on runs
+  that themselves read as Chinese (`這個真的最高，大家好`). Space cleanup is now
   limited to converted runs and full-width punctuation, so ASCII text and
   line breaks elsewhere are untouched. `初見歓迎！ 886 谢谢大家` now becomes
   `初見歓迎！バイバイシエシエダージア`. Kana no longer blocks Chinese conversion
@@ -34,7 +38,7 @@ Notable changes to this project are documented here.
   Unihan 18.0.0 (pinned; Unicode License v3) at
   generation time only; the Japanese-only class, guard words and
   Chinese-context slang are curated by hand. No runtime dependency is added.
-- 36 new `spec/cases/kanji_guard.json` cases (199 shared cases in total).
+- 43 new `spec/cases/kanji_guard.json` cases (206 shared cases in total).
 
 ## [0.4.0] - 2026-09-30
 

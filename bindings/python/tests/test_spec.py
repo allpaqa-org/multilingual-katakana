@@ -53,4 +53,4 @@ def test_spec_case(file_name: str, tc: dict) -> None:
 
 def test_spec_case_count() -> None:
     # Keep this in sync with crates/multilingual-katakana-core/tests/spec_test.rs.
-    assert len(ALL_CASES) == 199, "Expected exactly 199 spec test cases"
+    assert len(ALL_CASES) == 206, "Expected exactly 206 spec test cases"
