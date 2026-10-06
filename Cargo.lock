@@ -194,6 +194,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "multilingual-katakana-ffi"
+version = "0.4.1"
+dependencies = [
+ "multilingual-katakana-core",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "multilingual-katakana-node"
 version = "0.4.1"
 dependencies = [
