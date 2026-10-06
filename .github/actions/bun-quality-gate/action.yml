@@ -32,11 +32,14 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      # --omit=optional: skip the published @allpaqa/multilingual-katakana-<triple>
-      # packages. The loader prefers them over bindings/node/native/, so they
-      # would shadow the addon built from this checkout and test the last
-      # released core instead of the code under test.
-      run: cd bindings/node && bun install --omit=optional
+      # Drop the published @allpaqa/multilingual-katakana-<triple> packages
+      # (optionalDependencies). The loader prefers them over
+      # bindings/node/native/, so they would shadow the addon built from this
+      # checkout and test the last released core instead of the code under
+      # test. Other optional deps (biome / esbuild platform binaries) are kept.
+      run: |
+        cd bindings/node && bun install
+        rm -rf node_modules/@allpaqa/multilingual-katakana-*
 
     - name: Run Tests (100% pass required)
       shell: bash
