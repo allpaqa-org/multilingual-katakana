@@ -58,7 +58,7 @@ Zero runtime dependencies either way (`dependencies = []` in
 from multilingual_katakana import to_katakana, KatakanaOptions, KatakanaConverter
 
 print(to_katakana("Hello guys! GG WP"))
-# => "ハローガイズ！ジージーダブリューピー"
+# => "ハローガイズ！ジージーウェルプレイド"
 
 print(to_katakana("你好！谢谢乾爹"))
 # => "ニーハオ！シエシエガンディエ"
