@@ -1,14 +1,14 @@
-use multilingual_katakana_core::{to_katakana, KatakanaOptions};
+use multilingual_katakana_core::{to_katakana, KatakanaOptionsOverrides};
 use pyo3::prelude::*;
 
 /// Convert `text` to Katakana using the native Rust core.
 ///
 /// All flag arguments are optional; omitting one (passing `None` from the
 /// Python wrapper) falls back to the same default as `KatakanaOptions::default()`
-/// in the Rust core. This mirrors the shape of the Node.js native binding's
-/// `JsKatakanaOptions` (see `crates/multilingual-katakana-node/src/lib.rs`),
-/// keeping default resolution logic in one place (Rust), not duplicated
-/// per-language.
+/// in the Rust core. Resolution is delegated to the core's shared
+/// `KatakanaOptionsOverrides::resolve`, which the Node.js native binding
+/// (`crates/multilingual-katakana-node/src/lib.rs`) also uses, so default
+/// resolution lives in one place (the core), not duplicated per-language.
 ///
 /// `exclude` (user-defined literal/regex protection) is intentionally NOT
 /// exposed yet — it is a pure-Python-side feature in the Node/TS binding
@@ -43,20 +43,19 @@ fn to_katakana_native(
     enable_english: Option<bool>,
     normalize_prosody: Option<bool>,
 ) -> String {
-    let defaults = KatakanaOptions::default();
-    let opts = KatakanaOptions {
-        enable_cyrillic: enable_cyrillic.unwrap_or(defaults.enable_cyrillic),
-        enable_korean: enable_korean.unwrap_or(defaults.enable_korean),
-        enable_chinese: enable_chinese.unwrap_or(defaults.enable_chinese),
-        enable_spanish: enable_spanish.unwrap_or(defaults.enable_spanish),
-        enable_french: enable_french.unwrap_or(defaults.enable_french),
-        enable_vietnamese: enable_vietnamese.unwrap_or(defaults.enable_vietnamese),
-        enable_thai: enable_thai.unwrap_or(defaults.enable_thai),
-        enable_slang: enable_slang.unwrap_or(defaults.enable_slang),
-        enable_english: enable_english.unwrap_or(defaults.enable_english),
-        normalize_prosody: normalize_prosody.unwrap_or(defaults.normalize_prosody),
-        exclude: Vec::new(),
-    };
+    let opts = KatakanaOptionsOverrides {
+        enable_cyrillic,
+        enable_korean,
+        enable_chinese,
+        enable_spanish,
+        enable_french,
+        enable_vietnamese,
+        enable_thai,
+        enable_slang,
+        enable_english,
+        normalize_prosody,
+    }
+    .resolve();
     to_katakana(text, Some(&opts))
 }
 
@@ -65,9 +64,7 @@ fn to_katakana_native(
 /// output (mirrors `native_self_check` in the Node.js binding).
 #[pyfunction]
 fn native_self_check() -> bool {
-    to_katakana_native(
-        "hello", None, None, None, None, None, None, None, None, None, None,
-    ) == "ハロー"
+    multilingual_katakana_core::native_self_check()
 }
 
 /// PyO3 module registered as `multilingual_katakana._native` (see
