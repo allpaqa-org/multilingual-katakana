@@ -335,7 +335,13 @@ jobs:
           $dotnetX86 = Join-Path $env:RUNNER_TEMP 'dotnet-x86'
           Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -OutFile (Join-Path $env:RUNNER_TEMP 'dotnet-install.ps1')
           & (Join-Path $env:RUNNER_TEMP 'dotnet-install.ps1') -Channel 8.0 -Architecture x86 -InstallDir $dotnetX86
-          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          # dotnet-install.ps1 is a PowerShell script, so it may leave
+          # $LASTEXITCODE unset ($null): `$null -ne 0` is true and `exit $null`
+          # exits 0, silently skipping the tests. Check $? and the binary instead.
+          if (-not $? -or -not (Test-Path (Join-Path $dotnetX86 'dotnet.exe'))) {
+            Write-Error 'x86 .NET SDK installation failed'
+            exit 1
+          }
           $env:DOTNET_ROOT = $dotnetX86
           ${env:DOTNET_ROOT(x86)} = $dotnetX86
           $env:DOTNET_ROOT_X86 = $dotnetX86
