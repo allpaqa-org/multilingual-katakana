@@ -68,7 +68,9 @@ jobs:
             bindings/node/native/multilingual-katakana.darwin-x64.node
 
       - name: Install dependencies
-        run: cd bindings/node && bun install
+        # --omit=optional: see .github/actions/bun-quality-gate (published
+        # platform packages would shadow the addon built above).
+        run: cd bindings/node && bun install --omit=optional
 
       - name: Run Tests (100% pass required)
         run: bun run test

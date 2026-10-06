@@ -32,7 +32,11 @@ runs:
 
     - name: Install dependencies
       shell: bash
-      run: cd bindings/node && bun install
+      # --omit=optional: skip the published @allpaqa/multilingual-katakana-<triple>
+      # packages. The loader prefers them over bindings/node/native/, so they
+      # would shadow the addon built from this checkout and test the last
+      # released core instead of the code under test.
+      run: cd bindings/node && bun install --omit=optional
 
     - name: Run Tests (100% pass required)
       shell: bash
