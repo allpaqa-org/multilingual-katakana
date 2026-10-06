@@ -10,7 +10,7 @@ import * as path from "node:path";
  *   - bindings/node/npm/<triple>/package.json
  *   - crates/<crate>/Cargo.toml ([package] version)
  *   - bindings/python/pyproject.toml ([project] version) and any
- *     `__version__ = "..."` under bindings/python (PEP 440 spelling)
+ *     `__version__ = "..."` under bindings/python/python (PEP 440 spelling)
  *   - bindings/dotnet/Directory.Build.props <Version> (+ any <Version> in
  *     bindings/dotnet .csproj files)
  *
@@ -52,11 +52,11 @@ export function tomlTableVersion(text: string, table: string): string | null {
   for (const raw of text.split(/\r?\n/)) {
     const line = raw.trim();
     if (line.startsWith("[")) {
-      inTable = line === `[${table}]`;
+      inTable = line.replace(/\s*#.*$/, "") === `[${table}]`;
       continue;
     }
-    const match = inTable ? /^version\s*=\s*"([^"]*)"/.exec(line) : null;
-    if (match) return match[1];
+    const match = inTable ? /^version\s*=\s*(?:"([^"]*)"|'([^']*)')/.exec(line) : null;
+    if (match) return match[1] ?? match[2];
   }
   return null;
 }
@@ -143,13 +143,25 @@ function pythonEntries(): Entry[] {
     const version = tomlTableVersion(text, "project");
     entries.push({ file: rel(pyproject), label: "[project] version", version, flavor: "pep440" });
   }
-  for (const file of walkFiles(path.join(rootDir, "bindings/python"), ".py")) {
+  for (const file of walkFiles(path.join(rootDir, "bindings/python/python"), ".py")) {
     const match = /^__version__\s*=\s*["']([^"']*)["']/m.exec(fs.readFileSync(file, "utf8"));
     if (match) {
       entries.push({ file: rel(file), label: "__version__", version: match[1], flavor: "pep440" });
     }
   }
   return entries;
+}
+
+/**
+ * Extracts `<Version>` values from MSBuild XML (comments stripped first).
+ * A `<Version Condition="...">` is ambiguous (which one wins depends on the
+ * build), so it is reported as an error entry instead of being guessed at.
+ */
+export function msbuildVersions(xml: string): { versions: string[]; conditioned: boolean } {
+  const text = xml.replace(/<!--[\s\S]*?-->/g, "");
+  const conditioned = /<Version\s[^>]*>/.test(text);
+  const versions = [...text.matchAll(/<Version>\s*([^<]*?)\s*<\/Version>/g)].map((m) => m[1]);
+  return { versions, conditioned };
 }
 
 function dotnetEntries(): Entry[] {
@@ -160,7 +172,15 @@ function dotnetEntries(): Entry[] {
   for (const file of files) {
     const text = readText(file);
     if (text === null) continue;
-    const versions = [...text.matchAll(/<Version>\s*([^<]*?)\s*<\/Version>/g)].map((m) => m[1]);
+    const { versions, conditioned } = msbuildVersions(text);
+    if (conditioned) {
+      entries.push({
+        file: rel(file),
+        label: "<Version Condition=...>",
+        version: "(ambiguous)",
+        flavor: "semver",
+      });
+    }
     // Directory.Build.props must declare <Version>; .csproj files only if they override it.
     if (file === props && versions.length === 0) versions.push("");
     for (const version of versions) {

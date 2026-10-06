@@ -27,6 +27,16 @@ name: .NET NuGet Build Matrix (Tier 1)
 # Actions -> repo allpaqa-org/multilingual-katakana, workflow
 # build-dotnet-matrix.yml, environment: nuget), and the `NUGET_USER`
 # secret (see the publish job). See docs/RELEASE_PROCESS.md §3.3.
+#
+# Publishing is additionally gated on the repository variable
+# NUGET_PUBLISH_ENABLED == 'true'. Set it only once the nuget.org org
+# `allpaqa`, the Trusted Publishing policy, the GitHub environment `nuget`
+# and the NUGET_USER secret are all ready (planned for v0.6.0). Until then
+# releases still build + pack + test everything but never publish to NuGet.
+#
+# Package tests restore with bindings/dotnet/ci/NuGet.ci.config, whose
+# packageSourceMapping pins Allpaqa.* to the local ./nupkg feed so the
+# nupkg under test can never be replaced by a same-version nuget.org package.
 on:
   workflow_dispatch: {}
   push:
@@ -302,10 +312,11 @@ jobs:
         # MkUsePackage swaps the ProjectReference for a PackageReference to
         # the nupkg in ./nupkg and stops copying staged native files, so the
         # .NET host must resolve runtimes/<rid>/native/ from the package.
+        # RestoreConfigFile pins Allpaqa.* to ./nupkg only (NuGet.ci.config).
         run: >-
           dotnet test "${TEST_PROJECT}" -c Release
           -p:MkUsePackage=true
-          "-p:MkPackageSource=${GITHUB_WORKSPACE}/nupkg"
+          "-p:RestoreConfigFile=${GITHUB_WORKSPACE}/bindings/dotnet/ci/NuGet.ci.config"
 
       - name: Run spec + API tests against the packed nupkg (win-x86)
         if: matrix.test-mode == 'win-x86'
@@ -324,6 +335,7 @@ jobs:
           $dotnetX86 = Join-Path $env:RUNNER_TEMP 'dotnet-x86'
           Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -OutFile (Join-Path $env:RUNNER_TEMP 'dotnet-install.ps1')
           & (Join-Path $env:RUNNER_TEMP 'dotnet-install.ps1') -Channel 8.0 -Architecture x86 -InstallDir $dotnetX86
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
           $env:DOTNET_ROOT = $dotnetX86
           ${env:DOTNET_ROOT(x86)} = $dotnetX86
           $env:DOTNET_ROOT_X86 = $dotnetX86
@@ -331,7 +343,7 @@ jobs:
           $dotnet = Join-Path $dotnetX86 'dotnet.exe'
           & $dotnet --info
           if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
-          & $dotnet test $env:TEST_PROJECT -c Release -p:MkUsePackage=true "-p:MkPackageSource=$env:GITHUB_WORKSPACE\nupkg"
+          & $dotnet test $env:TEST_PROJECT -c Release -p:MkUsePackage=true "-p:RestoreConfigFile=$env:GITHUB_WORKSPACE\bindings\dotnet\ci\NuGet.ci.config"
           exit $LASTEXITCODE
 
       - name: Run spec + API tests against the packed nupkg (Alpine / musl)
@@ -358,7 +370,7 @@ jobs:
               dotnet --info | tee /tmp/dotnet-info.txt
               grep -Eq "RID:[[:space:]]+${{ matrix.rid }}$" /tmp/dotnet-info.txt || {
                 echo "::error::Alpine .NET host RID is not ${{ matrix.rid }}"; exit 1; }
-              dotnet test "${TEST_PROJECT}" -c Release -p:MkUsePackage=true -p:MkPackageSource=/repo/nupkg
+              dotnet test "${TEST_PROJECT}" -c Release -p:MkUsePackage=true -p:RestoreConfigFile=/repo/bindings/dotnet/ci/NuGet.ci.config
             '
 
   test-netfx:
@@ -398,7 +410,7 @@ jobs:
           dotnet build "${TEST_PROJECT}" -c Release -f net48
           -p:MkTestNetFx=true -p:MkUsePackage=true
           "-p:PlatformTarget=${{ matrix.arch }}"
-          "-p:MkPackageSource=${GITHUB_WORKSPACE}/nupkg"
+          "-p:RestoreConfigFile=${GITHUB_WORKSPACE}/bindings/dotnet/ci/NuGet.ci.config"
 
       - name: Verify build/net462 targets copied x86\ x64\ arm64\ subfolders
         shell: bash
@@ -422,7 +434,7 @@ jobs:
           dotnet test "${TEST_PROJECT}" -c Release -f net48 --no-build
           -p:MkTestNetFx=true -p:MkUsePackage=true
           "-p:PlatformTarget=${{ matrix.arch }}"
-          "-p:MkPackageSource=${GITHUB_WORKSPACE}/nupkg"
+          "-p:RestoreConfigFile=${GITHUB_WORKSPACE}/bindings/dotnet/ci/NuGet.ci.config"
 
   test-aot:
     name: Native AOT smoke test (${{ matrix.rid }})
@@ -467,7 +479,7 @@ jobs:
           set -euo pipefail
           dotnet publish bindings/dotnet/samples/AotSmoke -c Release \
             -r "${{ matrix.rid }}" -p:PublishAot=true \
-            "-p:MkPackageSource=${GITHUB_WORKSPACE}/nupkg" \
+            "-p:RestoreConfigFile=${GITHUB_WORKSPACE}/bindings/dotnet/ci/NuGet.ci.config" \
             -o aot-out 2>&1 | tee publish.log
           if grep -E 'warning (IL[0-9]{4}|AOT)' publish.log; then
             echo "::error::Native AOT publish emitted trim/AOT warnings"
@@ -489,7 +501,7 @@ jobs:
   publish:
     name: Publish nupkg to nuget.org
     needs: [verify-versions, pack, test-package, test-netfx, test-aot]
-    if: github.event_name == 'release'
+    if: github.event_name == 'release' && vars.NUGET_PUBLISH_ENABLED == 'true'
     runs-on: ubuntu-24.04
     environment: nuget
     permissions:

@@ -151,9 +151,11 @@ The 9 RIDs shipped in the package (`win-x64`, `win-x86`, `win-arm64`,
 `scripts/check_versions.ts` verifies **every** lockstep location in
 §3–§3.3 at once (npm, platform packages and their `optionalDependencies`
 pins, all `crates/*/Cargo.toml`, `pyproject.toml` / `__version__` in
-PEP 440 spelling, and `Directory.Build.props`). CI runs it on every push;
-`.github/workflows/build-dotnet-matrix.yml`'s `verify-versions` job runs
-it with `--tag` before any nupkg is published — because **NuGet versions
+PEP 440 spelling, and `Directory.Build.props`). `ci.yml` runs it on pushes
+to `main` and `feature/**` and on pull requests to `main`; the
+`verify-versions` jobs of the matrix workflows (including
+`.github/workflows/build-dotnet-matrix.yml`) run it with `--tag` on tag
+pushes and releases, before any nupkg is published — because **NuGet versions
 are immutable** (a published version can only be unlisted, never
 replaced).
 
@@ -170,6 +172,10 @@ replaced).
   nuget.org account (profile) name that owns the policy — *not* an API
   key. `NuGet/login` exchanges the job's OIDC token for a short-lived API
   key at publish time, so no long-lived key is stored anywhere.
+- A repository **variable** `NUGET_PUBLISH_ENABLED` set to `true`. The
+  `publish` job additionally requires it. Set it only once all the items
+  above are ready (planned for v0.6.0); until then releases build, pack and
+  test the nupkg but never publish to NuGet.
 
 ---
 
@@ -309,7 +315,9 @@ git push origin main --tags
      Native AOT), and only then runs its `publish` job.
    - The nupkg is pushed to nuget.org via Trusted Publishing (OIDC,
      `NuGet/login`) — no long-lived API key is stored in this repo (setup
-     in §3.3).
+     in §3.3). The `publish` job only runs when the repository variable
+     `NUGET_PUBLISH_ENABLED` is `true`; until it is set, this workflow
+     builds and tests but skips publishing.
    - Like the PyPI publish, this is independent of the npm publish; it is
      idempotent (`--skip-duplicate`), so re-run only the failed workflow
      and note the failure in the release notes.
