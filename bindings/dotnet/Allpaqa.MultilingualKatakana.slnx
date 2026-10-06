@@ -1,0 +1,8 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/Allpaqa.MultilingualKatakana/Allpaqa.MultilingualKatakana.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/Allpaqa.MultilingualKatakana.Tests/Allpaqa.MultilingualKatakana.Tests.csproj" />
+  </Folder>
+</Solution>

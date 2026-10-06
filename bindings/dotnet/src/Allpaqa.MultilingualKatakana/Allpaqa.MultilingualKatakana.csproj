@@ -1,0 +1,44 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>netstandard2.0;net8.0</TargetFrameworks>
+    <RootNamespace>Allpaqa.MultilingualKatakana</RootNamespace>
+    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+
+    <PackageId>Allpaqa.MultilingualKatakana</PackageId>
+    <Authors>allpaqa</Authors>
+    <Description>Zero-dependency, ultra-fast multilingual (English/Chinese/Korean/Russian/Spanish/French/Vietnamese/Thai/slang) to Japanese Katakana converter for Japanese TTS engines, powered by a native Rust core.</Description>
+    <PackageTags>katakana;tts;japanese;transliteration;voicevox;multilingual</PackageTags>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://github.com/allpaqa-org/multilingual-katakana</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/allpaqa-org/multilingual-katakana</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <!-- NU5127: build/net462 + buildTransitive/net462 intentionally have no matching lib/net462 (netstandard2.0 serves .NET Framework). -->
+    <NoWarn>$(NoWarn);NU5127</NoWarn>
+  </PropertyGroup>
+
+  <PropertyGroup Condition="'$(TargetFramework)' == 'net8.0'">
+    <IsAotCompatible>true</IsAotCompatible>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Include="..\..\README.md" Pack="true" PackagePath="\" Visible="false" />
+    <None Include="build\Allpaqa.MultilingualKatakana.targets" Pack="true" PackagePath="build\net462\;buildTransitive\net462\" />
+  </ItemGroup>
+
+  <!-- Pack whichever staged RIDs exist: native/{rid}/* -> runtimes/{rid}/native/ -->
+  <ItemGroup>
+    <MkPackRid Include="win-x64;win-x86;win-arm64;linux-x64;linux-arm64;linux-musl-x64;osx-x64;osx-arm64" />
+  </ItemGroup>
+  <Target Name="MkIncludeNativeInPackage" BeforeTargets="_GetPackageFiles">
+    <ItemGroup>
+      <_MkNativeFile Include="$(MkNativeStagingDir)%(MkPackRid.Identity)\*">
+        <Rid>%(MkPackRid.Identity)</Rid>
+      </_MkNativeFile>
+      <None Include="@(_MkNativeFile)" Pack="true" PackagePath="runtimes\%(_MkNativeFile.Rid)\native\%(_MkNativeFile.Filename)%(_MkNativeFile.Extension)" Visible="false" />
+    </ItemGroup>
+  </Target>
+
+</Project>
