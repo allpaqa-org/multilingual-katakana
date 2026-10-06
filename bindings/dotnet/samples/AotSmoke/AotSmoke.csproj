@@ -1,0 +1,27 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!--
+    Native AOT smoke test for the PACKED nupkg (run by .github/workflows/build-dotnet-matrix.yml).
+    Not part of the solution: it only restores once a package exists in a local feed.
+
+      dotnet publish -c Release -r osx-arm64 -p:PublishAot=true -p:MkPackageSource=<dir with the nupkg>
+
+    Trim/AOT analysis warnings fail the publish (TreatWarningsAsErrors from Directory.Build.props,
+    plus the ILLink/ILC switches below).
+  -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <InvariantGlobalization>true</InvariantGlobalization>
+    <TrimmerSingleWarn>false</TrimmerSingleWarn>
+    <IlcTreatWarningsAsErrors>true</IlcTreatWarningsAsErrors>
+    <MkPackageVersion Condition="'$(MkPackageVersion)' == ''">$(Version)</MkPackageVersion>
+    <RestoreAdditionalProjectSources Condition="'$(MkPackageSource)' != ''">$(RestoreAdditionalProjectSources);$(MkPackageSource)</RestoreAdditionalProjectSources>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Allpaqa.MultilingualKatakana" Version="[$(MkPackageVersion)]" />
+  </ItemGroup>
+
+</Project>

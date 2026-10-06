@@ -110,7 +110,7 @@ Console.WriteLine(converter.Convert("你好"));
 |---|---|
 | Windows | `win-x64`, `win-x86`, `win-arm64` |
 | Linux (glibc) | `linux-x64`, `linux-arm64` |
-| Linux (musl / Alpine) | `linux-musl-x64` |
+| Linux (musl / Alpine) | `linux-musl-x64`, `linux-musl-arm64` |
 | macOS | `osx-x64`, `osx-arm64` |
 
 .NET Core / .NET 5+ では `runtimes/{rid}/native/` からネイティブライブラリが

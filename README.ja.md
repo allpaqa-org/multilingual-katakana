@@ -122,6 +122,14 @@ ESM (ECMAScript Modules) および CommonJS (CJS)、TypeScript 型定義（`.d.t
 
 ネイティブバックエンドの提供計画の詳細は [`docs/V0.4.0_BINDINGS_SCOPE.md`](docs/V0.4.0_BINDINGS_SCOPE.md) をご覧ください。
 
+### C# / .NET（近日公開）
+
+```bash
+dotnet add package Allpaqa.MultilingualKatakana
+```
+
+.NET バインディング（`netstandard2.0` / `net8.0`、同一の Rust コア）は **まだ NuGet に公開されていません**（v0.6.0 で公開予定）。それまではソースからビルドしてください。詳細は [`bindings/dotnet/README.ja.md`](bindings/dotnet/README.ja.md) をご覧ください。
+
 ---
 
 ## 🚀 クイックスタート (Usage)

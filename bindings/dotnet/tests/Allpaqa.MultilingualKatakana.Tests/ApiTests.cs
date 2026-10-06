@@ -1,3 +1,4 @@
+using System.Runtime.InteropServices;
 using Xunit;
 
 namespace Allpaqa.MultilingualKatakana.Tests;
@@ -103,5 +104,19 @@ public class ApiTests
         {
             Assert.Equal(expected[i % inputs.Length], results[i]);
         }
+    }
+
+    [Fact]
+    public void ProcessArchitectureMatchesExpectation()
+    {
+        // CI sets MK_EXPECT_ARCH on cross-architecture runs (win-x86, .NET Framework x86/x64) so a
+        // silent fallback to the runner's native architecture fails loudly instead of passing.
+        string? expected = Environment.GetEnvironmentVariable("MK_EXPECT_ARCH");
+        if (string.IsNullOrEmpty(expected))
+        {
+            return;
+        }
+
+        Assert.Equal(expected, RuntimeInformation.ProcessArchitecture.ToString().ToLowerInvariant());
     }
 }
