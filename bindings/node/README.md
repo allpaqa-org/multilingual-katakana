@@ -96,19 +96,21 @@ console.log(toKatakana("안녕하세요! 방송 너무 재밌어요 파이팅!")
 
 // Spanish (Silent H, inverted marks, accents)
 console.log(toKatakana("¡Hola amigo! Muchas gracias señor"));
-// => "オラアミゴ！ムチャスグラシアスセニョール"
+// => "オラアミーゴ！ムチャスグラシアスセニョール"
 
 // Russian (Cyrillic transliteration)
 console.log(toKatakana("Привет, как дела? Спасибо!"));
-// => "プリヴィエト、カクジェラ？スパシーバ！"
+// => "プリヴィエト、クアクドイェルア？スパスィーバ！"
 
 // Vietnamese and Thai
 console.log(toKatakana("xin chào! สวัสดีครับ"));
 // => "シンチャオ！サワッディークラップ"
 
-// Chinese with Safe Kanji Guard (Japanese Kanji preserved, Hanzi/slang converted)
-console.log(toKatakana("初見歓迎！ 886 谢谢大家"));
-// => "初見歓迎！ バイバイ シェシェダージャー"
+// Chinese with Safe Kanji Guard (Japanese Kanji preserved, Hanzi converted)
+console.log(toKatakana("初見歓迎！神回でした"));
+// => "初見歓迎！神回でした"
+console.log(toKatakana("谢谢大家！"));
+// => "シエシエダージア！"
 ```
 
 ### Text Protection & Escaping (`options.exclude`)

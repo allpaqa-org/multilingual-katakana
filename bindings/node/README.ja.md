@@ -87,19 +87,21 @@ console.log(toKatakana("안녕하세요! 방송 너무 재밌어요 파이팅!")
 
 // スペイン語
 console.log(toKatakana("¡Hola amigo! Muchas gracias señor"));
-// => "オラアミゴ！ムチャスグラシアスセニョール"
+// => "オラアミーゴ！ムチャスグラシアスセニョール"
 
 // ロシア語（キリル文字）
 console.log(toKatakana("Привет, как дела? Спасибо!"));
-// => "プリヴィエト、カクジェラ？スパシーバ！"
+// => "プリヴィエト、クアクドイェルア？スパスィーバ！"
 
 // ベトナム語・タイ語
 console.log(toKatakana("xin chào! สวัสดีครับ"));
 // => "シンチャオ！サワッディークラップ"
 
 // 中国語 & Safe Kanji Guard（日本語の漢字はピンイン化されず保護されます）
-console.log(toKatakana("初見歓迎！ 886 谢谢大家"));
-// => "初見歓迎！ バイバイ シェシェダージャー"
+console.log(toKatakana("初見歓迎！神回でした"));
+// => "初見歓迎！神回でした"
+console.log(toKatakana("谢谢大家！"));
+// => "シエシエダージア！"
 ```
 
 ### 特定テキスト・URL・メンションの保護 (`options.exclude`)
