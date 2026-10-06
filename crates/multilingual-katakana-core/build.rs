@@ -51,6 +51,29 @@ struct ChineseData {
     hanzi_to_katakana: BTreeMap<String, String>,
 }
 
+#[derive(Deserialize)]
+struct HanziClass {
+    simplified_only: Vec<String>,
+    japanese_only: Vec<String>,
+    japanese_guard_words: Vec<String>,
+    zh_context_slang: BTreeMap<String, String>,
+}
+
+fn sorted_chars(chunks: &[String]) -> Vec<char> {
+    let mut chars: Vec<char> = chunks.iter().flat_map(|s| s.chars()).collect();
+    chars.sort_unstable();
+    chars.dedup();
+    chars
+}
+
+fn push_char_slice(code: &mut String, name: &str, chars: &[char]) {
+    code.push_str(&format!("pub static {name}: &[char] = &[\n"));
+    for c in chars {
+        code.push_str(&format!("    '\\u{{{:X}}}',\n", *c as u32));
+    }
+    code.push_str("];\n\n");
+}
+
 fn escape_str(s: &str) -> String {
     s.replace('\\', "\\\\").replace('"', "\\\"")
 }
@@ -188,6 +211,14 @@ fn main() {
         }
     }
     hanzi_map.sort_by_key(|a| a.0);
+
+    // 7b. Hanzi character classes (Safe Kanji Guard, see scripts/generate_hanzi_class.ts)
+    let hanzi_class_json = fs::read_to_string(dicts_dir.join("hanzi_class.json"))
+        .expect("Failed to read hanzi_class.json");
+    let hanzi_class: HanziClass =
+        serde_json::from_str(&hanzi_class_json).expect("Failed to parse hanzi_class.json");
+    let simplified_only = sorted_chars(&hanzi_class.simplified_only);
+    let japanese_only = sorted_chars(&hanzi_class.japanese_only);
 
     // 6. English Words
     let english_json = fs::read_to_string(node_dicts_dir.join("english_words.json"))
@@ -389,6 +420,26 @@ fn main() {
     code.push_str("pub static CHINESE_HANZI_MAP: &[(char, &str)] = &[\n");
     for (c, v) in &hanzi_map {
         code.push_str(&format!("    ('{}', \"{}\"),\n", c, escape_str(v)));
+    }
+    code.push_str("];\n\n");
+
+    // Hanzi character classes (sorted for binary search)
+    push_char_slice(&mut code, "HANZI_SIMPLIFIED_ONLY", &simplified_only);
+    push_char_slice(&mut code, "HANZI_JAPANESE_ONLY", &japanese_only);
+
+    code.push_str("pub static JAPANESE_GUARD_WORDS: &[&str] = &[\n");
+    for word in &hanzi_class.japanese_guard_words {
+        code.push_str(&format!("    \"{}\",\n", escape_str(word)));
+    }
+    code.push_str("];\n\n");
+
+    code.push_str("pub static ZH_CONTEXT_SLANG: &[(&str, &str)] = &[\n");
+    for (k, v) in &hanzi_class.zh_context_slang {
+        code.push_str(&format!(
+            "    (\"{}\", \"{}\"),\n",
+            escape_str(k),
+            escape_str(v)
+        ));
     }
     code.push_str("];\n\n");
 

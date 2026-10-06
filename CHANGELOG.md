@@ -4,6 +4,29 @@ Notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Safe Kanji Guard: Japanese Kanji in comments that also contain Simplified
+  Chinese are no longer read as Pinyin (#36). Chinese detection now classifies
+  each maximal CJK ideograph run instead of the whole comment, using
+  Simplified-only / Japanese-only character classes, a small list of Japanese
+  stream guard words (`初見`, `神回`, `了解`, …), kana adjacency, `，`/`、`
+  hints and a whole-comment fallback. `初見歓迎！ 886 谢谢大家` now becomes
+  `初見歓迎！バイバイシエシエダージア`. Kana no longer blocks Chinese conversion
+  for the whole comment (`初見です 谢谢大家` → `初見です シエシエダージア`), and a
+  run that mixes Japanese-only and Simplified-only characters is left
+  untouched. Identical behaviour in the TypeScript pipeline and the Rust core.
+- The Chinese stream slang `886` is read as `バイバイ` when the comment
+  contains a Chinese run; elsewhere it stays `886`.
+
+### Added
+
+- `dicts/hanzi_class.json` and its generator `scripts/generate_hanzi_class.ts`.
+  The Simplified-only class is generated from Unihan (Unicode License v3) at
+  generation time only; the Japanese-only class, guard words and
+  Chinese-context slang are curated by hand. No runtime dependency is added.
+- 14 new `spec/cases/kanji_guard.json` cases (177 shared cases in total).
+
 ## [0.4.0] - 2026-09-30
 
 ### Added
