@@ -27,6 +27,12 @@ jobs:
       - name: Bun Quality Gate (test, lint, complexity, spec)
         uses: ./.github/actions/bun-quality-gate
 
+      - name: Check lockstep versions across all manifests
+        # npm / Cargo / PyPI / NuGet manifests must share one version
+        # (docs/RELEASE_PROCESS.md §3); the tag itself is checked by the
+        # release-time verify-versions jobs.
+        run: bun run scripts/check_versions.ts
+
       - name: Run Tests with native backend forced (must not silently fall back)
         run: cd bindings/node && MULTILINGUAL_KATAKANA_BACKEND=native bun test
 
@@ -121,3 +127,37 @@ jobs:
 
       - name: Run Tests (100% pass required, 163 spec cases)
         run: cd bindings/python && python -m pytest -v
+
+  dotnet-binding:
+    name: Dotnet Binding (spec + API tests)
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Setup .NET
+        # 10.0.x SDK builds the .slnx solution; 8.0.x provides the runtime
+        # the net8.0 test project runs on.
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Build C ABI library and stage it for this runner
+        run: bun run scripts/stage_dotnet_native.ts
+
+      - name: Build, test (100% pass required, 163 spec cases) and format check
+        run: |
+          cd bindings/dotnet
+          dotnet build -c Release
+          dotnet test -c Release --no-build
+          dotnet format --verify-no-changes

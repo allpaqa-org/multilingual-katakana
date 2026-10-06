@@ -1,0 +1,546 @@
+name: .NET NuGet Build Matrix (Tier 1)
+
+# Builds the C ABI native library (crates/multilingual-katakana-ffi) for
+# every RID in .github/dotnet-platforms.json, packs ONE
+# Allpaqa.MultilingualKatakana nupkg carrying all of them under
+# runtimes/<rid>/native/, and tests that packed nupkg (not the source tree)
+# on each platform — mirroring build-native-matrix.yml (npm) and
+# build-python-matrix.yml (PyPI). See docs/V0.4.0_BINDINGS_SCOPE.md §7.3.
+#
+# - pull_request (to main, .NET-relevant paths only) and workflow_dispatch
+#   runs: build + pack + test only (no publish).
+# - push (tag `v*`) runs: verify-versions, then build + pack + test only
+#   (no publish yet) — early feedback right after tagging, before
+#   release.yml's own quality gates and the human release-approval step
+#   have run.
+# - release (published) runs: verify-versions, then build + pack + test,
+#   then publishes the nupkg to nuget.org. This fires only after a human
+#   clicks "Publish release" on GitHub (the same trigger/gate publish.yml
+#   and build-python-matrix.yml use), so the package is never published
+#   before the release's own quality gates and human approval completed.
+#
+# Publishing uses NuGet Trusted Publishing (OIDC) — no long-lived API key
+# is stored in this repo. NuGet/login exchanges the GitHub OIDC token for
+# a short-lived (1 hour) API key. This requires the `id-token: write`
+# permission on the publish job plus a Trusted Publishing policy on
+# nuget.org (account/org `allpaqa` -> Trusted Publishing -> GitHub
+# Actions -> repo allpaqa-org/multilingual-katakana, workflow
+# build-dotnet-matrix.yml, environment: nuget), and the `NUGET_USER`
+# secret (see the publish job). See docs/RELEASE_PROCESS.md §3.3.
+#
+# Publishing is additionally gated on the repository variable
+# NUGET_PUBLISH_ENABLED == 'true'. Set it only once the nuget.org org
+# `allpaqa`, the Trusted Publishing policy, the GitHub environment `nuget`
+# and the NUGET_USER secret are all ready (planned for v0.6.0). Until then
+# releases still build + pack + test everything but never publish to NuGet.
+#
+# Package tests restore with bindings/dotnet/ci/NuGet.ci.config, whose
+# packageSourceMapping pins Allpaqa.* to the local ./nupkg feed so the
+# nupkg under test can never be replaced by a same-version nuget.org package.
+on:
+  workflow_dispatch: {}
+  push:
+    tags: ["v*"]
+  release:
+    types: [published]
+  pull_request:
+    branches: [main]
+    paths:
+      - "crates/multilingual-katakana-core/**"
+      - "crates/multilingual-katakana-ffi/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "bindings/dotnet/**"
+      - ".github/dotnet-platforms.json"
+      - ".github/workflows/build-dotnet-matrix.yml"
+      - "scripts/stage_dotnet_native.ts"
+      - "spec/**"
+
+permissions:
+  contents: read
+
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  TEST_PROJECT: bindings/dotnet/tests/Allpaqa.MultilingualKatakana.Tests
+
+jobs:
+  load-platforms:
+    name: Load platform matrix
+    runs-on: ubuntu-24.04
+    outputs:
+      matrix: ${{ steps.load.outputs.matrix }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Load .github/dotnet-platforms.json
+        # Single source of truth for the 9 .NET RIDs (build runner, Rust
+        # target, native file name, and how each RID's package test runs).
+        id: load
+        shell: bash
+        run: echo "matrix=$(jq -c . .github/dotnet-platforms.json)" >> "$GITHUB_OUTPUT"
+
+  verify-versions:
+    name: Verify tag matches all manifest versions
+    runs-on: ubuntu-24.04
+    if: github.event_name == 'push' || github.event_name == 'release'
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Bun
+        uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+
+      - name: Check tag matches every lockstep version location
+        # Guards against publishing under a stale version number (NuGet
+        # versions are immutable — a published version can only be
+        # unlisted, never replaced). Covers Directory.Build.props <Version>
+        # plus every npm/Cargo/PyPI manifest (docs/RELEASE_PROCESS.md §3).
+        run: bun run scripts/check_versions.ts --tag "${GITHUB_REF_NAME}"
+
+  build-native:
+    name: Build native (${{ matrix.rid }})
+    needs: [load-platforms, verify-versions]
+    # verify-versions is skipped entirely on pull_request/workflow_dispatch
+    # (no tag to check against), so accept "skipped" as well as "success"
+    # here — otherwise `needs:` would also skip this job on those runs.
+    if: |
+      always() &&
+      needs.load-platforms.result == 'success' &&
+      (needs.verify-versions.result == 'success' || needs.verify-versions.result == 'skipped')
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.load-platforms.outputs.matrix) }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: ${{ matrix.target }}
+
+      - name: Install Zig (musl cross-compilation only)
+        if: matrix.zigbuild
+        uses: korandoru/setup-zig@v1
+        with:
+          zig-version: "0.13.0"
+
+      - name: Install cargo-zigbuild (musl cross-compilation only)
+        if: matrix.zigbuild
+        run: cargo install cargo-zigbuild --locked
+
+      - name: Build (Windows, static CRT)
+        if: startsWith(matrix.rid, 'win-')
+        # Statically link the MSVC CRT so the DLL has no dependency on
+        # vcruntime140.dll / the UCRT redistributable: .NET Framework apps
+        # and nanoserver/servercore containers do not reliably ship the VC++
+        # redistributable, and a missing CRT surfaces only as an opaque
+        # DllNotFoundException at first use.
+        env:
+          RUSTFLAGS: "-C target-feature=+crt-static"
+        run: cargo build --release -p multilingual-katakana-ffi --target ${{ matrix.target }}
+
+      - name: Build (native target)
+        if: ${{ !matrix.zigbuild && !startsWith(matrix.rid, 'win-') }}
+        run: cargo build --release -p multilingual-katakana-ffi --target ${{ matrix.target }}
+
+      - name: Build (cargo-zigbuild, musl cross-compilation)
+        if: matrix.zigbuild
+        # musl targets default to `crt-static` (fully static linking), which
+        # rustc refuses to combine with a cdylib output. Disable it so a
+        # dynamically-linked .so loadable by the Alpine .NET host is
+        # produced — same workaround as build-native-matrix.yml and
+        # scripts/stage_dotnet_native.ts.
+        env:
+          RUSTFLAGS: "-C target-feature=-crt-static"
+        run: cargo zigbuild --release -p multilingual-katakana-ffi --target ${{ matrix.target }}
+
+      - name: Verify no VC++ runtime dependency (Windows only)
+        if: startsWith(matrix.rid, 'win-')
+        shell: bash
+        # Import names are plain ASCII in the PE import table, so a byte
+        # search is enough to catch a regression of the static-CRT flag.
+        run: |
+          dll="target/${{ matrix.target }}/release/${{ matrix.lib-file }}"
+          if grep -a -i -q -E 'vcruntime140|api-ms-win-crt-' "$dll"; then
+            echo "::error::${dll} imports the dynamic MSVC CRT (expected +crt-static)"
+            exit 1
+          fi
+          echo "OK: ${dll} has no vcruntime140 / UCRT imports."
+
+      - name: Upload native library artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: native-${{ matrix.rid }}
+          path: target/${{ matrix.target }}/release/${{ matrix.lib-file }}
+          if-no-files-found: error
+          retention-days: 7
+
+  pack:
+    name: Pack nupkg (all RIDs)
+    needs: build-native
+    if: always() && needs.build-native.result == 'success'
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Download all native library artifacts
+        uses: actions/download-artifact@v8
+        with:
+          pattern: native-*
+          path: native-artifacts
+
+      - name: Stage native libraries into bindings/dotnet/native/<rid>/
+        shell: bash
+        run: |
+          set -euo pipefail
+          jq -r '.[] | [.rid, ."lib-file"] | @tsv' .github/dotnet-platforms.json |
+            while IFS=$'\t' read -r rid lib; do
+              mkdir -p "bindings/dotnet/native/${rid}"
+              cp "native-artifacts/native-${rid}/${lib}" "bindings/dotnet/native/${rid}/${lib}"
+            done
+          find bindings/dotnet/native -type f | sort
+
+      - name: Pack Allpaqa.MultilingualKatakana
+        run: dotnet pack bindings/dotnet/src/Allpaqa.MultilingualKatakana -c Release -o nupkg
+
+      - name: Verify nupkg contents (all RIDs, zero dependencies)
+        shell: bash
+        # Fails if any RID's native asset is missing (NuGet would silently
+        # fall back to "unsupported platform" at runtime) or if the package
+        # declares any NuGet dependency (zero-dependency rule, AGENTS.md §1).
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          pkgs=(nupkg/*.nupkg)
+          if [ "${#pkgs[@]}" -ne 1 ]; then
+            echo "::error::expected exactly one .nupkg, found ${#pkgs[@]}"
+            exit 1
+          fi
+          nupkg="${pkgs[0]}"
+          listing="$(unzip -Z1 "${nupkg}")"
+          echo "${listing}"
+          failed=0
+          require() {
+            if ! grep -qxF "$1" <<<"${listing}"; then
+              echo "::error::${nupkg} is missing $1"
+              failed=1
+            fi
+          }
+          while IFS=$'\t' read -r rid lib; do
+            require "runtimes/${rid}/native/${lib}"
+          done < <(jq -r '.[] | [.rid, ."lib-file"] | @tsv' .github/dotnet-platforms.json)
+          for tfm in netstandard2.0 net8.0; do
+            require "lib/${tfm}/Allpaqa.MultilingualKatakana.dll"
+            require "lib/${tfm}/Allpaqa.MultilingualKatakana.xml"
+          done
+          require "build/net462/Allpaqa.MultilingualKatakana.targets"
+          require "buildTransitive/net462/Allpaqa.MultilingualKatakana.targets"
+
+          expected_rids="$(jq length .github/dotnet-platforms.json)"
+          native_count="$(grep -c '^runtimes/[^/]*/native/' <<<"${listing}" || true)"
+          if [ "${native_count}" -ne "${expected_rids}" ]; then
+            echo "::error::expected ${expected_rids} native assets, found ${native_count}"
+            failed=1
+          fi
+
+          nuspec="$(unzip -p "${nupkg}" '*.nuspec')"
+          dependency_count="$(grep -c '<dependency ' <<<"${nuspec}" || true)"
+          if [ "${dependency_count}" -ne 0 ]; then
+            echo "${nuspec}"
+            echo "::error::nupkg declares ${dependency_count} NuGet dependencies (must be 0)"
+            failed=1
+          fi
+          exit "${failed}"
+
+      - name: Upload nupkg artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: nupkg
+          path: nupkg/*.nupkg
+          if-no-files-found: error
+          retention-days: 7
+
+  test-package:
+    name: Test package (${{ matrix.rid }})
+    needs: [load-platforms, pack]
+    if: always() && needs.pack.result == 'success'
+    runs-on: ${{ matrix.test-os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include: ${{ fromJSON(needs.load-platforms.outputs.matrix) }}
+    env:
+      # ApiTests.ProcessArchitectureMatchesExpectation fails if the test
+      # host silently ran under a different architecture than this RID.
+      MK_EXPECT_ARCH: ${{ matrix.arch }}
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Download nupkg artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: nupkg
+          path: nupkg
+
+      - name: Setup .NET
+        if: matrix.test-mode == 'host'
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Run spec + API tests against the packed nupkg (host)
+        if: matrix.test-mode == 'host'
+        shell: bash
+        # MkUsePackage swaps the ProjectReference for a PackageReference to
+        # the nupkg in ./nupkg and stops copying staged native files, so the
+        # .NET host must resolve runtimes/<rid>/native/ from the package.
+        # RestoreConfigFile pins Allpaqa.* to ./nupkg only (NuGet.ci.config).
+        run: >-
+          dotnet test "${TEST_PROJECT}" -c Release
+          -p:MkUsePackage=true
+          "-p:RestoreConfigFile=${GITHUB_WORKSPACE}/bindings/dotnet/ci/NuGet.ci.config"
+
+      - name: Run spec + API tests against the packed nupkg (win-x86)
+        if: matrix.test-mode == 'win-x86'
+        shell: pwsh
+        # actions/setup-dotnet only installs the runner's native (x64)
+        # architecture, so install a private x86 .NET 8 SDK with the
+        # official dotnet-install.ps1 and run `dotnet test` through that
+        # 32-bit muxer: the build, vstest and testhost then all run as x86
+        # processes and the host picks runtimes/win-x86/native/ by itself
+        # (the same RID-less resolution a real 32-bit consumer gets).
+        # `dotnet test --arch x86` from the x64 SDK was not used because it
+        # still needs a separately registered x86 runtime and builds a
+        # RID-specific (win-x86) output, which bypasses that resolution.
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $dotnetX86 = Join-Path $env:RUNNER_TEMP 'dotnet-x86'
+          Invoke-WebRequest -Uri 'https://dot.net/v1/dotnet-install.ps1' -OutFile (Join-Path $env:RUNNER_TEMP 'dotnet-install.ps1')
+          & (Join-Path $env:RUNNER_TEMP 'dotnet-install.ps1') -Channel 8.0 -Architecture x86 -InstallDir $dotnetX86
+          # dotnet-install.ps1 is a PowerShell script, so it may leave
+          # $LASTEXITCODE unset ($null): `$null -ne 0` is true and `exit $null`
+          # exits 0, silently skipping the tests. Check $? and the binary instead.
+          if (-not $? -or -not (Test-Path (Join-Path $dotnetX86 'dotnet.exe'))) {
+            Write-Error 'x86 .NET SDK installation failed'
+            exit 1
+          }
+          $env:DOTNET_ROOT = $dotnetX86
+          ${env:DOTNET_ROOT(x86)} = $dotnetX86
+          $env:DOTNET_ROOT_X86 = $dotnetX86
+          $env:DOTNET_MULTILEVEL_LOOKUP = '0'
+          $dotnet = Join-Path $dotnetX86 'dotnet.exe'
+          & $dotnet --info
+          if ($LASTEXITCODE -ne 0) { exit $LASTEXITCODE }
+          & $dotnet test $env:TEST_PROJECT -c Release -p:MkUsePackage=true "-p:RestoreConfigFile=$env:GITHUB_WORKSPACE\bindings\dotnet\ci\NuGet.ci.config"
+          exit $LASTEXITCODE
+
+      - name: Run spec + API tests against the packed nupkg (Alpine / musl)
+        if: matrix.test-mode == 'alpine'
+        shell: bash
+        # Runs on a native runner for the matching CPU (ubuntu-24.04 /
+        # ubuntu-24.04-arm), so no QEMU emulation is needed — only a musl
+        # userland. The official Alpine SDK image reports RID
+        # linux-musl-<arch>, so this proves the .NET host picks
+        # runtimes/linux-musl-<arch>/native/ on its own (the glibc
+        # linux-<arch> .so would fail to load here) without any custom
+        # musl detection in the managed loader.
+        run: |
+          docker run --rm \
+            --platform "linux/${{ matrix.docker-arch }}" \
+            -v "${PWD}:/repo" \
+            -w /repo \
+            -e MK_EXPECT_ARCH \
+            -e TEST_PROJECT \
+            -e DOTNET_CLI_TELEMETRY_OPTOUT \
+            -e DOTNET_NOLOGO \
+            mcr.microsoft.com/dotnet/sdk:8.0-alpine \
+            sh -euc '
+              dotnet --info | tee /tmp/dotnet-info.txt
+              grep -Eq "RID:[[:space:]]+${{ matrix.rid }}$" /tmp/dotnet-info.txt || {
+                echo "::error::Alpine .NET host RID is not ${{ matrix.rid }}"; exit 1; }
+              dotnet test "${TEST_PROJECT}" -c Release -p:MkUsePackage=true -p:RestoreConfigFile=/repo/bindings/dotnet/ci/NuGet.ci.config
+            '
+
+  test-netfx:
+    name: Test package on .NET Framework 4.8 (${{ matrix.arch }})
+    needs: pack
+    if: always() && needs.pack.result == 'success'
+    runs-on: windows-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        arch: [x64, x86]
+    env:
+      MK_EXPECT_ARCH: ${{ matrix.arch }}
+      OUT_DIR: bindings/dotnet/tests/Allpaqa.MultilingualKatakana.Tests/bin/Release/net48
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Download nupkg artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: nupkg
+          path: nupkg
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Build net48 tests against the packed nupkg
+        shell: bash
+        # PlatformTarget makes vstest launch the matching testhost
+        # (testhost.x86.exe for x86) for the net48 assembly in the run below.
+        run: >-
+          dotnet build "${TEST_PROJECT}" -c Release -f net48
+          -p:MkTestNetFx=true -p:MkUsePackage=true
+          "-p:PlatformTarget=${{ matrix.arch }}"
+          "-p:RestoreConfigFile=${GITHUB_WORKSPACE}/bindings/dotnet/ci/NuGet.ci.config"
+
+      - name: Verify build/net462 targets copied x86\ x64\ arm64\ subfolders
+        shell: bash
+        # .NET Framework never resolves runtimes/<rid>/native/; the package's
+        # build/net462 .targets must have copied the DLLs into per-arch
+        # subfolders. Remove any copy next to the test assembly so the run
+        # below can only succeed through the managed loader's LoadLibraryW
+        # preload from the <arch>\ subfolder.
+        run: |
+          set -euo pipefail
+          for a in x86 x64 arm64; do
+            test -f "${OUT_DIR}/${a}/allpaqa_multilingual_katakana.dll" || {
+              echo "::error::missing ${OUT_DIR}/${a}/allpaqa_multilingual_katakana.dll"; exit 1; }
+          done
+          rm -fv "${OUT_DIR}/allpaqa_multilingual_katakana.dll"
+          find "${OUT_DIR}" -iname 'allpaqa_multilingual_katakana.dll'
+
+      - name: Run spec + API tests on .NET Framework 4.8
+        shell: bash
+        run: >-
+          dotnet test "${TEST_PROJECT}" -c Release -f net48 --no-build
+          -p:MkTestNetFx=true -p:MkUsePackage=true
+          "-p:PlatformTarget=${{ matrix.arch }}"
+          "-p:RestoreConfigFile=${GITHUB_WORKSPACE}/bindings/dotnet/ci/NuGet.ci.config"
+
+  test-aot:
+    name: Native AOT smoke test (${{ matrix.rid }})
+    needs: pack
+    if: always() && needs.pack.result == 'success'
+    runs-on: ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - rid: linux-x64
+            os: ubuntu-24.04
+          - rid: osx-arm64
+            os: macos-14
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v7
+
+      - name: Download nupkg artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: nupkg
+          path: nupkg
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: |
+            8.0.x
+            10.0.x
+
+      - name: Install Native AOT prerequisites (Linux)
+        if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y clang zlib1g-dev
+
+      - name: Publish bindings/dotnet/samples/AotSmoke with PublishAot
+        shell: bash
+        # TreatWarningsAsErrors (Directory.Build.props) + IlcTreatWarningsAsErrors
+        # turn any trim/AOT analysis warning into a build error; the grep is
+        # a second guard in case a warning is ever downgraded to a message.
+        run: |
+          set -euo pipefail
+          dotnet publish bindings/dotnet/samples/AotSmoke -c Release \
+            -r "${{ matrix.rid }}" -p:PublishAot=true \
+            "-p:RestoreConfigFile=${GITHUB_WORKSPACE}/bindings/dotnet/ci/NuGet.ci.config" \
+            -o aot-out 2>&1 | tee publish.log
+          if grep -E 'warning (IL[0-9]{4}|AOT)' publish.log; then
+            echo "::error::Native AOT publish emitted trim/AOT warnings"
+            exit 1
+          fi
+
+      - name: Run the Native AOT binary
+        shell: bash
+        run: |
+          set -euo pipefail
+          output="$(./aot-out/AotSmoke)"
+          echo "${output}"
+          first_line="$(head -n1 <<<"${output}")"
+          if [ "${first_line}" != "ハロー" ]; then
+            echo "::error::expected \"ハロー\" for \"hello\", got \"${first_line}\""
+            exit 1
+          fi
+
+  publish:
+    name: Publish nupkg to nuget.org
+    needs: [verify-versions, pack, test-package, test-netfx, test-aot]
+    if: github.event_name == 'release' && vars.NUGET_PUBLISH_ENABLED == 'true'
+    runs-on: ubuntu-24.04
+    environment: nuget
+    permissions:
+      contents: read
+      id-token: write
+    steps:
+      - name: Download nupkg artifact
+        uses: actions/download-artifact@v8
+        with:
+          name: nupkg
+          path: nupkg
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: NuGet login (Trusted Publishing / OIDC)
+        id: login
+        uses: NuGet/login@v1
+        with:
+          # NUGET_USER is the nuget.org account (profile) name that owns the
+          # Trusted Publishing policy (the `allpaqa` org's owner) — not an
+          # API key. It is stored as a secret only to keep it out of logs;
+          # the API key itself is minted per run from the OIDC token.
+          user: ${{ secrets.NUGET_USER }}
+
+      - name: Push to nuget.org
+        # --skip-duplicate guards against a failed re-run of this workflow
+        # trying to push a version that already succeeded on a previous
+        # attempt (nuget.org rejects re-pushing an existing version).
+        run: >-
+          dotnet nuget push "nupkg/*.nupkg"
+          --source https://api.nuget.org/v3/index.json
+          --api-key "${{ steps.login.outputs.NUGET_API_KEY }}"
+          --skip-duplicate

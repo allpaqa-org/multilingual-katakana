@@ -131,6 +131,14 @@ When those native packages are published, the Rust NAPI-RS backend (auto-selecte
 
 See [`docs/V0.4.0_BINDINGS_SCOPE.md`](docs/V0.4.0_BINDINGS_SCOPE.md) for the full native-backend rollout plan.
 
+### C# / .NET (coming soon)
+
+```bash
+dotnet add package Allpaqa.MultilingualKatakana
+```
+
+The .NET binding (`netstandard2.0` / `net8.0`, same Rust core) is **not yet published to NuGet** — it is planned for v0.6.0. Until then, build it from source; see [`bindings/dotnet/README.md`](bindings/dotnet/README.md).
+
 ---
 
 ## 🚀 Quick Start

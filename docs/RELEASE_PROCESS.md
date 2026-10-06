@@ -130,6 +130,53 @@ packages (§3.1), there are no generated per-platform files to keep in
 sync here — abi3 wheels are tagged per-platform automatically by
 maturin/auditwheel, not by hand-edited JSON.
 
+### 3.3 .NET binding (v0.6.0+)
+
+Once the .NET binding ships (see `docs/V0.4.0_BINDINGS_SCOPE.md` §7.3),
+add the following to the same lockstep `"X.Y.Z"`:
+
+8. **C ABI crate `crates/multilingual-katakana-ffi/Cargo.toml`**:
+   `version = "X.Y.Z"`
+9. **NuGet package `Allpaqa.MultilingualKatakana`**:
+   `bindings/dotnet/Directory.Build.props` → `<Version>X.Y.Z</Version>`
+   (the single version source for every project under `bindings/dotnet`;
+   do not add a `<Version>` to an individual `.csproj`). Prereleases use
+   the npm/Cargo spelling (`X.Y.Z-rc.N`).
+
+The 9 RIDs shipped in the package (`win-x64`, `win-x86`, `win-arm64`,
+`linux-x64`, `linux-arm64`, `linux-musl-x64`, `linux-musl-arm64`,
+`osx-x64`, `osx-arm64`) come from the single source of truth
+`.github/dotnet-platforms.json`.
+
+`scripts/check_versions.ts` verifies **every** lockstep location in
+§3–§3.3 at once (npm, platform packages and their `optionalDependencies`
+pins, all `crates/*/Cargo.toml`, `pyproject.toml` / `__version__` in
+PEP 440 spelling, and `Directory.Build.props`). `ci.yml` runs it on pushes
+to `main` and `feature/**` and on pull requests to `main`; the
+`verify-versions` jobs of the matrix workflows (including
+`.github/workflows/build-dotnet-matrix.yml`) run it with `--tag` on tag
+pushes and releases, before any nupkg is published — because **NuGet versions
+are immutable** (a published version can only be unlisted, never
+replaced).
+
+**NuGet publishing prerequisites (one-time setup):**
+
+- nuget.org organization **`allpaqa`** owns the package, with the
+  **`Allpaqa.`** ID prefix reserved for it.
+- A **Trusted Publishing policy** on nuget.org (owner `allpaqa`):
+  repository `allpaqa-org/multilingual-katakana`, workflow file
+  `build-dotnet-matrix.yml`, environment `nuget`.
+- A **GitHub Environment `nuget`** in this repo (optionally with required
+  reviewers), which the `publish` job runs in.
+- A repository (or `nuget` environment) secret **`NUGET_USER`**: the
+  nuget.org account (profile) name that owns the policy — *not* an API
+  key. `NuGet/login` exchanges the job's OIDC token for a short-lived API
+  key at publish time, so no long-lived key is stored anywhere.
+- A repository **variable** `NUGET_PUBLISH_ENABLED` set to `true`. The
+  `publish` job additionally requires it. Set it only once all the items
+  above are ready (planned for v0.6.0); until then releases build, pack and
+  test the nupkg but never publish to NuGet.
+
 ---
 
 ## 4. Pre-Release Verification Commands (Quality Gates)
@@ -155,29 +202,39 @@ bun run validate:spec
 # 5. Dual ESM/CJS package build (verify dist/ output)
 bun run build
 
+# 6. Lockstep version check across every manifest (§3–§3.3)
+bun run scripts/check_versions.ts
+
 # --- Rust core checks ---
 # NOTE: crates/multilingual-katakana-python (PyO3) is a workspace member
-# without the `extension-module` feature here, so commands 6-8 link
+# without the `extension-module` feature here, so commands 7-9 link
 # against libpython and need a *discoverable* Python 3 with a linkable
 # shared library (e.g. python.org installers, Homebrew, or CI's
 # actions/setup-python all work; some system/Xcode-stub pythons on macOS
 # do not — point PYO3_PYTHON at a working interpreter if you hit a
 # "library 'pythonX.Y' not found" linker error).
-# 6. All Cargo tests pass (100% PASS, 163 shared spec cases)
+# 7. All Cargo tests pass (100% PASS, 163 shared spec cases)
 cargo test --all-targets
 
-# 7. Clippy static analysis (0 warnings required)
+# 8. Clippy static analysis (0 warnings required)
 cargo clippy --all-targets -- -D warnings
 
-# 8. Rust code format check (0 diffs required)
+# 9. Rust code format check (0 diffs required)
 cargo fmt --check
 
 # --- Python binding checks (v0.5.0+) ---
 # `maturin develop` requires an active virtualenv/conda env (or a `.venv`
 # next to pyproject.toml) — plain `pip install maturin` into a system
 # Python is not enough.
-# 9. Build native extension and run the spec + API test suite
+# 10. Build native extension and run the spec + API test suite
 cd bindings/python && maturin develop --release && python -m pytest
+
+# --- .NET binding checks (v0.6.0+; .NET 10 SDK + .NET 8 runtime) ---
+# 11. Build the C ABI library and stage it into bindings/dotnet/native/<host rid>/
+bun run scripts/stage_dotnet_native.ts
+
+# 12. Spec + API tests (100% PASS) and format check (0 diffs)
+cd bindings/dotnet && dotnet test -c Release && dotnet format --verify-no-changes
 ```
 
 ---
@@ -244,8 +301,28 @@ git push origin main --tags
    - `allpaqa-multilingual-katakana` abi3 wheels are published to PyPI via
      Trusted Publishing (OIDC) — no long-lived API token is stored in
      this repo.
+   - The `publish` job runs only when the repository variable
+     `PYPI_PUBLISH_ENABLED` is `true`. Set it once the PyPI organization
+     `allpaqa`, the Trusted Publisher and the GitHub Environment `pypi`
+     are ready (#31); until then releases build and smoke-test wheels but
+     never publish them.
    - This runs as an independent job from the npm publish above; if
      either fails, re-run only the failed workflow (both are idempotent —
      already-published versions are skipped, not re-uploaded) and note
      the failure in the release notes per §7.5 of
      `docs/V0.4.0_BINDINGS_SCOPE.md`.
+
+4. **Automatic NuGet publish (`.github/workflows/build-dotnet-matrix.yml`,
+   v0.6.0+)**:
+   - The same `release: published` event builds the C ABI library for
+     all 9 RIDs, packs a single `Allpaqa.MultilingualKatakana` nupkg,
+     tests that nupkg on every RID (plus .NET Framework 4.8 x64/x86 and
+     Native AOT), and only then runs its `publish` job.
+   - The nupkg is pushed to nuget.org via Trusted Publishing (OIDC,
+     `NuGet/login`) — no long-lived API key is stored in this repo (setup
+     in §3.3). The `publish` job only runs when the repository variable
+     `NUGET_PUBLISH_ENABLED` is `true`; until it is set, this workflow
+     builds and tests but skips publishing.
+   - Like the PyPI publish, this is independent of the npm publish; it is
+     idempotent (`--skip-duplicate`), so re-run only the failed workflow
+     and note the failure in the release notes.

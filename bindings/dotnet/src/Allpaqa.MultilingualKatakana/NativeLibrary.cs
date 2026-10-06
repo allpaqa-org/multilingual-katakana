@@ -68,7 +68,7 @@ namespace Allpaqa.MultilingualKatakana
             {
                 return new Failure(
                     $"Failed to load native library '{NativeMethods.LibraryName}' ({ex.GetType().Name}): unsupported platform or missing native asset for {DescribePlatform()}. "
-                    + "Supported RIDs: win-x64, win-x86, win-arm64, linux-x64, linux-arm64, linux-musl-x64, osx-x64, osx-arm64. "
+                    + "Supported RIDs: win-x64, win-x86, win-arm64, linux-x64, linux-arm64, linux-musl-x64, linux-musl-arm64, osx-x64, osx-arm64. "
                     + "On .NET Framework, the native DLL must be in an x86\\, x64\\ or arm64\\ subfolder next to the application (copied automatically by the NuGet package's build targets).",
                     ex);
             }

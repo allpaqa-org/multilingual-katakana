@@ -109,7 +109,7 @@ the Node.js binding) is **not yet available** in this .NET binding.
 |---|---|
 | Windows | `win-x64`, `win-x86`, `win-arm64` |
 | Linux (glibc) | `linux-x64`, `linux-arm64` |
-| Linux (musl / Alpine) | `linux-musl-x64` |
+| Linux (musl / Alpine) | `linux-musl-x64`, `linux-musl-arm64` |
 | macOS | `osx-x64`, `osx-arm64` |
 
 On .NET Core / .NET 5+ the native library is resolved automatically from

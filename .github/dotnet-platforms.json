@@ -1,0 +1,96 @@
+[
+  {
+    "rid": "win-x64",
+    "label": "Windows x64",
+    "os": "windows-latest",
+    "target": "x86_64-pc-windows-msvc",
+    "lib-file": "allpaqa_multilingual_katakana.dll",
+    "test-os": "windows-latest",
+    "test-mode": "host",
+    "arch": "x64"
+  },
+  {
+    "rid": "win-x86",
+    "label": "Windows x86",
+    "os": "windows-latest",
+    "target": "i686-pc-windows-msvc",
+    "lib-file": "allpaqa_multilingual_katakana.dll",
+    "test-os": "windows-latest",
+    "test-mode": "win-x86",
+    "arch": "x86"
+  },
+  {
+    "rid": "win-arm64",
+    "label": "Windows arm64",
+    "os": "windows-11-arm",
+    "target": "aarch64-pc-windows-msvc",
+    "lib-file": "allpaqa_multilingual_katakana.dll",
+    "test-os": "windows-11-arm",
+    "test-mode": "host",
+    "arch": "arm64"
+  },
+  {
+    "rid": "linux-x64",
+    "label": "Linux x64 (glibc)",
+    "os": "ubuntu-24.04",
+    "target": "x86_64-unknown-linux-gnu",
+    "lib-file": "liballpaqa_multilingual_katakana.so",
+    "test-os": "ubuntu-24.04",
+    "test-mode": "host",
+    "arch": "x64"
+  },
+  {
+    "rid": "linux-arm64",
+    "label": "Linux arm64 (glibc)",
+    "os": "ubuntu-24.04-arm",
+    "target": "aarch64-unknown-linux-gnu",
+    "lib-file": "liballpaqa_multilingual_katakana.so",
+    "test-os": "ubuntu-24.04-arm",
+    "test-mode": "host",
+    "arch": "arm64"
+  },
+  {
+    "rid": "linux-musl-x64",
+    "label": "Linux x64 (musl)",
+    "os": "ubuntu-24.04",
+    "target": "x86_64-unknown-linux-musl",
+    "lib-file": "liballpaqa_multilingual_katakana.so",
+    "zigbuild": true,
+    "docker-arch": "amd64",
+    "test-os": "ubuntu-24.04",
+    "test-mode": "alpine",
+    "arch": "x64"
+  },
+  {
+    "rid": "linux-musl-arm64",
+    "label": "Linux arm64 (musl)",
+    "os": "ubuntu-24.04",
+    "target": "aarch64-unknown-linux-musl",
+    "lib-file": "liballpaqa_multilingual_katakana.so",
+    "zigbuild": true,
+    "docker-arch": "arm64",
+    "test-os": "ubuntu-24.04-arm",
+    "test-mode": "alpine",
+    "arch": "arm64"
+  },
+  {
+    "rid": "osx-x64",
+    "label": "macOS x64",
+    "os": "macos-15-intel",
+    "target": "x86_64-apple-darwin",
+    "lib-file": "liballpaqa_multilingual_katakana.dylib",
+    "test-os": "macos-15-intel",
+    "test-mode": "host",
+    "arch": "x64"
+  },
+  {
+    "rid": "osx-arm64",
+    "label": "macOS arm64",
+    "os": "macos-14",
+    "target": "aarch64-apple-darwin",
+    "lib-file": "liballpaqa_multilingual_katakana.dylib",
+    "test-os": "macos-14",
+    "test-mode": "host",
+    "arch": "arm64"
+  }
+]

@@ -1,11 +1,25 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
+  <!--
+    Opt-in switches (defaults keep the local ProjectReference + staged-native workflow):
+      -p:MkUsePackage=true       test the PACKED Allpaqa.MultilingualKatakana nupkg via PackageReference
+                                 (native assets come from the package, nothing is copied from native/).
+      -p:MkPackageSource=<dir>   local feed holding that nupkg (added to the restore sources).
+      -p:MkPackageVersion=<ver>  package version to test (default: $(Version) from Directory.Build.props).
+                                 NuGet caches by id+version: use a fresh NUGET_PACKAGES dir when re-packing
+                                 the same version locally.
+      -p:MkTestNetFx=true        also target net48 (Windows/.NET Framework only; off by default so
+                                 non-Windows builds are unaffected).
+  -->
   <PropertyGroup>
-    <TargetFramework>net8.0</TargetFramework>
+    <TargetFramework Condition="'$(MkTestNetFx)' != 'true'">net8.0</TargetFramework>
+    <TargetFrameworks Condition="'$(MkTestNetFx)' == 'true'">net8.0;net48</TargetFrameworks>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
     <ImplicitUsings>enable</ImplicitUsings>
     <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <MkPackageVersion Condition="'$(MkPackageVersion)' == ''">$(Version)</MkPackageVersion>
+    <RestoreAdditionalProjectSources Condition="'$(MkPackageSource)' != ''">$(RestoreAdditionalProjectSources);$(MkPackageSource)</RestoreAdditionalProjectSources>
   </PropertyGroup>
 
   <!-- Dev-only test dependencies (never shipped in the library nupkg). -->
@@ -15,17 +29,27 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" PrivateAssets="all" />
   </ItemGroup>
 
-  <ItemGroup>
+  <!-- .NET Framework has no inbox System.Text.Json (used by the spec harness). -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net48'">
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(MkUsePackage)' != 'true'">
     <ProjectReference Include="..\..\src\Allpaqa.MultilingualKatakana\Allpaqa.MultilingualKatakana.csproj" />
   </ItemGroup>
 
+  <ItemGroup Condition="'$(MkUsePackage)' == 'true'">
+    <PackageReference Include="Allpaqa.MultilingualKatakana" Version="[$(MkPackageVersion)]" />
+  </ItemGroup>
+
   <!-- Copy the host's staged native library (native/<host rid>/*) next to the test assembly.
-       Use the portable RID: distro-built SDKs report e.g. ubuntu.24.04-x64 as NETCoreSdkRuntimeIdentifier. -->
+       Use the portable RID: distro-built SDKs report e.g. ubuntu.24.04-x64 as NETCoreSdkRuntimeIdentifier.
+       Skipped in package mode: the native asset must come from the nupkg itself. -->
   <PropertyGroup>
     <MkHostRid>$(NETCoreSdkPortableRuntimeIdentifier)</MkHostRid>
     <MkHostRid Condition="'$(MkHostRid)' == ''">$(NETCoreSdkRuntimeIdentifier)</MkHostRid>
   </PropertyGroup>
-  <ItemGroup>
+  <ItemGroup Condition="'$(MkUsePackage)' != 'true'">
     <None Include="$(MkNativeStagingDir)$(MkHostRid)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 
