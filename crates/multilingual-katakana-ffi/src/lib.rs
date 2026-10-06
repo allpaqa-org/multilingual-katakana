@@ -235,12 +235,8 @@ pub unsafe extern "C" fn mk_free_string(ptr: *mut u8, len: usize) {
 /// (including if the check panics).
 #[no_mangle]
 pub extern "C" fn mk_self_check() -> i32 {
-    let mut ok = 0;
-    guard(|| {
-        ok = i32::from(native_self_check());
-        MK_OK
-    });
-    ok
+    // A caught panic surfaces as MK_ERR_PANIC; anything but 1 means unhealthy.
+    i32::from(guard(|| i32::from(native_self_check())) == 1)
 }
 
 #[cfg(test)]

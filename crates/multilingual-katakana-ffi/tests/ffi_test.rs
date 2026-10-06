@@ -63,6 +63,47 @@ fn empty_input_and_free() {
 }
 
 #[test]
+fn non_empty_input_with_empty_output() {
+    // Whitespace-only input normalizes to "" in the core; the result must
+    // still be a non-null, freeable (no-op) buffer — `call` asserts both.
+    for input in [" ", "\t\n", "　"] {
+        assert_eq!(to_katakana(input, None), "");
+        assert_eq!(call(input.as_bytes(), None), (MK_OK, String::new()));
+    }
+}
+
+#[test]
+fn c_header_constants_match_rust() {
+    // The header is hand-written; guard against drift from the Rust consts.
+    let header = include_str!("../include/allpaqa_multilingual_katakana.h");
+    let expected: [(&str, String); 15] = [
+        ("MK_ABI_VERSION", format!("{MK_ABI_VERSION}u")),
+        ("MK_OK", MK_OK.to_string()),
+        ("MK_ERR_NULL_POINTER", MK_ERR_NULL_POINTER.to_string()),
+        ("MK_ERR_INVALID_UTF8", MK_ERR_INVALID_UTF8.to_string()),
+        ("MK_ERR_PANIC", MK_ERR_PANIC.to_string()),
+        ("MK_FLAG_ENABLE_CYRILLIC", bit(MK_FLAG_ENABLE_CYRILLIC)),
+        ("MK_FLAG_ENABLE_KOREAN", bit(MK_FLAG_ENABLE_KOREAN)),
+        ("MK_FLAG_ENABLE_CHINESE", bit(MK_FLAG_ENABLE_CHINESE)),
+        ("MK_FLAG_ENABLE_SPANISH", bit(MK_FLAG_ENABLE_SPANISH)),
+        ("MK_FLAG_ENABLE_FRENCH", bit(MK_FLAG_ENABLE_FRENCH)),
+        ("MK_FLAG_ENABLE_VIETNAMESE", bit(MK_FLAG_ENABLE_VIETNAMESE)),
+        ("MK_FLAG_ENABLE_THAI", bit(MK_FLAG_ENABLE_THAI)),
+        ("MK_FLAG_ENABLE_SLANG", bit(MK_FLAG_ENABLE_SLANG)),
+        ("MK_FLAG_ENABLE_ENGLISH", bit(MK_FLAG_ENABLE_ENGLISH)),
+        ("MK_FLAG_NORMALIZE_PROSODY", bit(MK_FLAG_NORMALIZE_PROSODY)),
+    ];
+    for (name, value) in expected {
+        let line = format!("#define {name} {value}");
+        assert!(header.contains(&line), "header missing `{line}`");
+    }
+}
+
+fn bit(flag: u32) -> String {
+    format!("(1u << {})", flag.trailing_zeros())
+}
+
+#[test]
 fn invalid_utf8_and_null_pointers() {
     assert_eq!(call(&[0xff, 0xfe], None).0, MK_ERR_INVALID_UTF8);
 
