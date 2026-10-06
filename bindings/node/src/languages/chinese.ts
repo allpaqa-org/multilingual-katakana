@@ -164,15 +164,16 @@ function edgeClass(run: HanziRun, cls: RunClass, rightSide: boolean): RunClass {
   return cls;
 }
 
-/** A linked neighbour that is not Japanese can continue the Chinese sentence. */
+/** A linked neighbour finally classified `zh` continues the Chinese sentence. */
 function continuesSentence(text: string, left: HanziRun, right: HanziRun, other: HanziRun) {
-  return isLinked(text, left, right) && other.cls !== "ja" && other.cls !== "mixed";
+  return isLinked(text, left, right) && other.cls === "zh";
 }
 
 /**
- * A guard word at the edge of a Chinese-evidence run is kept Japanese only
- * when nothing non-Japanese is linked on that side (`了解谢谢` keeps 了解,
- * `我是台灣人，感謝你們` converts 感謝 as part of the Chinese sentence).
+ * Runs after classification. In kana-free comments, a guard word at the edge
+ * of a Chinese-evidence run is converted when the linked neighbour on that
+ * side is a final `zh` run (`我是台灣人，感謝你們`); otherwise it is kept
+ * Japanese (`了解谢谢` -> `了解シエシエ`). Never applied to comments with kana.
  */
 function settleGuardEdges(text: string, runs: HanziRun[]): void {
   for (let i = 0; i < runs.length; i++) {
@@ -215,10 +216,13 @@ function spreadClass(text: string, runs: HanziRun[], target: RunClass): void {
   }
 }
 
-/** Rule (c): order-independent propagation, Japanese first (Safe Kanji Guard). */
-function propagateLinks(text: string, runs: HanziRun[]): void {
+/**
+ * Rule (c): order-independent propagation, Japanese first (Safe Kanji Guard).
+ * In comments with kana, Chinese never spreads to shared-only runs.
+ */
+function propagateLinks(text: string, runs: HanziRun[], commentHasKana: boolean): void {
   spreadClass(text, runs, "ja");
-  spreadClass(text, runs, "zh");
+  if (!commentHasKana) spreadClass(text, runs, "zh");
 }
 
 /** Comment text without its ja / mixed runs. */
@@ -259,9 +263,9 @@ function classifyRuns(text: string): HanziRun[] {
   for (const run of runs) {
     if (run.cls === "undecided") run.cls = classifyByContext(text, run);
   }
-  settleGuardEdges(text, runs);
-  propagateLinks(text, runs);
+  propagateLinks(text, runs, commentHasKana);
   applyFallback(text, runs, commentHasKana);
+  if (!commentHasKana) settleGuardEdges(text, runs);
   return runs;
 }
 

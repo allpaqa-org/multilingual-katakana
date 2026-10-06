@@ -787,5 +787,53 @@
       "issue_36"
     ],
     "description": "Japanese part with full-width punctuation is preserved; only the Chinese run is converted"
+  },
+  {
+    "id": "kanji-guard-kana-guard-edge-kept",
+    "language": "mixed",
+    "input": "初見です 大家 初見谢谢",
+    "expected": {
+      "canonical": "初見です 大家 初見シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "kana",
+      "issue_36"
+    ],
+    "description": "Kana comment: the guard edge '初見' is kept and the shared run '大家' is not pulled to Chinese"
+  },
+  {
+    "id": "kanji-guard-kana-guard-edge-kamikai",
+    "language": "mixed",
+    "input": "初見です 今日 神回谢谢",
+    "expected": {
+      "canonical": "初見です 今日 神回シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "kana",
+      "issue_36"
+    ],
+    "description": "Kana comment: '今日' and the guard edge '神回' stay Japanese"
+  },
+  {
+    "id": "kanji-guard-kana-shared-not-propagated",
+    "language": "mixed",
+    "input": "今日も 大家 最高谢谢",
+    "expected": {
+      "canonical": "今日も 大家 最高シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "kana",
+      "issue_36"
+    ],
+    "description": "Kana comment: '大家' and the guard edge '最高' stay Japanese"
   }
 ]

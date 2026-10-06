@@ -242,14 +242,15 @@ fn edge_class(run: &HanziRun, cls: RunClass, right_side: bool) -> RunClass {
     }
 }
 
-/// A linked neighbour that is not Japanese can continue the Chinese sentence.
+/// A linked neighbour finally classified `Zh` continues the Chinese sentence.
 fn continues_sentence(text: &str, left: &HanziRun, right: &HanziRun, other: &HanziRun) -> bool {
-    is_linked(text, left, right) && !matches!(other.cls, RunClass::Ja | RunClass::Mixed)
+    is_linked(text, left, right) && other.cls == RunClass::Zh
 }
 
-/// A guard word at the edge of a Chinese-evidence run is kept Japanese only
-/// when nothing non-Japanese is linked on that side (`了解谢谢` keeps 了解,
-/// `我是台灣人，感謝你們` converts 感謝 as part of the Chinese sentence).
+/// Runs after classification. In kana-free comments, a guard word at the edge
+/// of a Chinese-evidence run is converted when the linked neighbour on that
+/// side is a final `Zh` run (`我是台灣人，感謝你們`); otherwise it is kept
+/// Japanese (`了解谢谢` -> `了解シエシエ`). Never applied to comments with kana.
 fn settle_guard_edges(text: &str, runs: &mut [HanziRun]) {
     for i in 0..runs.len() {
         if runs[i].cls != RunClass::Zh {
@@ -297,9 +298,12 @@ fn spread_class(text: &str, runs: &mut [HanziRun], target: RunClass) {
 }
 
 /// Rule (c): order-independent propagation, Japanese first (Safe Kanji Guard).
-fn propagate_links(text: &str, runs: &mut [HanziRun]) {
+/// In comments with kana, Chinese never spreads to shared-only runs.
+fn propagate_links(text: &str, runs: &mut [HanziRun], comment_has_kana: bool) {
     spread_class(text, runs, RunClass::Ja);
-    spread_class(text, runs, RunClass::Zh);
+    if !comment_has_kana {
+        spread_class(text, runs, RunClass::Zh);
+    }
 }
 
 /// Comment text without its ja / mixed runs.
@@ -348,9 +352,11 @@ fn classify_runs(text: &str) -> Vec<HanziRun> {
             run.cls = classify_by_context(text, run);
         }
     }
-    settle_guard_edges(text, &mut runs);
-    propagate_links(text, &mut runs);
+    propagate_links(text, &mut runs, comment_has_kana);
     apply_fallback(text, &mut runs, comment_has_kana);
+    if !comment_has_kana {
+        settle_guard_edges(text, &mut runs);
+    }
     runs
 }
 
@@ -637,6 +643,15 @@ mod tests {
         assert_eq!(
             convert_chinese("這個真的最高，大家好"),
             "ジャーガージェンドゥズイガオ、ダージアハオ"
+        );
+        // Kana comments: guard edges are kept, shared runs are not pulled to zh.
+        assert_eq!(
+            convert_chinese("初見です 大家 初見谢谢"),
+            "初見です 大家 初見シエシエ"
+        );
+        assert_eq!(
+            convert_chinese("今日も 大家 最高谢谢"),
+            "今日も 大家 最高シエシエ"
         );
         // Japanese spacing next to full-width punctuation is kept.
         assert_eq!(
