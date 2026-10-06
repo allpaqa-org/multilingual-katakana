@@ -19,6 +19,15 @@ __pycache__/
 .pytest_cache/
 *.egg-info/
 
+# .NET binding build outputs (native/{rid}/ is staged by scripts/stage_dotnet_native.ts)
+bindings/dotnet/native/
+bindings/dotnet/**/bin/
+bindings/dotnet/**/obj/
+bindings/dotnet/**/*.nupkg
+bindings/dotnet/**/*.snupkg
+bindings/dotnet/artifacts/
+bindings/dotnet/TestResults/
+
 # Logs
 *.log
 npm-debug.log*

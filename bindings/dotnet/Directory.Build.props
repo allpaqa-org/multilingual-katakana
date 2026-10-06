@@ -1,0 +1,14 @@
+<Project>
+  <PropertyGroup>
+    <!-- Lockstep with Cargo.toml / package.json / pyproject.toml. -->
+    <Version>0.4.1</Version>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <Deterministic>true</Deterministic>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <EnforceCodeStyleInBuild>true</EnforceCodeStyleInBuild>
+    <!-- Staging dir for native libs: native/{rid}/<lib> (see scripts/stage_dotnet_native.ts). -->
+    <MkNativeStagingDir>$(MSBuildThisFileDirectory)native\</MkNativeStagingDir>
+  </PropertyGroup>
+</Project>

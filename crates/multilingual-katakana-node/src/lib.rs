@@ -1,4 +1,4 @@
-use multilingual_katakana_core::{to_katakana, KatakanaOptions};
+use multilingual_katakana_core::{to_katakana, KatakanaOptions, KatakanaOptionsOverrides};
 use napi_derive::napi;
 
 /// JS-facing options mirroring `KatakanaOptions`, minus `exclude`.
@@ -25,20 +25,19 @@ pub struct JsKatakanaOptions {
 
 impl From<JsKatakanaOptions> for KatakanaOptions {
     fn from(opts: JsKatakanaOptions) -> Self {
-        let defaults = KatakanaOptions::default();
-        KatakanaOptions {
-            enable_cyrillic: opts.enable_cyrillic.unwrap_or(defaults.enable_cyrillic),
-            enable_korean: opts.enable_korean.unwrap_or(defaults.enable_korean),
-            enable_chinese: opts.enable_chinese.unwrap_or(defaults.enable_chinese),
-            enable_spanish: opts.enable_spanish.unwrap_or(defaults.enable_spanish),
-            enable_french: opts.enable_french.unwrap_or(defaults.enable_french),
-            enable_vietnamese: opts.enable_vietnamese.unwrap_or(defaults.enable_vietnamese),
-            enable_thai: opts.enable_thai.unwrap_or(defaults.enable_thai),
-            enable_slang: opts.enable_slang.unwrap_or(defaults.enable_slang),
-            enable_english: opts.enable_english.unwrap_or(defaults.enable_english),
-            normalize_prosody: opts.normalize_prosody.unwrap_or(defaults.normalize_prosody),
-            exclude: Vec::new(),
+        KatakanaOptionsOverrides {
+            enable_cyrillic: opts.enable_cyrillic,
+            enable_korean: opts.enable_korean,
+            enable_chinese: opts.enable_chinese,
+            enable_spanish: opts.enable_spanish,
+            enable_french: opts.enable_french,
+            enable_vietnamese: opts.enable_vietnamese,
+            enable_thai: opts.enable_thai,
+            enable_slang: opts.enable_slang,
+            enable_english: opts.enable_english,
+            normalize_prosody: opts.normalize_prosody,
         }
+        .resolve()
     }
 }
 
@@ -57,5 +56,5 @@ pub fn to_katakana_native(text: String, options: Option<JsKatakanaOptions>) -> S
 /// trusting it for real conversions. Returns `true` on success.
 #[napi]
 pub fn native_self_check() -> bool {
-    to_katakana_native("hello".to_string(), None) == "ハロー"
+    multilingual_katakana_core::native_self_check()
 }

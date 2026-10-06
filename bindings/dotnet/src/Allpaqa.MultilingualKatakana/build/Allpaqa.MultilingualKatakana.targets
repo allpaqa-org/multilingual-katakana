@@ -1,0 +1,25 @@
+<Project>
+  <!--
+    .NET Framework only: NuGet does not copy runtimes/{rid}/native/ assets into
+    the output of non-SDK/.NET Framework apps. Copy the Windows native libraries
+    into x86\, x64\ and arm64\ subfolders next to the app; the managed loader
+    preloads the one matching the process architecture.
+  -->
+  <ItemGroup Condition="'$(TargetFrameworkIdentifier)' == '.NETFramework'">
+    <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x86\native\*.dll">
+      <Link>x86\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-x64\native\*.dll">
+      <Link>x64\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </None>
+    <None Include="$(MSBuildThisFileDirectory)..\..\runtimes\win-arm64\native\*.dll">
+      <Link>arm64\%(Filename)%(Extension)</Link>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Visible>false</Visible>
+    </None>
+  </ItemGroup>
+</Project>

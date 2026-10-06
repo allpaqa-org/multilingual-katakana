@@ -1,0 +1,21 @@
+[package]
+name = "multilingual-katakana-ffi"
+version = "0.4.1"
+edition = "2021"
+license = "MIT"
+description = "Stable C ABI over multilingual-katakana-core for .NET (P/Invoke) and other FFI consumers (internal, not published to crates.io)"
+publish = false
+
+[lib]
+# `cdylib` produces allpaqa_multilingual_katakana.dll / liballpaqa_multilingual_katakana.so
+# / .dylib for FFI consumers; `rlib` lets `cargo test` call the extern fns directly.
+# NOTE: do not set `panic = "abort"` — the entry points rely on `catch_unwind`.
+name = "allpaqa_multilingual_katakana"
+crate-type = ["cdylib", "rlib"]
+
+[dependencies]
+multilingual-katakana-core = { path = "../multilingual-katakana-core" }
+
+[dev-dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"

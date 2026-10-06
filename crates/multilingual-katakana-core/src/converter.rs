@@ -313,3 +313,10 @@ pub fn to_katakana(text: &str, options: Option<&KatakanaOptions>) -> String {
         }
     }
 }
+
+/// Load-time sanity check used by the language glue crates (node / python /
+/// ffi) to confirm the native library is wired up and produces expected
+/// output before it is trusted for real conversions.
+pub fn native_self_check() -> bool {
+    to_katakana("hello", None) == "ハロー"
+}

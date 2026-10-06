@@ -1,0 +1,32 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net8.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <IsTestProject>true</IsTestProject>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+  </PropertyGroup>
+
+  <!-- Dev-only test dependencies (never shipped in the library nupkg). -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageReference Include="xunit" Version="2.9.3" />
+    <PackageReference Include="xunit.runner.visualstudio" Version="3.1.4" PrivateAssets="all" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\Allpaqa.MultilingualKatakana\Allpaqa.MultilingualKatakana.csproj" />
+  </ItemGroup>
+
+  <!-- Copy the host's staged native library (native/<host rid>/*) next to the test assembly.
+       Use the portable RID: distro-built SDKs report e.g. ubuntu.24.04-x64 as NETCoreSdkRuntimeIdentifier. -->
+  <PropertyGroup>
+    <MkHostRid>$(NETCoreSdkPortableRuntimeIdentifier)</MkHostRid>
+    <MkHostRid Condition="'$(MkHostRid)' == ''">$(NETCoreSdkRuntimeIdentifier)</MkHostRid>
+  </PropertyGroup>
+  <ItemGroup>
+    <None Include="$(MkNativeStagingDir)$(MkHostRid)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+  </ItemGroup>
+
+</Project>
