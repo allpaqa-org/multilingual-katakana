@@ -36,11 +36,18 @@ if (!os || !arch) {
   console.error(`Unsupported host: ${process.platform}/${process.arch}`);
   process.exit(1);
 }
-const rid = `${os.rid}${isMusl() ? "-musl" : ""}-${arch}`;
+const musl = isMusl();
+const rid = `${os.rid}${musl ? "-musl" : ""}-${arch}`;
+
+// rustup's musl toolchains default to crt-static, which silently drops the
+// cdylib output (same workaround as build-native-matrix.yml).
+const env = { ...process.env };
+if (musl) env.RUSTFLAGS = `${env.RUSTFLAGS ?? ""} -C target-feature=-crt-static`.trim();
 
 const build = spawnSync("cargo", ["build", "--release", "-p", "multilingual-katakana-ffi"], {
   cwd: rootDir,
   stdio: "inherit",
+  env,
 });
 if (build.status !== 0) process.exit(build.status ?? 1);
 

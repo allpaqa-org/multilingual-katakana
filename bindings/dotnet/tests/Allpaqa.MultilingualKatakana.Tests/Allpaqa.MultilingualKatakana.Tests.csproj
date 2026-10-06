@@ -19,9 +19,14 @@
     <ProjectReference Include="..\..\src\Allpaqa.MultilingualKatakana\Allpaqa.MultilingualKatakana.csproj" />
   </ItemGroup>
 
-  <!-- Copy the host's staged native library (native/<host rid>/*) next to the test assembly. -->
+  <!-- Copy the host's staged native library (native/<host rid>/*) next to the test assembly.
+       Use the portable RID: distro-built SDKs report e.g. ubuntu.24.04-x64 as NETCoreSdkRuntimeIdentifier. -->
+  <PropertyGroup>
+    <MkHostRid>$(NETCoreSdkPortableRuntimeIdentifier)</MkHostRid>
+    <MkHostRid Condition="'$(MkHostRid)' == ''">$(NETCoreSdkRuntimeIdentifier)</MkHostRid>
+  </PropertyGroup>
   <ItemGroup>
-    <None Include="$(MkNativeStagingDir)$(NETCoreSdkRuntimeIdentifier)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
+    <None Include="$(MkNativeStagingDir)$(MkHostRid)\*" Link="%(Filename)%(Extension)" CopyToOutputDirectory="PreserveNewest" Visible="false" />
   </ItemGroup>
 
 </Project>

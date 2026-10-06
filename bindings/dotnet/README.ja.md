@@ -26,9 +26,11 @@
 [言語中立の仕様契約](https://github.com/allpaqa-org/multilingual-katakana/tree/main/spec/cases)
 （`spec/cases/*.json` の100%）をパスします。
 
-- `netstandard2.0`（.NET Framework 4.6.2+ / Unity・Mono / .NET Core）と
+- `netstandard2.0`（.NET Framework 4.6.2+ / .NET Core）と
   `net8.0`（`LibraryImport`、トリミング / Native AOT 対応）をターゲット。
 - どちらのターゲットでも **NuGet 依存ゼロ**。
+- Unity / Mono は `runtimes/{rid}/native` を自動解決しないため、対象プラットフォームの
+  ネイティブライブラリをアセンブリと同じ場所（Unity の `Plugins` フォルダ等）へ手動で配置してください。
 
 ## インストール
 

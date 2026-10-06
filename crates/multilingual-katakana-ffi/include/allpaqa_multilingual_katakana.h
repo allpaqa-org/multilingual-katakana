@@ -38,7 +38,7 @@ typedef struct MkOptions {
 uint32_t mk_abi_version(void);
 
 /* text: UTF-8, not NUL-terminated; text_ptr may be NULL only if text_len == 0.
- * options may be NULL (all defaults). On success *out_ptr/*out_len hold a
+ * options may be NULL (all defaults). On success *out_ptr and *out_len hold a
  * Rust-allocated buffer (empty output = non-NULL pointer, length 0); release
  * with mk_free_string. On error *out_ptr = NULL and *out_len = 0. */
 int32_t mk_to_katakana(const uint8_t *text_ptr, size_t text_len,

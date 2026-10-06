@@ -26,9 +26,11 @@ This is the **.NET binding**: a thin P/Invoke wrapper over the C ABI of the
 [language-neutral spec contract](https://github.com/allpaqa-org/multilingual-katakana/tree/main/spec/cases)
 (100% of `spec/cases/*.json`) as every other binding.
 
-- Targets `netstandard2.0` (.NET Framework 4.6.2+, Unity/Mono, .NET Core) and
+- Targets `netstandard2.0` (.NET Framework 4.6.2+, .NET Core) and
   `net8.0` (`LibraryImport`, trimming/Native AOT compatible).
 - **Zero NuGet dependencies** for both target frameworks.
+- Unity/Mono do not resolve `runtimes/{rid}/native`; place the native library
+  for your platform next to your assemblies (e.g. a Unity `Plugins` folder) yourself.
 
 ## Installation
 
