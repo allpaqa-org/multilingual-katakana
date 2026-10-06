@@ -104,6 +104,6 @@ fn test_all_spec_cases_100_percent() {
         );
     }
 
-    assert_eq!(total_cases, 177, "Expected exactly 177 spec test cases");
-    assert_eq!(passed_cases, 177, "All 177 spec test cases must pass 100%");
+    assert_eq!(total_cases, 199, "Expected exactly 199 spec test cases");
+    assert_eq!(passed_cases, 199, "All 199 spec test cases must pass 100%");
 }

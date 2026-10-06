@@ -6,7 +6,7 @@
  *   bun run scripts/generate_hanzi_class.ts [--unihan <dir containing Unihan_*.txt>]
  *
  * Without `--unihan`, Unihan.zip is downloaded from
- * https://www.unicode.org/Public/UCD/latest/ucd/Unihan.zip into the OS temp
+ * https://www.unicode.org/Public/<UCD_VERSION>/ucd/Unihan.zip into the OS temp
  * directory and extracted with the system `unzip` command. This happens at
  * generation time only: the generated JSON is committed and bundled, so
  * nothing is downloaded at build time or runtime (zero runtime dependencies).
@@ -17,6 +17,9 @@
  *
  * What is generated vs. curated:
  * - `simplified_only` is fully generated (rule below + a reviewed allow list).
+ * - `zh_marker_evidence` is generated: the Chinese marker characters of
+ *   `dicts/chinese.json` (`marker_characters`) minus Joyo/Jinmeiyo kanji
+ *   (e.g. 会, 得 and 誰 are excluded because they are everyday Japanese).
  * - `japanese_only`, `japanese_guard_words` and `zh_context_slang` are
  *   hand-curated and are read back from the existing JSON unchanged. The
  *   script only prints the automatically seeded `japanese_only` candidates
@@ -30,7 +33,9 @@ import * as fs from "node:fs";
 import * as os from "node:os";
 import * as path from "node:path";
 
-const UNIHAN_URL = "https://www.unicode.org/Public/UCD/latest/ucd/Unihan.zip";
+// Pinned UCD version: bump deliberately and review the diff of the generated data.
+const UCD_VERSION = "18.0.0";
+const UNIHAN_URL = `https://www.unicode.org/Public/${UCD_VERSION}/ucd/Unihan.zip`;
 const rootDir = path.resolve(__dirname, "..");
 const outFile = path.join(rootDir, "dicts/hanzi_class.json");
 const copyTargets = [
@@ -61,7 +66,7 @@ type Fields = Map<number, Map<string, string>>;
 function resolveUnihanDir(): string {
   const idx = process.argv.indexOf("--unihan");
   if (idx !== -1 && process.argv[idx + 1]) return path.resolve(process.argv[idx + 1]);
-  const dir = path.join(os.tmpdir(), "multilingual-katakana-unihan");
+  const dir = path.join(os.tmpdir(), `multilingual-katakana-unihan-${UCD_VERSION}`);
   if (!fs.existsSync(path.join(dir, "Unihan_Variants.txt"))) {
     fs.mkdirSync(dir, { recursive: true });
     const zip = path.join(dir, "Unihan.zip");
@@ -70,6 +75,13 @@ function resolveUnihanDir(): string {
     execFileSync("unzip", ["-o", "-q", zip, "-d", dir], { stdio: "inherit" });
   }
   return dir;
+}
+
+function assertUcdVersion(dir: string): void {
+  const header = fs.readFileSync(path.join(dir, "Unihan_Variants.txt"), "utf8").slice(0, 300);
+  if (!header.includes(`Unicode Version ${UCD_VERSION}`)) {
+    throw new Error(`Unihan data in ${dir} is not UCD ${UCD_VERSION}`);
+  }
 }
 
 function loadFields(dir: string): Fields {
@@ -142,7 +154,9 @@ function assertClass(label: string, chars: string, set: Set<string>, expected: b
   if (bad.length > 0) throw new Error(`${label}: unexpected classification for ${bad.join("")}`);
 }
 
-const fields = loadFields(resolveUnihanDir());
+const unihanDir = resolveUnihanDir();
+assertUcdVersion(unihanDir);
+const fields = loadFields(unihanDir);
 const simplified: string[] = [];
 const japaneseCandidates: string[] = [];
 for (const [cp, f] of [...fields.entries()].sort((a, b) => a[0] - b[0])) {
@@ -150,17 +164,40 @@ for (const [cp, f] of [...fields.entries()].sort((a, b) => a[0] - b[0])) {
   if (isJapaneseOnlyCandidate(f)) japaneseCandidates.push(String.fromCodePoint(cp));
 }
 
-const existing = fs.existsSync(outFile) ? JSON.parse(fs.readFileSync(outFile, "utf8")) : {};
-const curatedJapanese = sortedChars((existing.japanese_only ?? []).join(""));
+// Curated data is the source of truth: refuse to run (instead of writing
+// empty lists) when it is missing.
+if (!fs.existsSync(outFile)) throw new Error(`${outFile} (curated data) is missing`);
+const existing = JSON.parse(fs.readFileSync(outFile, "utf8"));
+for (const key of ["japanese_only", "japanese_guard_words"]) {
+  if (!Array.isArray(existing[key]) || existing[key].length === 0) {
+    throw new Error(`Curated '${key}' is missing or empty in ${outFile}`);
+  }
+}
+if (!existing.zh_context_slang || Object.keys(existing.zh_context_slang).length === 0) {
+  throw new Error(`Curated 'zh_context_slang' is missing or empty in ${outFile}`);
+}
+const curatedJapanese = sortedChars(existing.japanese_only.join(""));
+
+const markerChars: string[] = JSON.parse(
+  fs.readFileSync(path.join(rootDir, "dicts/chinese.json"), "utf8"),
+).marker_characters;
+const markerEvidence = sortedChars(
+  markerChars
+    .filter((c) => {
+      const f = fields.get(c.codePointAt(0) ?? 0);
+      return f !== undefined && !isJoyoOrJinmeiyo(f);
+    })
+    .join(""),
+);
 
 const simplifiedSet = new Set(simplified);
 const japaneseSet = new Set(curatedJapanese);
 assertClass("SIMPLIFIED_ONLY", MUST_BE_SIMPLIFIED_ONLY, simplifiedSet, true);
 assertClass("SIMPLIFIED_ONLY", MUST_BE_SHARED, simplifiedSet, false);
 assertClass("JAPANESE_ONLY", MUST_BE_SHARED, japaneseSet, false);
-if (curatedJapanese.length > 0) {
-  assertClass("JAPANESE_ONLY", MUST_BE_JAPANESE_ONLY, japaneseSet, true);
-}
+assertClass("JAPANESE_ONLY", MUST_BE_JAPANESE_ONLY, japaneseSet, true);
+const markerOverlap = curatedJapanese.filter((c) => markerEvidence.includes(c));
+if (markerOverlap.length > 0) throw new Error(`Marker evidence overlaps: ${markerOverlap}`);
 const overlap = curatedJapanese.filter((c) => simplifiedSet.has(c));
 if (overlap.length > 0) throw new Error(`Classes overlap: ${overlap.join("")}`);
 
@@ -177,19 +214,20 @@ console.log(
 const output = {
   _comment: [
     "Character class data for the Safe Kanji Guard (issue #36).",
-    "simplified_only: GENERATED by scripts/generate_hanzi_class.ts from Unihan",
+    `simplified_only / zh_marker_evidence: GENERATED by scripts/generate_hanzi_class.ts from Unihan ${UCD_VERSION}`,
     "(Copyright Unicode, Inc., Unicode License v3, https://www.unicode.org/license.txt).",
     "japanese_only / japanese_guard_words / zh_context_slang: hand-curated, preserved by the script.",
-    "Do not edit simplified_only by hand; re-run the script instead.",
+    "Do not edit the generated keys by hand; re-run the script instead.",
   ],
   simplified_only: chunk(simplified),
+  zh_marker_evidence: markerEvidence.join(""),
   japanese_only: chunk(curatedJapanese),
-  japanese_guard_words: existing.japanese_guard_words ?? [],
-  zh_context_slang: existing.zh_context_slang ?? {},
+  japanese_guard_words: existing.japanese_guard_words,
+  zh_context_slang: existing.zh_context_slang,
 };
 
 const json = `${JSON.stringify(output, null, 2)}\n`;
 for (const target of [outFile, ...copyTargets]) fs.writeFileSync(target, json, "utf8");
 console.log(
-  `✓ Wrote dicts/hanzi_class.json (simplified_only=${simplified.length}, japanese_only=${curatedJapanese.length}, guard_words=${output.japanese_guard_words.length}) and copies`,
+  `✓ Wrote dicts/hanzi_class.json (simplified_only=${simplified.length}, zh_marker_evidence=${markerEvidence.length}, japanese_only=${curatedJapanese.length}, guard_words=${output.japanese_guard_words.length}) and copies`,
 );

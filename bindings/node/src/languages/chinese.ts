@@ -7,7 +7,8 @@ const TAIWAN_PHRASES = Object.entries(chineseData.taiwan_phrases);
 
 // Character classes (generated from Unihan + hand-curated; see
 // scripts/generate_hanzi_class.ts and dicts/hanzi_class.json).
-const SIMPLIFIED_ONLY = new Set(hanziClass.simplified_only.join(""));
+// Strong Chinese evidence: Simplified-only characters + non-Joyo/Jinmeiyo markers.
+const ZH_EVIDENCE = new Set(hanziClass.simplified_only.join("") + hanziClass.zh_marker_evidence);
 const JAPANESE_ONLY = new Set(hanziClass.japanese_only.join(""));
 const JAPANESE_GUARD_WORDS: string[] = hanziClass.japanese_guard_words;
 const ZH_CONTEXT_SLANG = Object.entries(hanziClass.zh_context_slang as Record<string, string>);
@@ -16,7 +17,14 @@ const HANZI_RUN_REGEX = /[一-鿿]+/g;
 // Kana plus the Japanese-only iteration/closing marks 々 and 〆.
 const JAPANESE_SCRIPT_REGEX = /[぀-ゟ゠-ヿ々〆]/;
 // Gap characters that end a sentence/clause: runs separated by these are not linked.
-const SENTENCE_BREAK_REGEX = /[、。！？!?.\n]/;
+const SENTENCE_BREAK_REGEX = /[、。！？!?.\n\r]/;
+// Explicit horizontal whitespace class shared with the Rust core (no line breaks,
+// no reliance on `\s` / `trim()` semantics, which differ between JS and Rust).
+const HWS = "\\t\\u000B\\u000C \\u00A0\\u1680\\u2000-\\u200A\\u202F\\u205F\\u3000";
+const HWS_REGEX = new RegExp(`[${HWS}]`);
+const HWS_SPLIT_REGEX = new RegExp(`([${HWS}]+)`);
+const FULLWIDTH_PUNCT = "、。！？";
+const ASCII_PUNCT = "!?,.";
 
 /** Classification of one maximal CJK ideograph run. */
 type RunClass = "zh" | "ja" | "mixed" | "undecided";
@@ -26,6 +34,11 @@ interface HanziRun {
   end: number;
   text: string;
   cls: RunClass;
+  /** True when the run itself carries Simplified-only / marker / phrase evidence. */
+  evidence: boolean;
+  /** Length of a Japanese guard word kept at the start / end of a `zh` run. */
+  keepHead: number;
+  keepTail: number;
 }
 
 export function isChinese(text: string): boolean {
@@ -71,43 +84,70 @@ function hasChar(text: string, set: Set<string>): boolean {
   return false;
 }
 
-function hasAnyWord(text: string, words: readonly string[]): boolean {
-  return words.some((word) => text.includes(word));
+/** Longest guard word at the start (or end) of `run`, 0 when none. */
+function guardEdge(run: string, atEnd: boolean): number {
+  let best = 0;
+  for (const word of JAPANESE_GUARD_WORDS) {
+    const hit = atEnd ? run.endsWith(word) : run.startsWith(word);
+    if (hit && word.length > best) best = word.length;
+  }
+  return best;
 }
 
-/** Evidence-based class of a run, from its own characters only. */
-function classifyByEvidence(run: string): RunClass {
-  const zh = hasChar(run, SIMPLIFIED_ONLY) || TAIWAN_PHRASES.some(([p]) => run.includes(p));
-  const ja = hasChar(run, JAPANESE_ONLY) || hasAnyWord(run, JAPANESE_GUARD_WORDS);
-  if (zh && ja) return "mixed";
-  if (zh) return "zh";
-  return ja ? "ja" : "undecided";
+/**
+ * Evidence-based class of a run, from its own characters only.
+ * Japanese-only characters always win (with Chinese evidence too -> mixed).
+ * Strong Chinese evidence beats guard words; a guard word at the very start
+ * or end of such a run is split off and kept as Japanese.
+ */
+function newRun(start: number, text: string): HanziRun {
+  const run: HanziRun = {
+    start,
+    end: start + text.length,
+    text,
+    cls: "undecided",
+    evidence: false,
+    keepHead: 0,
+    keepTail: 0,
+  };
+  const zh = hasChar(text, ZH_EVIDENCE) || TAIWAN_PHRASES.some(([p]) => text.includes(p));
+  const japaneseOnly = hasChar(text, JAPANESE_ONLY);
+  run.evidence = zh;
+  if (japaneseOnly) {
+    run.cls = zh ? "mixed" : "ja";
+  } else if (zh) {
+    run.cls = "zh";
+    run.keepHead = guardEdge(text, false);
+    run.keepTail = run.keepHead < text.length ? guardEdge(text.slice(run.keepHead), true) : 0;
+  } else if (JAPANESE_GUARD_WORDS.some((w) => text.includes(w))) {
+    run.cls = "ja";
+  }
+  return run;
 }
 
 function findRuns(text: string): HanziRun[] {
   const runs: HanziRun[] = [];
   for (const m of text.matchAll(HANZI_RUN_REGEX)) {
-    const start = m.index ?? 0;
-    runs.push({ start, end: start + m[0].length, text: m[0], cls: classifyByEvidence(m[0]) });
+    runs.push(newRun(m.index ?? 0, m[0]));
   }
   return runs;
 }
 
-/** Nearest non-whitespace characters before and after a run. */
-function neighbours(text: string, run: HanziRun): [string, string] {
-  const before = text.slice(0, run.start).trimEnd();
-  const after = text.slice(run.end).trimStart();
-  return [before.slice(-1), after.slice(0, 1)];
+/** Nearest non-horizontal-whitespace character before (or after) `index`. */
+function nearestChar(text: string, index: number, step: -1 | 1): string {
+  let i = index;
+  while (i >= 0 && i < text.length && HWS_REGEX.test(text[i])) i += step;
+  return text[i] ?? "";
 }
 
-/** Rules (a) kana adjacency and (b) delimiter hints for a SHARED-only run. */
-function classifyByContext(text: string, run: HanziRun, commentHasKana: boolean): RunClass {
+/** Rules (a) kana adjacency and (b) `、` hint for a SHARED-only run. */
+function classifyByContext(text: string, run: HanziRun): RunClass {
   const prev = text[run.start - 1] ?? "";
   const next = text[run.end] ?? "";
   if (JAPANESE_SCRIPT_REGEX.test(prev) || JAPANESE_SCRIPT_REGEX.test(next)) return "ja";
-  const [before, after] = neighbours(text, run);
-  if (before === "、" || after === "、") return "ja";
-  if (!commentHasKana && (before === "，" || after === "，")) return "zh";
+  if (nearestChar(text, run.start - 1, -1) === "、" || nearestChar(text, run.end, 1) === "、") {
+    return "ja";
+  }
   return "undecided";
 }
 
@@ -117,34 +157,50 @@ function isLinked(text: string, left: HanziRun, right: HanziRun): boolean {
   return !JAPANESE_SCRIPT_REGEX.test(gap) && !SENTENCE_BREAK_REGEX.test(gap);
 }
 
-function linkedClass(text: string, runs: HanziRun[], i: number): RunClass {
-  const prev = i > 0 && isLinked(text, runs[i - 1], runs[i]) ? runs[i - 1].cls : "undecided";
-  const next =
-    i + 1 < runs.length && isLinked(text, runs[i], runs[i + 1]) ? runs[i + 1].cls : "undecided";
-  // Japanese wins over Chinese (Safe Kanji Guard); mixed runs never propagate.
-  if (prev === "ja" || next === "ja") return "ja";
-  return prev === "zh" || next === "zh" ? "zh" : "undecided";
+/** Class a run shows to its neighbour on one side (a kept guard edge shows `ja`). */
+function edgeClass(run: HanziRun, cls: RunClass, rightSide: boolean): RunClass {
+  if (cls === "zh" && (rightSide ? run.keepTail : run.keepHead) > 0) return "ja";
+  return cls;
 }
 
-/** Rule (c): propagate decided classes through linked neighbours until stable. */
-function propagateLinks(text: string, runs: HanziRun[]): void {
+function touchesClass(
+  text: string,
+  runs: HanziRun[],
+  snapshot: RunClass[],
+  i: number,
+  target: RunClass,
+): boolean {
+  const left = i > 0 && isLinked(text, runs[i - 1], runs[i]);
+  const right = i + 1 < runs.length && isLinked(text, runs[i], runs[i + 1]);
+  return (
+    (left && edgeClass(runs[i - 1], snapshot[i - 1], true) === target) ||
+    (right && edgeClass(runs[i + 1], snapshot[i + 1], false) === target)
+  );
+}
+
+/** Spread `target` through linked undecided runs until a fixpoint (snapshot-based). */
+function spreadClass(text: string, runs: HanziRun[], target: RunClass): void {
   let changed = true;
   while (changed) {
+    const snapshot = runs.map((run) => run.cls);
     changed = false;
     for (let i = 0; i < runs.length; i++) {
-      if (runs[i].cls !== "undecided") continue;
-      const cls = linkedClass(text, runs, i);
-      if (cls !== "undecided") {
-        runs[i].cls = cls;
+      if (snapshot[i] === "undecided" && touchesClass(text, runs, snapshot, i, target)) {
+        runs[i].cls = target;
         changed = true;
       }
     }
   }
 }
 
-/** Rule (d): whole-comment prior, never applied to comments containing kana. */
-function priorClass(text: string, runs: HanziRun[], commentHasKana: boolean): RunClass {
-  if (commentHasKana) return "ja";
+/** Rule (c): order-independent propagation, Japanese first (Safe Kanji Guard). */
+function propagateLinks(text: string, runs: HanziRun[]): void {
+  spreadClass(text, runs, "ja");
+  spreadClass(text, runs, "zh");
+}
+
+/** Comment text without its ja / mixed runs. */
+function textWithoutJapaneseRuns(text: string, runs: HanziRun[]): string {
   let rest = "";
   let last = 0;
   for (const run of runs) {
@@ -153,40 +209,66 @@ function priorClass(text: string, runs: HanziRun[], commentHasKana: boolean): Ru
       last = run.end;
     }
   }
-  rest += text.slice(last);
-  return isChinese(rest) ? "zh" : "ja";
+  return rest + text.slice(last);
+}
+
+function besideFullwidthComma(text: string, run: HanziRun): boolean {
+  return nearestChar(text, run.start - 1, -1) === "，" || nearestChar(text, run.end, 1) === "，";
+}
+
+/**
+ * Rule (d): whole-comment fallback, never applied to comments containing kana.
+ * `，` only breaks the tie when the comment has real Chinese evidence.
+ */
+function applyFallback(text: string, runs: HanziRun[], commentHasKana: boolean): void {
+  const undecided = runs.filter((run) => run.cls === "undecided");
+  if (undecided.length === 0) return;
+  const prior = !commentHasKana && isChinese(textWithoutJapaneseRuns(text, runs));
+  const hasEvidence = !commentHasKana && runs.some((run) => run.cls === "zh" && run.evidence);
+  for (const run of undecided) {
+    run.cls = prior || (hasEvidence && besideFullwidthComma(text, run)) ? "zh" : "ja";
+  }
 }
 
 /** Classify every maximal CJK run of `text` as zh / ja / mixed. */
 function classifyRuns(text: string): HanziRun[] {
   const runs = findRuns(text);
-  const commentHasKana = JAPANESE_SCRIPT_REGEX.test(text);
   for (const run of runs) {
-    if (run.cls === "undecided") run.cls = classifyByContext(text, run, commentHasKana);
+    if (run.cls === "undecided") run.cls = classifyByContext(text, run);
   }
   propagateLinks(text, runs);
-  if (runs.some((run) => run.cls === "undecided")) {
-    const prior = priorClass(text, runs, commentHasKana);
-    for (const run of runs) {
-      if (run.cls === "undecided") run.cls = prior;
-    }
-  }
+  applyFallback(text, runs, JAPANESE_SCRIPT_REGEX.test(text));
   return runs;
 }
 
-function convertHanziRun(run: string): string {
+function convertHanzi(text: string): string {
   let out = "";
-  for (const char of replaceTaiwanPhrases(run)) {
+  for (const char of replaceTaiwanPhrases(text)) {
     out += HANZI_TO_KATAKANA[char] || char;
   }
   return out;
 }
 
-function isAsciiAlnum(char: string | undefined): boolean {
-  return char !== undefined && /[0-9A-Za-z]/.test(char);
+function renderRun(run: HanziRun): string {
+  if (run.cls !== "zh") return replaceTaiwanPhrases(run.text);
+  const head = run.text.slice(0, run.keepHead);
+  const tail = run.text.slice(run.text.length - run.keepTail);
+  const body = run.text.slice(run.keepHead, run.text.length - run.keepTail);
+  return head + convertHanzi(body) + tail;
 }
 
-/** Replace Chinese-context slang tokens such as `886` (bounded by non-alphanumerics). */
+function isDigit(char: string | undefined): boolean {
+  return char !== undefined && /[0-9０-９]/.test(char);
+}
+
+/** A slang token is standalone unless glued to letters/digits, `+`, or `[.,:-]digit`. */
+function blocksSlang(near: string | undefined, far: string | undefined): boolean {
+  if (near === undefined) return false;
+  if (/[0-9A-Za-z０-９+]/.test(near)) return true;
+  return /[.,:-]/.test(near) && isDigit(far);
+}
+
+/** Replace Chinese-context slang tokens such as `886`. */
 function replaceContextSlang(text: string): string {
   let result = text;
   for (const [token, katakana] of ZH_CONTEXT_SLANG) {
@@ -195,7 +277,9 @@ function replaceContextSlang(text: string): string {
     let pos = result.indexOf(token);
     while (pos !== -1) {
       const end = pos + token.length;
-      if (!isAsciiAlnum(result[pos - 1]) && !isAsciiAlnum(result[end])) {
+      const blocked =
+        blocksSlang(result[pos - 1], result[pos - 2]) || blocksSlang(result[end], result[end + 1]);
+      if (!blocked) {
         out += result.slice(last, pos) + katakana;
         last = end;
       }
@@ -206,13 +290,45 @@ function replaceContextSlang(text: string): string {
   return result;
 }
 
-function normalizeChinesePunctuation(text: string): string {
-  return text
-    .replace(/，/g, "、")
-    .replace(/\s+([、。！？!?,.])/g, "$1")
-    .replace(/([、。！？!?,.])\s+/g, "$1")
-    .replace(/[\s　]+/g, " ")
-    .trim();
+/** Marker for a gap edge: a converted Chinese run, another run, or the text boundary. */
+type Edge = "zh" | "run" | "boundary";
+
+function cleanWhitespace(prev: string | Edge, next: string | Edge): string | null {
+  if (FULLWIDTH_PUNCT.includes(prev) || FULLWIDTH_PUNCT.includes(next)) return "";
+  const asciiPunct = (c: string) => c.length === 1 && ASCII_PUNCT.includes(c);
+  if (prev === "zh" && (asciiPunct(next) || next === "boundary")) return "";
+  if (next === "zh" && (asciiPunct(prev) || prev === "boundary")) return "";
+  return prev === "zh" || next === "zh" ? " " : null;
+}
+
+/**
+ * Normalize one gap between runs: `，` -> `、`, `886` slang, and horizontal
+ * whitespace cleanup only next to full-width punctuation or a converted run.
+ * Line breaks and spacing between non-CJK text are never touched.
+ */
+function normalizeGap(gap: string, left: Edge, right: Edge): string {
+  const parts = replaceContextSlang(gap.replace(/，/g, "、")).split(HWS_SPLIT_REGEX);
+  let out = "";
+  for (let i = 0; i < parts.length; i++) {
+    if (i % 2 === 0) {
+      out += parts[i];
+      continue;
+    }
+    const prev = i === 1 && parts[0] === "" ? left : parts[i - 1].slice(-1);
+    const next = i === parts.length - 2 && parts[i + 1] === "" ? right : parts[i + 1].slice(0, 1);
+    out += cleanWhitespace(prev, next) ?? parts[i];
+  }
+  return out;
+}
+
+function leftEdge(run: HanziRun | undefined): Edge {
+  if (!run) return "boundary";
+  return run.cls === "zh" && run.keepTail === 0 ? "zh" : "run";
+}
+
+function rightEdge(run: HanziRun | undefined): Edge {
+  if (!run) return "boundary";
+  return run.cls === "zh" && run.keepHead === 0 ? "zh" : "run";
 }
 
 export function convertChinese(text: string): string {
@@ -227,12 +343,13 @@ export function convertChinese(text: string): string {
   // Kanji untouched (Safe Kanji Guard / safe failure).
   let result = "";
   let last = 0;
-  for (const run of runs) {
-    result += text.slice(last, run.start);
-    result += run.cls === "zh" ? convertHanziRun(run.text) : replaceTaiwanPhrases(run.text);
+  for (let i = 0; i <= runs.length; i++) {
+    const run = runs[i];
+    const gap = text.slice(last, run ? run.start : text.length);
+    result += normalizeGap(gap, leftEdge(runs[i - 1]), rightEdge(run));
+    if (!run) break;
+    result += renderRun(run);
     last = run.end;
   }
-  result += text.slice(last);
-
-  return normalizeChinesePunctuation(replaceContextSlang(result));
+  return result;
 }

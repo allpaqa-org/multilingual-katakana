@@ -54,6 +54,7 @@ struct ChineseData {
 #[derive(Deserialize)]
 struct HanziClass {
     simplified_only: Vec<String>,
+    zh_marker_evidence: String,
     japanese_only: Vec<String>,
     japanese_guard_words: Vec<String>,
     zh_context_slang: BTreeMap<String, String>,
@@ -219,6 +220,10 @@ fn main() {
         serde_json::from_str(&hanzi_class_json).expect("Failed to parse hanzi_class.json");
     let simplified_only = sorted_chars(&hanzi_class.simplified_only);
     let japanese_only = sorted_chars(&hanzi_class.japanese_only);
+    // Strong Chinese evidence = Simplified-only chars + non-Joyo/Jinmeiyo marker chars.
+    let mut zh_evidence_src = hanzi_class.simplified_only.clone();
+    zh_evidence_src.push(hanzi_class.zh_marker_evidence.clone());
+    let zh_evidence = sorted_chars(&zh_evidence_src);
 
     // 6. English Words
     let english_json = fs::read_to_string(node_dicts_dir.join("english_words.json"))
@@ -426,6 +431,7 @@ fn main() {
     // Hanzi character classes (sorted for binary search)
     push_char_slice(&mut code, "HANZI_SIMPLIFIED_ONLY", &simplified_only);
     push_char_slice(&mut code, "HANZI_JAPANESE_ONLY", &japanese_only);
+    push_char_slice(&mut code, "HANZI_ZH_EVIDENCE", &zh_evidence);
 
     code.push_str("pub static JAPANESE_GUARD_WORDS: &[&str] = &[\n");
     for word in &hanzi_class.japanese_guard_words {

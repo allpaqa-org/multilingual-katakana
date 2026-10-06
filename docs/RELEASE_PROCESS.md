@@ -213,7 +213,7 @@ bun run scripts/check_versions.ts
 # actions/setup-python all work; some system/Xcode-stub pythons on macOS
 # do not — point PYO3_PYTHON at a working interpreter if you hit a
 # "library 'pythonX.Y' not found" linker error).
-# 7. All Cargo tests pass (100% PASS, 177 shared spec cases)
+# 7. All Cargo tests pass (100% PASS, 199 shared spec cases)
 cargo test --all-targets
 
 # 8. Clippy static analysis (0 warnings required)
