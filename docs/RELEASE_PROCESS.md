@@ -301,6 +301,11 @@ git push origin main --tags
    - `allpaqa-multilingual-katakana` abi3 wheels are published to PyPI via
      Trusted Publishing (OIDC) — no long-lived API token is stored in
      this repo.
+   - The `publish` job runs only when the repository variable
+     `PYPI_PUBLISH_ENABLED` is `true`. Set it once the PyPI organization
+     `allpaqa`, the Trusted Publisher and the GitHub Environment `pypi`
+     are ready (#31); until then releases build and smoke-test wheels but
+     never publish them.
    - This runs as an independent job from the npm publish above; if
      either fails, re-run only the failed workflow (both are idempotent —
      already-published versions are skipped, not re-uploaded) and note

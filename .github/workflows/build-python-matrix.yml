@@ -187,7 +187,10 @@ jobs:
   publish:
     name: Publish wheels to PyPI
     needs: build
-    if: github.event_name == 'release'
+    # Gated on a repository variable until the PyPI organization `allpaqa`,
+    # its Trusted Publisher and the `pypi` environment are ready (#31):
+    # until then releases build + smoke-test wheels but never publish.
+    if: github.event_name == 'release' && vars.PYPI_PUBLISH_ENABLED == 'true'
     runs-on: ubuntu-24.04
     environment: pypi
     permissions:
