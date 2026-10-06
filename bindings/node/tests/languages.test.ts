@@ -1,5 +1,5 @@
 import { describe, expect, test } from "bun:test";
-import { toKatakana, vietnamesePreprocess } from "../src";
+import { convertChinese, toKatakana, vietnamesePreprocess } from "../src";
 
 describe("Vietnamese and Thai conversion", () => {
   test("converts dictionary phrases and Thai open syllables", () => {
@@ -53,5 +53,28 @@ describe("Vietnamese and Thai conversion", () => {
       }),
     ).toBe("xin chào");
     expect(toKatakana("สวัสดีครับ", { enableThai: false })).toBe("สวัสดีครับ");
+  });
+});
+
+describe("Chinese run classification cleanup (#36)", () => {
+  test("keeps ASCII spacing and line breaks outside converted runs", () => {
+    expect(convertChinese("初見です 谢谢 Mr. Smith, hello.")).toBe(
+      "初見です シエシエ Mr. Smith, hello.",
+    );
+    expect(convertChinese("初見です 谢谢\nよろしく")).toBe("初見です シエシエ\nよろしく");
+  });
+
+  test("886 is slang only when standalone in a Chinese comment", () => {
+    expect(convertChinese("谢谢 886")).toBe("シエシエ バイバイ");
+    for (const s of ["+886 2 1234 谢谢", "886.5 谢谢", "8,886 谢谢", "８886 谢谢"]) {
+      expect(convertChinese(s)).toContain("886");
+    }
+  });
+});
+
+describe("Chinese run classification spacing (#36)", () => {
+  test("keeps spaces after full-width punctuation away from converted runs", () => {
+    expect(convertChinese("初見です！ よろしく 谢谢")).toBe("初見です！ よろしく シエシエ");
+    expect(convertChinese("你好！ 玩得很好")).toBe("ニーハオ！ワンドゥヘンハオ");
   });
 });

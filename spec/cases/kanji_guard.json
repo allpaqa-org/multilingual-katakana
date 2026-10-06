@@ -105,5 +105,735 @@
       "pure_kanji"
     ],
     "description": "Preserve pure Japanese Kanji '優勝'"
+  },
+  {
+    "id": "kanji-guard-mixed-kangei-xiexie",
+    "language": "mixed",
+    "input": "初見歓迎！ 谢谢",
+    "expected": {
+      "canonical": "初見歓迎！シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "chinese",
+      "mixed",
+      "issue_36"
+    ],
+    "description": "Keep the Japanese Kanji run '初見歓迎' (contains Japanese-only 歓) and convert only the Simplified Chinese run '谢谢'; spaces after punctuation are removed as in Chinese comments"
+  },
+  {
+    "id": "kanji-guard-mixed-kangei-886-xiexie-dajia",
+    "language": "mixed",
+    "input": "初見歓迎！ 886 谢谢大家",
+    "expected": {
+      "canonical": "初見歓迎！バイバイシエシエダージア"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "chinese",
+      "mixed",
+      "slang",
+      "issue_36"
+    ],
+    "description": "Mixed Japanese/Chinese stream greeting: Japanese Kanji kept, '886' read as バイバイ because the comment has a Chinese run, Simplified run converted"
+  },
+  {
+    "id": "kanji-guard-mixed-kana-xiexie-dajia",
+    "language": "mixed",
+    "input": "初見です 谢谢大家",
+    "expected": {
+      "canonical": "初見です シエシエダージア"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "chinese",
+      "mixed",
+      "kana",
+      "issue_36"
+    ],
+    "description": "Kana no longer blocks the whole comment: the Simplified run '谢谢大家' is converted while '初見' (adjacent to kana) is kept"
+  },
+  {
+    "id": "kanji-guard-mixed-kamikai-xiexie",
+    "language": "mixed",
+    "input": "神回！谢谢",
+    "expected": {
+      "canonical": "神回！シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "chinese",
+      "mixed",
+      "issue_36"
+    ],
+    "description": "Guard word '神回' keeps its run Japanese while the Chinese run is converted"
+  },
+  {
+    "id": "kanji-guard-mixed-ryokai-xiexie",
+    "language": "mixed",
+    "input": "了解 谢谢",
+    "expected": {
+      "canonical": "了解 シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "chinese",
+      "mixed",
+      "issue_36"
+    ],
+    "description": "Guard word '了解' (also valid Chinese) stays Japanese; the space between a kept Japanese run and converted Chinese text is preserved"
+  },
+  {
+    "id": "kanji-guard-mixed-run-phrase-only",
+    "language": "mixed",
+    "input": "初見歓迎谢谢",
+    "expected": {
+      "canonical": "初見歓迎シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "chinese",
+      "mixed_run",
+      "issue_36"
+    ],
+    "description": "A single run mixing Japanese-only and Simplified-only evidence is not converted by character class; only the exact phrase dictionary match '谢谢' (applied first) is replaced"
+  },
+  {
+    "id": "kanji-guard-mixed-run-untouched",
+    "language": "mixed",
+    "input": "初見歓迎这个",
+    "expected": {
+      "canonical": "初見歓迎这个"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "chinese",
+      "mixed_run",
+      "safe_failure",
+      "issue_36"
+    ],
+    "description": "Safe failure: a run containing both Japanese-only (歓) and Simplified-only (这) characters is left untouched"
+  },
+  {
+    "id": "kanji-guard-886-alone",
+    "language": "zh",
+    "input": "886",
+    "expected": {
+      "canonical": "886"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "slang",
+      "safe_failure",
+      "issue_36"
+    ],
+    "description": "'886' alone has no Chinese context and stays as digits"
+  },
+  {
+    "id": "kanji-guard-886-japanese",
+    "language": "ja",
+    "input": "886 了解",
+    "expected": {
+      "canonical": "886 了解"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "slang",
+      "japanese",
+      "issue_36"
+    ],
+    "description": "'886' in a Japanese-only comment stays as digits"
+  },
+  {
+    "id": "kanji-guard-fullwidth-comma-hint",
+    "language": "zh",
+    "input": "大家好，晚上好",
+    "expected": {
+      "canonical": "ダージアハオ、ワンシャンハオ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "punctuation",
+      "issue_36"
+    ],
+    "description": "Shared-Kanji runs joined by '，' convert only when the comment has Chinese evidence (here the common word '晚上'); '，' alone never decides a run"
+  },
+  {
+    "id": "kanji-guard-fullwidth-comma-with-kana",
+    "language": "ja",
+    "input": "初見です，大家好",
+    "expected": {
+      "canonical": "初見です，大家好"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "punctuation",
+      "kana",
+      "issue_36"
+    ],
+    "description": "In a comment containing kana the '，' hint alone never converts shared Kanji"
+  },
+  {
+    "id": "kanji-guard-shared-pure-unchanged",
+    "language": "ja",
+    "input": "大家好",
+    "expected": {
+      "canonical": "大家好"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "pure_kanji",
+      "issue_36"
+    ],
+    "description": "Regression guard: a shared-Kanji-only comment without Chinese markers keeps the previous (unconverted) behaviour"
+  },
+  {
+    "id": "kanji-guard-japanese-sentence",
+    "language": "ja",
+    "input": "今日の配信最高！感謝",
+    "expected": {
+      "canonical": "今日の配信最高！感謝"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "kana",
+      "issue_36"
+    ],
+    "description": "Regression guard: Japanese stream comment with Kanji and kana stays untouched"
+  },
+  {
+    "id": "kanji-guard-japanese-kanji-only-sentence",
+    "language": "ja",
+    "input": "初見歓迎！配信開始",
+    "expected": {
+      "canonical": "初見歓迎！配信開始"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "japanese",
+      "pure_kanji",
+      "issue_36"
+    ],
+    "description": "Regression guard: Japanese Kanji-only comment with several runs stays untouched"
+  },
+  {
+    "id": "kanji-guard-comma-ja-kyou-saikou",
+    "language": "ja",
+    "input": "今日，最高",
+    "expected": {
+      "canonical": "今日，最高"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "punctuation",
+      "issue_36"
+    ],
+    "description": "'，' alone must not convert kana-free Japanese Kanji"
+  },
+  {
+    "id": "kanji-guard-comma-ja-tokyo-osaka",
+    "language": "ja",
+    "input": "東京，大阪",
+    "expected": {
+      "canonical": "東京，大阪"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "punctuation",
+      "issue_36"
+    ],
+    "description": "'，' alone must not convert kana-free Japanese place names"
+  },
+  {
+    "id": "kanji-guard-comma-ja-kanpai",
+    "language": "ja",
+    "input": "乾杯，乾杯",
+    "expected": {
+      "canonical": "乾杯，乾杯"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "punctuation",
+      "issue_36"
+    ],
+    "description": "'，' alone must not convert '乾杯'"
+  },
+  {
+    "id": "kanji-guard-comma-ja-shinkyoku",
+    "language": "ja",
+    "input": "新曲，神曲",
+    "expected": {
+      "canonical": "新曲，神曲"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "punctuation",
+      "issue_36"
+    ],
+    "description": "'，' alone must not convert '新曲，神曲'"
+  },
+  {
+    "id": "kanji-guard-comma-ja-honjitsu",
+    "language": "ja",
+    "input": "本日，配信開始",
+    "expected": {
+      "canonical": "本日，配信開始"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "punctuation",
+      "issue_36"
+    ],
+    "description": "Guard word '配信' keeps the linked run '本日' Japanese"
+  },
+  {
+    "id": "kanji-guard-trad-marker-guard-middle",
+    "language": "zh",
+    "input": "這個真的最高了吧",
+    "expected": {
+      "canonical": "ジャーガージェンドゥズイガオラバー"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "Traditional Chinese marker evidence (吧) beats the guard word '最高' in the middle of the run (same as before #36)"
+  },
+  {
+    "id": "kanji-guard-simplified-guard-middle",
+    "language": "zh",
+    "input": "我们很感謝你",
+    "expected": {
+      "canonical": "ウォメンヘンガンシエニー"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "issue_36"
+    ],
+    "description": "Simplified evidence beats the guard word '感謝' in the middle of the run"
+  },
+  {
+    "id": "kanji-guard-trad-linked-runs",
+    "language": "zh",
+    "input": "謝謝大家，直播開始了！",
+    "expected": {
+      "canonical": "シエシエダージア、ジー播カイシーラ！"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "Traditional Chinese comment converts fully; the shared run is linked to the phrase run through '，'"
+  },
+  {
+    "id": "kanji-guard-edge-guard-head",
+    "language": "mixed",
+    "input": "了解谢谢",
+    "expected": {
+      "canonical": "了解シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "mixed_run",
+      "issue_36"
+    ],
+    "description": "A guard word at the start of a Chinese-evidence run is split off and kept"
+  },
+  {
+    "id": "kanji-guard-edge-guard-tail",
+    "language": "mixed",
+    "input": "谢谢初見",
+    "expected": {
+      "canonical": "シエシエ初見"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "mixed_run",
+      "issue_36"
+    ],
+    "description": "A guard word at the end of a Chinese-evidence run is split off and kept"
+  },
+  {
+    "id": "kanji-guard-guard-middle-phrase",
+    "language": "zh",
+    "input": "你好了解谢谢",
+    "expected": {
+      "canonical": "ニーハオラジエシエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "issue_36"
+    ],
+    "description": "A guard word in the middle of a Chinese run is read as Chinese"
+  },
+  {
+    "id": "kanji-guard-guard-middle-simplified",
+    "language": "zh",
+    "input": "我了解这个",
+    "expected": {
+      "canonical": "ウォラジエジャーガー"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "issue_36"
+    ],
+    "description": "'了解' inside a Simplified Chinese sentence is read as Chinese"
+  },
+  {
+    "id": "kanji-guard-cleanup-ascii-untouched",
+    "language": "mixed",
+    "input": "初見です 谢谢 Mr. Smith, hello.",
+    "expected": {
+      "canonical": "初見です シエシエムル。スメイス、ハロー。"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "english",
+      "spacing",
+      "issue_36"
+    ],
+    "description": "Space/punctuation cleanup only touches the surroundings of converted Chinese runs, not ASCII text"
+  },
+  {
+    "id": "kanji-guard-886-phone-prefix",
+    "language": "mixed",
+    "input": "+886 2 1234 谢谢",
+    "expected": {
+      "canonical": "+886 2 1234 シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "slang",
+      "issue_36"
+    ],
+    "description": "'+886' (country code) is not slang"
+  },
+  {
+    "id": "kanji-guard-886-decimal",
+    "language": "mixed",
+    "input": "886.5 谢谢",
+    "expected": {
+      "canonical": "886.5 シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "slang",
+      "issue_36"
+    ],
+    "description": "'886.5' is a number, not slang"
+  },
+  {
+    "id": "kanji-guard-886-thousands",
+    "language": "mixed",
+    "input": "8,886 谢谢",
+    "expected": {
+      "canonical": "8、886 シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "slang",
+      "issue_36"
+    ],
+    "description": "'8,886' is a number, not slang"
+  },
+  {
+    "id": "kanji-guard-886-fullwidth-digit",
+    "language": "mixed",
+    "input": "８886 谢谢",
+    "expected": {
+      "canonical": "８886 シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "slang",
+      "issue_36"
+    ],
+    "description": "'886' glued to a full-width digit is not slang"
+  },
+  {
+    "id": "kanji-guard-886-longer-number",
+    "language": "mixed",
+    "input": "18860 谢谢",
+    "expected": {
+      "canonical": "18860 シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "slang",
+      "issue_36"
+    ],
+    "description": "'886' inside a longer number is not slang"
+  },
+  {
+    "id": "kanji-guard-886-repeated",
+    "language": "mixed",
+    "input": "886886 谢谢",
+    "expected": {
+      "canonical": "886886 シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "slang",
+      "issue_36"
+    ],
+    "description": "'886886' is left as is"
+  },
+  {
+    "id": "kanji-guard-886-after-chinese",
+    "language": "zh",
+    "input": "谢谢 886",
+    "expected": {
+      "canonical": "シエシエバイバイ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "slang",
+      "issue_36"
+    ],
+    "description": "Standalone '886' in a Chinese comment is read as バイバイ"
+  },
+  {
+    "id": "kanji-guard-propagation-ltr",
+    "language": "mixed",
+    "input": "谢谢 大家 今日 最高",
+    "expected": {
+      "canonical": "シエシエ 大家 今日 最高"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "propagation",
+      "issue_36"
+    ],
+    "description": "Linked shared runs between a Chinese and a Japanese run stay Japanese (order-independent, Japanese first)"
+  },
+  {
+    "id": "kanji-guard-propagation-rtl",
+    "language": "mixed",
+    "input": "最高 今日 大家 谢谢",
+    "expected": {
+      "canonical": "最高 今日 大家 シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "propagation",
+      "issue_36"
+    ],
+    "description": "Same as the left-to-right case in reverse order"
+  },
+  {
+    "id": "kanji-guard-trad-guard-edge-linked",
+    "language": "zh",
+    "input": "我是台灣人，感謝你們",
+    "expected": {
+      "canonical": "ウォシー台灣レン、ガンシエニー們"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "A guard word at the edge of a Chinese run is converted when a non-Japanese run is linked on that side (no ja spreading)"
+  },
+  {
+    "id": "kanji-guard-trad-guard-edge-linked-3",
+    "language": "zh",
+    "input": "你好，我是台灣人，感謝你們",
+    "expected": {
+      "canonical": "ニーハオ、ウォシー台灣レン、ガンシエニー們"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "Three linked Traditional Chinese runs convert fully"
+  },
+  {
+    "id": "kanji-guard-trad-guard-edge-space",
+    "language": "zh",
+    "input": "謝謝 大家 感謝你們",
+    "expected": {
+      "canonical": "シエシエダージアガンシエニー們"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "Space-linked Traditional Chinese runs convert fully, including the guard word '感謝'"
+  },
+  {
+    "id": "kanji-guard-trad-relaxed-guard-comma",
+    "language": "zh",
+    "input": "這個真的最高，大家好",
+    "expected": {
+      "canonical": "ジャーガージェンドゥズイガオ、ダージアハオ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "In a kana-free Chinese comment, a run that itself reads as Chinese is not forced Japanese by the guard word '最高'"
+  },
+  {
+    "id": "kanji-guard-trad-relaxed-guard-space",
+    "language": "zh",
+    "input": "這個真的最高 大家好",
+    "expected": {
+      "canonical": "ジャーガージェンドゥズイガオダージアハオ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "traditional",
+      "issue_36"
+    ],
+    "description": "Same as the '，' case with a space separator"
+  },
+  {
+    "id": "kanji-guard-guard-edge-after-japanese",
+    "language": "mixed",
+    "input": "初見 了解谢谢",
+    "expected": {
+      "canonical": "初見 了解シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "mixed_run",
+      "issue_36"
+    ],
+    "description": "A guard edge linked only to a Japanese run stays Japanese"
+  },
+  {
+    "id": "kanji-guard-japanese-spacing-kept",
+    "language": "mixed",
+    "input": "初見です！ よろしく 谢谢",
+    "expected": {
+      "canonical": "初見です！よろしく シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "spacing",
+      "issue_36"
+    ],
+    "description": "Japanese part with full-width punctuation is preserved; only the Chinese run is converted"
+  },
+  {
+    "id": "kanji-guard-kana-guard-edge-kept",
+    "language": "mixed",
+    "input": "初見です 大家 初見谢谢",
+    "expected": {
+      "canonical": "初見です 大家 初見シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "kana",
+      "issue_36"
+    ],
+    "description": "Kana comment: the guard edge '初見' is kept and the shared run '大家' is not pulled to Chinese"
+  },
+  {
+    "id": "kanji-guard-kana-guard-edge-kamikai",
+    "language": "mixed",
+    "input": "初見です 今日 神回谢谢",
+    "expected": {
+      "canonical": "初見です 今日 神回シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "kana",
+      "issue_36"
+    ],
+    "description": "Kana comment: '今日' and the guard edge '神回' stay Japanese"
+  },
+  {
+    "id": "kanji-guard-kana-shared-not-propagated",
+    "language": "mixed",
+    "input": "今日も 大家 最高谢谢",
+    "expected": {
+      "canonical": "今日も 大家 最高シエシエ"
+    },
+    "category": "kanji_preservation",
+    "tags": [
+      "kanji_guard",
+      "chinese",
+      "kana",
+      "issue_36"
+    ],
+    "description": "Kana comment: '大家' and the guard edge '最高' stay Japanese"
   }
 ]

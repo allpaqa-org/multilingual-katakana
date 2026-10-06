@@ -4,6 +4,44 @@ Notable changes to this project are documented here.
 
 ## [Unreleased]
 
+### Fixed
+
+- Safe Kanji Guard: Japanese Kanji in comments that also contain Simplified
+  Chinese are no longer read as Pinyin (#36). Chinese detection now classifies
+  each maximal CJK ideograph run instead of the whole comment, using
+  Simplified-only / Japanese-only character classes, Chinese marker
+  characters, a small list of Japanese stream guard words (`初見`, `神回`,
+  `了解`, …), kana adjacency, the `、` hint, order-independent propagation
+  between linked runs and a whole-comment fallback (where `，` only breaks
+  ties when the comment already has Chinese evidence). Strong Chinese
+  evidence beats guard words; a guard word at the very start/end of a Chinese
+  run is kept as Japanese only when no non-Japanese run is linked on that
+  side in a kana-free comment (`了解谢谢` → `了解シエシエ`, but
+  `我是台灣人，感謝你們` converts fully), and a kept guard edge never spreads
+  Japanese to its neighbours. In comments with kana, guard edges are always
+  kept and Chinese never spreads to shared-only runs. In kana-free
+  comments that read as Chinese, guard words do not force Japanese on runs
+  that themselves read as Chinese (`這個真的最高，大家好`). Space cleanup is now
+  limited to converted runs and full-width punctuation, so ASCII text and
+  line breaks elsewhere are untouched. `初見歓迎！ 886 谢谢大家` now becomes
+  `初見歓迎！バイバイシエシエダージア`. Kana no longer blocks Chinese conversion
+  for the whole comment (`初見です 谢谢大家` → `初見です シエシエダージア`), and a
+  run that mixes Japanese-only and Simplified-only characters is left
+  untouched. Identical behaviour in the TypeScript pipeline and the Rust core.
+- The Chinese stream slang `886` is read as `バイバイ` when the comment
+  contains a Chinese run and the token is standalone (not `+886`, `886.5`,
+  `8,886`, `18860`, …); elsewhere it stays `886`.
+- Added `晚上` to the Chinese common words.
+
+### Added
+
+- `dicts/hanzi_class.json` and its generator `scripts/generate_hanzi_class.ts`.
+  The Simplified-only class and the marker evidence are generated from
+  Unihan 18.0.0 (pinned; Unicode License v3) at
+  generation time only; the Japanese-only class, guard words and
+  Chinese-context slang are curated by hand. No runtime dependency is added.
+- 46 new `spec/cases/kanji_guard.json` cases (209 shared cases in total).
+
 ## [0.4.0] - 2026-09-30
 
 ### Added

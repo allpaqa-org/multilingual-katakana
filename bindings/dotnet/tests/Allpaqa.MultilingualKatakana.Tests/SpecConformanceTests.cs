@@ -12,7 +12,7 @@ public class SpecConformanceTests
     [Fact]
     public void LoadsAllSpecCases()
     {
-        Assert.Equal(163, Cases.Value.Count);
+        Assert.Equal(209, Cases.Value.Count);
     }
 
     [Theory]

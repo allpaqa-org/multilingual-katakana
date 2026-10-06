@@ -149,7 +149,7 @@ jobs:
         if: ${{ !matrix.musl }}
         shell: bash
         # This proves the wheel actually installs (zero runtime deps) and
-        # that all 163 shared spec cases pass against the *built artifact*,
+        # that all 209 shared spec cases pass against the *built artifact*,
         # not the source tree — see docs/V0.4.0_BINDINGS_SCOPE.md §2.4.4.
         run: |
           set -euo pipefail

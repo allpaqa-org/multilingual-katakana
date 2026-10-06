@@ -9,7 +9,7 @@
 [![CI](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml/badge.svg)](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](package.json)
-[![Tests: 100%](https://img.shields.io/badge/tests-163%20passed-brightgreen.svg)](spec/cases/)
+[![Tests: 100%](https://img.shields.io/badge/tests-209%20passed-brightgreen.svg)](spec/cases/)
 [![Complexity: CC<=15](https://img.shields.io/badge/complexity-CC%20%3C%3D%2015-success.svg)](scripts/check_complexity.ts)
 
 ---
@@ -106,11 +106,9 @@ console.log(toKatakana("Привет, как дела? Спасибо!"));
 console.log(toKatakana("xin chào! สวัสดีครับ"));
 // => "シンチャオ！サワッディークラップ"
 
-// Chinese with Safe Kanji Guard (Japanese Kanji preserved, Hanzi converted)
-console.log(toKatakana("初見歓迎！神回でした"));
-// => "初見歓迎！神回でした"
-console.log(toKatakana("谢谢大家！"));
-// => "シエシエダージア！"
+// Chinese with Safe Kanji Guard (Japanese Kanji preserved, Hanzi/slang converted)
+console.log(toKatakana("初見歓迎！ 886 谢谢大家"));
+// => "初見歓迎！バイバイシエシエダージア"
 ```
 
 ### Text Protection & Escaping (`options.exclude`)
@@ -181,9 +179,9 @@ const output = converter.convert("hello VOICEVOX fan!");
 This repository is built following **Spec-Driven Development** with language-neutral conformance suites:
 
 - **Cross-Language Test Specifications (`spec/cases/*.json`)**:
-  163 canonical test cases across 13 suites, including French, Spanish, Vietnamese, and Thai, are shared by the TypeScript and Rust implementations.
+  209 canonical test cases across 13 suites, including French, Spanish, Vietnamese, and Thai, are shared by the TypeScript and Rust implementations.
 - **Strict Quality Gates**:
-  - ✅ **100% Test Pass Rate**: All 163 shared specification cases pass in TypeScript and Rust.
+  - ✅ **100% Test Pass Rate**: All 209 shared specification cases pass in TypeScript and Rust.
   - ✅ **Biome Linter & Formatter**: 0 errors, 0 warnings.
   - ✅ **Complexity Guard**: Every function enforces **Cyclomatic Complexity <= 15** and Cognitive Complexity <= 15.
 
