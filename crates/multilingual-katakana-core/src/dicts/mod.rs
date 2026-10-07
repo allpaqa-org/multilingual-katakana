@@ -12,6 +12,12 @@ pub fn lookup_sorted(
         .map(|idx| table[idx].1)
 }
 
+/// Binary search membership on sorted static str slice
+#[inline]
+pub fn contains_sorted(table: &'static [&'static str], key: &str) -> bool {
+    table.binary_search(&key).is_ok()
+}
+
 /// Binary search on sorted char-value static slice
 #[inline]
 pub fn lookup_char_sorted(
