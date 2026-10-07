@@ -275,13 +275,14 @@ See [Release Process Documentation](docs/RELEASE_PROCESS.md) for automated CI/CD
 
 ## 🏢 Package Registries & Organizations
 
-| Registry | Organization | Package | Publishing |
-|---|---|---|---|
-| GitHub | `allpaqa-org` | `allpaqa-org/multilingual-katakana` | — |
-| npm | `@allpaqa` | `@allpaqa/multilingual-katakana` + per-platform native packages | OIDC Trusted Publishing |
-| PyPI | `allpaqa` (pending approval) | `allpaqa-multilingual-katakana` | OIDC Trusted Publishing (in preparation) |
+| Registry | Organization | Package(s) | Publishing | Status |
+|---|---|---|---|---|
+| GitHub | `allpaqa-org` | `allpaqa-org/multilingual-katakana` | — | — |
+| npm | scope/org `@allpaqa` | `@allpaqa/multilingual-katakana` + 8 per-platform native packages `@allpaqa/multilingual-katakana-<platform>` | OIDC Trusted Publishing, with provenance | published (0.4.1) |
+| PyPI | `allpaqa` | `allpaqa-multilingual-katakana` | OIDC Trusted Publishing (workflow `build-python-matrix.yml`, environment `pypi`) | organization approval pending; not yet published; publish job is enabled by repository variable `PYPI_PUBLISH_ENABLED` |
+| NuGet | `allpaqa` (ID prefix `Allpaqa.` reserved) | `Allpaqa.MultilingualKatakana` | OIDC Trusted Publishing (workflow `build-dotnet-matrix.yml`, environment `nuget`) | not yet published; planned from v0.6.0; enabled by repository variable `NUGET_PUBLISH_ENABLED` |
 
-No long-lived publish tokens are stored for any registry. PyPI has no scoped namespaces like npm, so the project name uses an `allpaqa-` prefix instead.
+The publishing workflows authenticate with OIDC Trusted Publishing and use no long-lived publish token. PyPI has no scoped namespaces like npm, so the project name uses an `allpaqa-` prefix instead. See [Release Process Documentation](docs/RELEASE_PROCESS.md) for details on publishing workflows.
 
 ---
 

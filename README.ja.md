@@ -266,13 +266,14 @@ CI/CD 自動化や配布プロトコルについては [リリース手順書 (d
 
 ## 🏢 パッケージレジストリと組織管理 (Registries & Organizations)
 
-| レジストリ | 組織 (Organization) | パッケージ | 公開方式 |
-|---|---|---|---|
-| GitHub | `allpaqa-org` | `allpaqa-org/multilingual-katakana` | — |
-| npm | `@allpaqa` | `@allpaqa/multilingual-katakana` + プラットフォーム別ネイティブパッケージ | OIDC Trusted Publishing |
-| PyPI | `allpaqa`（承認待ち） | `allpaqa-multilingual-katakana` | OIDC Trusted Publishing（準備中） |
+| レジストリ | 組織 (Organization) | パッケージ | 公開方式 | ステータス |
+|---|---|---|---|---|
+| GitHub | `allpaqa-org` | `allpaqa-org/multilingual-katakana` | — | — |
+| npm | scope/org `@allpaqa` | `@allpaqa/multilingual-katakana` + 8 プラットフォーム別ネイティブパッケージ `@allpaqa/multilingual-katakana-<platform>` | OIDC Trusted Publishing（provenance 付き） | 公開済み (0.4.1) |
+| PyPI | `allpaqa` | `allpaqa-multilingual-katakana` | OIDC Trusted Publishing（ワークフロー `build-python-matrix.yml`, 環境 `pypi`） | 組織承認待ち・未公開（リポジトリ変数 `PYPI_PUBLISH_ENABLED` により公開ジョブを有効化） |
+| NuGet | `allpaqa`（ID プレフィックス `Allpaqa.` 予約済み） | `Allpaqa.MultilingualKatakana` | OIDC Trusted Publishing（ワークフロー `build-dotnet-matrix.yml`, 環境 `nuget`） | 未公開（v0.6.0 から予定、リポジトリ変数 `NUGET_PUBLISH_ENABLED` により有効化） |
 
-いずれのレジストリでも長期の公開トークンは保持しません。PyPI には npm の `@scope` のような名前空間機能がないため、プロジェクト名に `allpaqa-` プレフィックスを付けています。
+公開ワークフローは OIDC Trusted Publishing で認証し、長期の公開トークンを使用しません。PyPI には npm の `@scope` のような名前空間機能がないため、プロジェクト名に `allpaqa-` プレフィックスを付けています。公開手順の詳細は [リリース手順書 (docs/RELEASE_PROCESS.md)](docs/RELEASE_PROCESS.md) を参照してください。
 
 ---
 
