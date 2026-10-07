@@ -273,7 +273,7 @@ CI/CD 自動化や配布プロトコルについては [リリース手順書 (d
 | PyPI | `allpaqa` | `allpaqa-multilingual-katakana` | OIDC Trusted Publishing（ワークフロー `build-python-matrix.yml`, 環境 `pypi`） | 組織承認待ち・未公開（リポジトリ変数 `PYPI_PUBLISH_ENABLED` により公開ジョブを有効化） |
 | NuGet | `allpaqa`（ID プレフィックス `Allpaqa.` 予約済み） | `Allpaqa.MultilingualKatakana` | OIDC Trusted Publishing（ワークフロー `build-dotnet-matrix.yml`, 環境 `nuget`） | 未公開（v0.6.0 から予定、リポジトリ変数 `NUGET_PUBLISH_ENABLED` により有効化） |
 
-公開ワークフローは OIDC Trusted Publishing で認証し、長期の公開トークンを使用しません。PyPI には npm の `@scope` のような名前空間機能がないため、プロジェクト名に `allpaqa-` プレフィックスを付けています。公開手順の詳細は [リリース手順書 (docs/RELEASE_PROCESS.md)](docs/RELEASE_PROCESS.md) を参照してください。
+公開ワークフローは OIDC Trusted Publishing を使う構成で、長期の公開トークンは参照していません。PyPI では npm の `@allpaqa` スコープの代わりに、プロジェクト名に `allpaqa-` プレフィックスを付けています。公開手順の詳細は [リリース手順書 (docs/RELEASE_PROCESS.md)](docs/RELEASE_PROCESS.md) を参照してください。
 
 ---
 
