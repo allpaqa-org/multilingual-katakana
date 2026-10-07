@@ -35,7 +35,9 @@ export function getFrenchCueWord(word: string): string | undefined {
   return frenchCueReadings[word.toLowerCase()];
 }
 
-const FRENCH_SPECIFIC_LETTERS_REGEX = /[çœèëïîûù]/giu;
+const URL_OR_MENTION_REGEX = /https?:\/\/\S+|www\.\S+|@\S+/giu;
+const VIETNAMESE_VETO_REGEX = /[ơưăđƠƯĂĐ\u1EA0-\u1EF9]/u;
+const FRENCH_SPECIFIC_LETTERS_REGEX = /[çœëïîû]/giu;
 const FRENCH_ELISION_REGEX =
   /(?:^|[^\p{L}\p{N}_])(?:j|l|c|d|m|n|s|t|qu)['’‘][aeiouyàâéèêëîïôùûüh]|aujourd['’‘]hui/giu;
 const LATIN_WORD_REGEX =
@@ -43,29 +45,38 @@ const LATIN_WORD_REGEX =
 
 function countFrenchLetterCues(text: string): number {
   const matches = text.match(FRENCH_SPECIFIC_LETTERS_REGEX);
-  return matches ? matches.length : 0;
+  if (!matches) return 0;
+  return new Set(matches.map((c) => c.toLowerCase())).size;
 }
 
 function countFrenchElisionCues(text: string): number {
   const matches = text.match(FRENCH_ELISION_REGEX);
-  return matches ? matches.length : 0;
+  if (!matches) return 0;
+  return new Set(matches.map((m) => m.toLowerCase().trim())).size;
 }
 
 function countFrenchWordCues(text: string): number {
   const words = text.match(LATIN_WORD_REGEX);
   if (!words) return 0;
-  let count = 0;
+  const distinct = new Set<string>();
   for (const w of words) {
-    if (frenchCueSet.has(w.toLowerCase())) {
-      count++;
+    const lower = w.toLowerCase();
+    if (frenchCueSet.has(lower)) {
+      distinct.add(lower);
     }
   }
-  return count;
+  return distinct.size;
 }
 
 export function detectFrenchMode(text: string): boolean {
+  const cleanText = text.replace(URL_OR_MENTION_REGEX, " ");
+  if (VIETNAMESE_VETO_REGEX.test(cleanText)) {
+    return false;
+  }
   const hits =
-    countFrenchLetterCues(text) + countFrenchElisionCues(text) + countFrenchWordCues(text);
+    countFrenchLetterCues(cleanText) +
+    countFrenchElisionCues(cleanText) +
+    countFrenchWordCues(cleanText);
   return hits >= 2;
 }
 

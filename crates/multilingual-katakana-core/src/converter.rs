@@ -157,16 +157,6 @@ fn resolve_french_word(lower: &str, opts: &KatakanaOptions) -> String {
     if let Some(cue) = get_french_cue_reading(lower) {
         return cue.to_string();
     }
-    if opts.enable_vietnamese {
-        if let Some(vietnamese) = get_vietnamese_word(lower) {
-            return vietnamese.to_string();
-        }
-    }
-    if opts.enable_spanish {
-        if let Some(spanish) = get_spanish_word(lower) {
-            return spanish.to_string();
-        }
-    }
     if opts.enable_english {
         if let Some(english) = get_english_word(lower) {
             return english.to_string();

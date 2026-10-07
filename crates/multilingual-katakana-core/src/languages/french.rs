@@ -1,4 +1,5 @@
 use regex::Regex;
+use std::collections::BTreeSet;
 use std::sync::LazyLock;
 
 use crate::dicts::{
@@ -30,6 +31,14 @@ static COMPILED_FRENCH_PHRASES: LazyLock<Vec<(Regex, &'static str)>> = LazyLock:
         .collect()
 });
 
+static URL_OR_MENTION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)https?://\S+|www\.\S+|@\S+").expect("valid url/mention regex")
+});
+
+static VIETNAMESE_VETO_REGEX: LazyLock<Regex> = LazyLock::new(|| {
+    Regex::new(r"(?i)[ơưăđƠƯĂĐ]|[\u{1EA0}-\u{1EF9}]").expect("valid vietnamese veto regex")
+});
+
 static FRENCH_ELISION_REGEX: LazyLock<Regex> = LazyLock::new(|| {
     Regex::new(
         r"(?i)(?:^|[^\p{L}\p{N}_])(?:j|l|c|d|m|n|s|t|qu)['’‘][aeiouyàâéèêëîïôùûüh]|aujourd['’‘]hui",
@@ -45,46 +54,64 @@ static LATIN_WORD_REGEX: LazyLock<Regex> = LazyLock::new(|| {
 });
 
 fn count_french_letter_cues(text: &str) -> usize {
-    text.chars()
-        .filter(|c| {
-            matches!(
-                c,
-                'ç' | 'œ'
-                    | 'è'
-                    | 'ë'
-                    | 'ï'
-                    | 'î'
-                    | 'û'
-                    | 'ù'
-                    | 'Ç'
-                    | 'Œ'
-                    | 'È'
-                    | 'Ë'
-                    | 'Ï'
-                    | 'Î'
-                    | 'Û'
-                    | 'Ù'
-            )
-        })
-        .count()
+    let mut distinct = BTreeSet::new();
+    for c in text.chars() {
+        match c {
+            'ç' | 'œ' | 'ë' | 'ï' | 'î' | 'û' => {
+                distinct.insert(c);
+            }
+            'Ç' => {
+                distinct.insert('ç');
+            }
+            'Œ' => {
+                distinct.insert('œ');
+            }
+            'Ë' => {
+                distinct.insert('ë');
+            }
+            'Ï' => {
+                distinct.insert('ï');
+            }
+            'Î' => {
+                distinct.insert('î');
+            }
+            'Û' => {
+                distinct.insert('û');
+            }
+            _ => {}
+        }
+    }
+    distinct.len()
 }
 
 fn count_french_elision_cues(text: &str) -> usize {
-    FRENCH_ELISION_REGEX.find_iter(text).count()
+    let mut distinct = BTreeSet::new();
+    for m in FRENCH_ELISION_REGEX.find_iter(text) {
+        distinct.insert(m.as_str().trim().to_lowercase());
+    }
+    distinct.len()
 }
 
 fn count_french_word_cues(text: &str) -> usize {
-    LATIN_WORD_REGEX
-        .find_iter(text)
-        .filter(|m| contains_sorted(FRENCH_CUES, &m.as_str().to_lowercase()))
-        .count()
+    let mut distinct = BTreeSet::new();
+    for m in LATIN_WORD_REGEX.find_iter(text) {
+        let lower = m.as_str().to_lowercase();
+        if contains_sorted(FRENCH_CUES, &lower) {
+            distinct.insert(lower);
+        }
+    }
+    distinct.len()
 }
 
 /// Detects whether an input comment contains enough French cues to activate French mode.
 pub fn detect_french_mode(text: &str) -> bool {
-    let hits = count_french_letter_cues(text)
-        + count_french_elision_cues(text)
-        + count_french_word_cues(text);
+    let clean_text = URL_OR_MENTION_REGEX.replace_all(text, " ");
+    if VIETNAMESE_VETO_REGEX.is_match(&clean_text) {
+        return false;
+    }
+    let hits = count_french_letter_cues(&clean_text)
+        + count_french_elision_cues(&clean_text)
+        + count_french_word_cues(&clean_text);
     hits >= 2
 }
 
@@ -578,7 +605,7 @@ fn apply_french_syllables(word: &mut String) {
 
 /// Fallback French phonetic rules for dictionary misses in French mode.
 pub fn french_phonics_to_katakana(raw_word: &str) -> String {
-    let mut word = raw_word.to_ascii_lowercase();
+    let mut word = raw_word.to_lowercase();
     apply_french_elisions(&mut word);
     apply_french_endings(&mut word);
     apply_french_nasals(&mut word);

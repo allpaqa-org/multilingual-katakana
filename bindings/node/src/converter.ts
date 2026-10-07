@@ -184,27 +184,14 @@ function resolveFrenchDictionary(lower: string, opts: KatakanaOptions): string |
   return getFrenchCueWord(lower);
 }
 
-function resolveFrenchForeignWord(lower: string, opts: KatakanaOptions): string | undefined {
-  if (opts.enableVietnamese ?? true) {
-    const vietnamese = getVietnameseWord(lower);
-    if (vietnamese !== undefined) return vietnamese;
-  }
-  if (opts.enableSpanish ?? true) {
-    const spanish = getSpanishWord(lower);
-    if (spanish !== undefined) return spanish;
-  }
-  if (opts.enableEnglish ?? true) {
-    return getEnglishWord(lower);
-  }
-  return undefined;
-}
-
 function resolveFrenchWord(lower: string, opts: KatakanaOptions): string {
   const dictWord = resolveFrenchDictionary(lower, opts);
   if (dictWord !== undefined) return dictWord;
 
-  const foreignWord = resolveFrenchForeignWord(lower, opts);
-  if (foreignWord !== undefined) return foreignWord;
+  if (opts.enableEnglish ?? true) {
+    const english = getEnglishWord(lower);
+    if (english !== undefined) return english;
+  }
 
   return frenchPhonicsToKatakana(lower);
 }

@@ -49,7 +49,10 @@
     "language": "mixed",
     "input": "Bonjour gracias merci beaucoup",
     "expected": {
-      "canonical": "ボンジュールグラシアスメルシーボクー"
+      "canonical": "ボンジュールグラシーアズメルシーボクー",
+      "accepted": [
+        "ボンジュールグラシアスメルシーボクー"
+      ]
     },
     "category": "mixed",
     "tags": [
@@ -57,7 +60,7 @@
       "spanish",
       "code_switching"
     ],
-    "description": "Resolve each distinctive word with its own language dictionary in a code-switched sentence"
+    "description": "Resolve distinctive words in a code-switched sentence under French mode"
   },
   {
     "id": "fr-greeting-bonsoir",
@@ -194,9 +197,10 @@
     "category": "greetings",
     "tags": [
       "french",
-      "greeting"
+      "greeting",
+      "phrase_dictionary"
     ],
-    "description": "Convert French greeting Coucou with ou vowel group"
+    "description": "Convert French greeting Coucou via phrase dictionary entry"
   },
   {
     "id": "fr-fallback-mdr-trop-drole",
@@ -205,8 +209,7 @@
     "expected": {
       "canonical": "わら トロドロール",
       "accepted": [
-        "わらトロドロール",
-        "トロドロール"
+        "わらトロドロール"
       ]
     },
     "category": "slang",
@@ -377,5 +380,62 @@
       "slang"
     ],
     "description": "Guard: A comment containing only mdr lacks sufficient cues and retains main phonics reading"
+  },
+  {
+    "id": "fr-fallback-je-vais-bien-merci",
+    "language": "fr",
+    "input": "Je vais bien, merci",
+    "expected": {
+      "canonical": "ジュヴェビヤン、メルシー"
+    },
+    "category": "common_phrases",
+    "tags": [
+      "french",
+      "cue_readings",
+      "priority"
+    ],
+    "description": "Convert French sentence ensuring bien resolves via cue_readings rather than Spanish dictionary"
+  },
+  {
+    "id": "fr-guard-vietnamese-veto-mui-che-thom",
+    "language": "vi",
+    "input": "Mùi chè thơm",
+    "expected": {
+      "canonical": "ムイチエスオム"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "vietnamese"
+    ],
+    "description": "Guard: Vietnamese input with tone marks and specific characters must veto French mode"
+  },
+  {
+    "id": "fr-guard-spanish-verb-une",
+    "language": "es",
+    "input": "Él une una pieza con otra y une dos ideas.",
+    "expected": {
+      "canonical": "エルユーンウナピエザコンオチャイユーンドスイドイース。"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "spanish"
+    ],
+    "description": "Guard: Spanish sentence containing repeated 'une' must not trigger French mode"
+  },
+  {
+    "id": "fr-guard-url-cues-ignored",
+    "language": "en",
+    "input": "Nice stream https://example.com/bonjour/merci",
+    "expected": {
+      "canonical": "ナイスストリームハトトプス://エクスアムプレ.コム/ボンジュール/メルシー"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "url"
+    ],
+    "description": "Guard: Cues embedded inside URLs must be ignored during French mode detection"
   }
 ]
