@@ -64,7 +64,7 @@
     "language": "fr",
     "input": "Bonsoir à tous!",
     "expected": {
-      "canonical": "ボンソワールアトゥス！"
+      "canonical": "ボンソワールアトゥ！"
     },
     "category": "greetings",
     "tags": [
@@ -145,5 +145,237 @@
       "apostrophe"
     ],
     "description": "Convert the common French expression c'est la vie"
+  },
+  {
+    "id": "fr-fallback-salut-tout-le-monde",
+    "language": "fr",
+    "input": "Salut tout le monde",
+    "expected": {
+      "canonical": "サリュトゥルモンド",
+      "accepted": [
+        "サリュ トゥ ル モンド"
+      ]
+    },
+    "category": "greetings",
+    "tags": [
+      "french",
+      "fallback",
+      "mode_detection"
+    ],
+    "description": "Convert French greeting with multiple words and silent final consonants"
+  },
+  {
+    "id": "fr-fallback-jadore-ce-jeu",
+    "language": "fr",
+    "input": "J'adore ce jeu",
+    "expected": {
+      "canonical": "ジャドールスジュ",
+      "accepted": [
+        "ジャドールセジュ",
+        "ジャドール ス ジュ",
+        "ジャドール セ ジュ"
+      ]
+    },
+    "category": "expressions",
+    "tags": [
+      "french",
+      "elision",
+      "fallback"
+    ],
+    "description": "Convert French elision j'adore and pronoun ce with fallback rule jeu"
+  },
+  {
+    "id": "fr-fallback-coucou",
+    "language": "fr",
+    "input": "Coucou",
+    "expected": {
+      "canonical": "ククー"
+    },
+    "category": "greetings",
+    "tags": [
+      "french",
+      "greeting"
+    ],
+    "description": "Convert French greeting Coucou with ou vowel group"
+  },
+  {
+    "id": "fr-fallback-mdr-trop-drole",
+    "language": "fr",
+    "input": "mdr trop drôle",
+    "expected": {
+      "canonical": "わら トロドロール",
+      "accepted": [
+        "わらトロドロール",
+        "トロドロール"
+      ]
+    },
+    "category": "slang",
+    "tags": [
+      "french",
+      "slang",
+      "fallback"
+    ],
+    "description": "Convert French slang mdr and accented word trop drôle"
+  },
+  {
+    "id": "fr-fallback-reference-sentence",
+    "language": "fr",
+    "input": "Je crois que je vais aller dormir aujourd'hui.",
+    "expected": {
+      "canonical": "ジュクロワクジュヴェアレドルミールオジュルデュイ。",
+      "accepted": [
+        "ジュコワクジュベアレードーミーオージョードゥイ。",
+        "ジュ コワ ク ジュ べ アレー ドーミー オージョードゥイ。"
+      ]
+    },
+    "category": "complex",
+    "tags": [
+      "french",
+      "fallback",
+      "elision",
+      "silent_consonants"
+    ],
+    "description": "Convert French sentence testing mute finals, vowel groups, and elision"
+  },
+  {
+    "id": "fr-guard-english-with-french-word-stream",
+    "language": "en",
+    "input": "I love this stream",
+    "expected": {
+      "canonical": "アイラブディスストリーム"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "english"
+    ],
+    "description": "Guard: Plain English comment unaffected by French mode"
+  },
+  {
+    "id": "fr-guard-english-with-le-stream",
+    "language": "en",
+    "input": "Let's go le stream",
+    "expected": {
+      "canonical": "レッツゴーレストリーム"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "english"
+    ],
+    "description": "Guard: English sentence containing 'le' must not trigger French mode"
+  },
+  {
+    "id": "fr-guard-english-on-the-boss",
+    "language": "en",
+    "input": "Good job on the boss",
+    "expected": {
+      "canonical": "グッドジョブオンザボス"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "english"
+    ],
+    "description": "Guard: English sentence containing 'on' must not trigger French mode"
+  },
+  {
+    "id": "fr-guard-spanish-sentence",
+    "language": "es",
+    "input": "Hola, que tal? Me gusta mucho",
+    "expected": {
+      "canonical": "オラ、クエトアル？メグスタムチオ"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "spanish"
+    ],
+    "description": "Guard: Spanish sentence must keep current output and not trigger French mode"
+  },
+  {
+    "id": "fr-guard-vietnamese-sentence",
+    "language": "vi",
+    "input": "Chào bạn, cảm ơn",
+    "expected": {
+      "canonical": "チャオバン、カムオン"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "vietnamese"
+    ],
+    "description": "Guard: Vietnamese sentence must keep current output"
+  },
+  {
+    "id": "fr-guard-merci-pour-le-stream",
+    "language": "fr",
+    "input": "Merci pour le stream",
+    "expected": {
+      "canonical": "メルシープールルストリーム"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "french"
+    ],
+    "description": "Guard: Curated phrase Merci pour le stream keeps exact reading"
+  },
+  {
+    "id": "fr-guard-safe-kanji-and-emoji",
+    "language": "mixed",
+    "input": "初見歓迎！Merci pour le stream ✨",
+    "expected": {
+      "canonical": "初見歓迎！メルシープールルストリーム ✨"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "safe_kanji",
+      "emoji"
+    ],
+    "description": "Guard: Japanese kanji and emojis are preserved without degradation"
+  },
+  {
+    "id": "fr-guard-english-with-pour-and-est",
+    "language": "en",
+    "input": "Pour coffee, est 5pm",
+    "expected": {
+      "canonical": "プアウルコフフイー、エスト 5プム"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "english"
+    ],
+    "description": "Guard: English comment containing pour and est must not trigger French mode"
+  },
+  {
+    "id": "fr-guard-spanish-with-tu",
+    "language": "es",
+    "input": "Tu eres mi amigo, que tal?",
+    "expected": {
+      "canonical": "トゥエレスミアミーゴ、クエトアル？"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "spanish"
+    ],
+    "description": "Guard: Spanish comment containing tu must not trigger French mode"
+  },
+  {
+    "id": "fr-guard-lone-mdr",
+    "language": "fr",
+    "input": "mdr",
+    "expected": {
+      "canonical": "ムドラ"
+    },
+    "category": "guard",
+    "tags": [
+      "guard",
+      "slang"
+    ],
+    "description": "Guard: A comment containing only mdr lacks sufficient cues and retains main phonics reading"
   }
 ]

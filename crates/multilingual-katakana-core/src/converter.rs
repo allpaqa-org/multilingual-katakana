@@ -6,7 +6,10 @@ use crate::languages::{
     chinese::convert_chinese,
     cyrillic::convert_cyrillic,
     english::{get_english_word, phonics_to_katakana},
-    french::{get_french_word, replace_french_phrases},
+    french::{
+        detect_french_mode, french_phonics_to_katakana, get_french_cue_reading, get_french_word,
+        replace_french_phrases,
+    },
     korean::convert_korean,
     slang::{get_slang_word, replace_slang_phrases},
     spanish::{get_spanish_word, replace_spanish_phrases, spanish_preprocess},
@@ -142,9 +145,37 @@ pub fn restore_excluded(text: &str, token_map: &BTreeMap<char, String>) -> Strin
     result
 }
 
-/// Resolves a single word via slang, Spanish/Vietnamese dictionaries, English word
-/// dictionary, or phonics fallback.
-pub fn resolve_word(word: &str, opts: &KatakanaOptions) -> String {
+fn resolve_french_word(lower: &str, opts: &KatakanaOptions) -> String {
+    if opts.enable_slang {
+        if let Some(slang) = get_slang_word(lower) {
+            return slang.to_string();
+        }
+    }
+    if let Some(french) = get_french_word(lower) {
+        return french.to_string();
+    }
+    if let Some(cue) = get_french_cue_reading(lower) {
+        return cue.to_string();
+    }
+    if opts.enable_vietnamese {
+        if let Some(vietnamese) = get_vietnamese_word(lower) {
+            return vietnamese.to_string();
+        }
+    }
+    if opts.enable_spanish {
+        if let Some(spanish) = get_spanish_word(lower) {
+            return spanish.to_string();
+        }
+    }
+    if opts.enable_english {
+        if let Some(english) = get_english_word(lower) {
+            return english.to_string();
+        }
+    }
+    french_phonics_to_katakana(lower)
+}
+
+fn resolve_word_default(word: &str, opts: &KatakanaOptions) -> String {
     let lower = word.to_lowercase();
 
     // 1. Check special slang first (gg, ez, w, etc.)
@@ -181,14 +212,7 @@ pub fn resolve_word(word: &str, opts: &KatakanaOptions) -> String {
         }
     }
 
-    // 5. Fallback: mirrors the TS `resolveWord` priority exactly. When
-    // English romanization is enabled, chain Vietnamese then Spanish
-    // preprocessing before phonics. When it is disabled, apply *only one*
-    // preprocessor (Vietnamese takes priority over Spanish) instead of
-    // chaining both, and never touch the word if neither applies -- e.g.
-    // an English word like "hello" must stay untouched when
-    // `enable_english=false`, not partially rewritten by Spanish digraph
-    // preprocessing.
+    // 5. Fallback: mirrors the TS `resolveWord` priority exactly.
     if opts.enable_english {
         let mut preprocessed = word.to_string();
         if opts.enable_vietnamese {
@@ -205,6 +229,20 @@ pub fn resolve_word(word: &str, opts: &KatakanaOptions) -> String {
     } else {
         word.to_string()
     }
+}
+
+fn resolve_word_internal(word: &str, opts: &KatakanaOptions, french_mode: bool) -> String {
+    if french_mode && opts.enable_french {
+        resolve_french_word(&word.to_lowercase(), opts)
+    } else {
+        resolve_word_default(word, opts)
+    }
+}
+
+/// Resolves a single word via slang, Spanish/Vietnamese dictionaries, English word
+/// dictionary, or phonics fallback.
+pub fn resolve_word(word: &str, opts: &KatakanaOptions) -> String {
+    resolve_word_internal(word, opts, false)
 }
 
 /// Main Katakana converter pipeline orchestrator.
@@ -234,6 +272,8 @@ impl KatakanaConverter {
 
         // 1. Normalize smart curly apostrophes to standard ASCII apostrophe
         let mut result = escaped.replace(['\u{2018}', '\u{2019}'], "'");
+
+        let french_mode = opts.enable_french && detect_french_mode(&result);
 
         // 2. Cyrillic (Russian)
         if opts.enable_cyrillic {
@@ -284,7 +324,7 @@ impl KatakanaConverter {
         {
             result = WORD_REGEX
                 .replace_all(&result, |caps: &regex::Captures| {
-                    resolve_word(&caps[0], opts)
+                    resolve_word_internal(&caps[0], opts, french_mode)
                 })
                 .into_owned();
         }

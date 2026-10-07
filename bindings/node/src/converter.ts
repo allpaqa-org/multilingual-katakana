@@ -2,7 +2,13 @@ import { getNativeBackend } from "#native-backend";
 import { convertChinese } from "./languages/chinese";
 import { convertCyrillic } from "./languages/cyrillic";
 import { getEnglishWord, phonicsToKatakana } from "./languages/english";
-import { getFrenchWord, replaceFrenchPhrases } from "./languages/french";
+import {
+  detectFrenchMode,
+  frenchPhonicsToKatakana,
+  getFrenchCueWord,
+  getFrenchWord,
+  replaceFrenchPhrases,
+} from "./languages/french";
 import { convertKorean } from "./languages/korean";
 import { getSlangWord, replaceSlangPhrases } from "./languages/slang";
 import { getSpanishWord, replaceSpanishPhrases, spanishPreprocess } from "./languages/spanish";
@@ -165,6 +171,45 @@ export function restoreExcluded(
 }
 
 export function resolveWord(match: string, opts: KatakanaOptions): string {
+  return resolveWordInternal(match, opts, false);
+}
+
+function resolveFrenchDictionary(lower: string, opts: KatakanaOptions): string | undefined {
+  if (opts.enableSlang ?? true) {
+    const slang = getSlangWord(lower);
+    if (slang !== undefined) return slang;
+  }
+  const french = getFrenchWord(lower);
+  if (french !== undefined) return french;
+  return getFrenchCueWord(lower);
+}
+
+function resolveFrenchForeignWord(lower: string, opts: KatakanaOptions): string | undefined {
+  if (opts.enableVietnamese ?? true) {
+    const vietnamese = getVietnameseWord(lower);
+    if (vietnamese !== undefined) return vietnamese;
+  }
+  if (opts.enableSpanish ?? true) {
+    const spanish = getSpanishWord(lower);
+    if (spanish !== undefined) return spanish;
+  }
+  if (opts.enableEnglish ?? true) {
+    return getEnglishWord(lower);
+  }
+  return undefined;
+}
+
+function resolveFrenchWord(lower: string, opts: KatakanaOptions): string {
+  const dictWord = resolveFrenchDictionary(lower, opts);
+  if (dictWord !== undefined) return dictWord;
+
+  const foreignWord = resolveFrenchForeignWord(lower, opts);
+  if (foreignWord !== undefined) return foreignWord;
+
+  return frenchPhonicsToKatakana(lower);
+}
+
+function resolveWordDefault(match: string, opts: KatakanaOptions): string {
   const enableSpanish = opts.enableSpanish ?? true;
   const enableFrench = opts.enableFrench ?? true;
   const enableVietnamese = opts.enableVietnamese ?? true;
@@ -197,6 +242,13 @@ export function resolveWord(match: string, opts: KatakanaOptions): string {
     return spanishPreprocess(match);
   }
   return match;
+}
+
+function resolveWordInternal(match: string, opts: KatakanaOptions, frenchMode: boolean): string {
+  if (frenchMode && (opts.enableFrench ?? true)) {
+    return resolveFrenchWord(match.toLowerCase(), opts);
+  }
+  return resolveWordDefault(match, opts);
 }
 
 function resolveDictionaryWord(
@@ -278,51 +330,53 @@ export class KatakanaConverter {
     return restoreExcluded(this.convertWithJsPipeline(escaped, opts), tokenMap);
   }
 
+  private convertNonLatinScripts(text: string, opts: Required<KatakanaOptions>): string {
+    let result = text;
+    if (opts.enableCyrillic) {
+      result = convertCyrillic(result);
+    }
+    if (opts.enableKorean) {
+      result = convertKorean(result);
+    }
+    if (opts.enableChinese) {
+      result = convertChinese(result);
+    }
+    if (opts.enableThai) {
+      result = convertThai(result);
+    }
+    return result;
+  }
+
+  private replacePhrases(text: string, opts: Required<KatakanaOptions>): string {
+    let result = text;
+    if (opts.enableFrench) {
+      result = replaceFrenchPhrases(result);
+    }
+    if (opts.enableSpanish) {
+      result = replaceSpanishPhrases(result);
+    }
+    if (opts.enableVietnamese) {
+      result = replaceVietnamesePhrases(result);
+    }
+    if (opts.enableSlang) {
+      result = replaceSlangPhrases(result);
+    }
+    return result;
+  }
+
   private convertWithJsPipeline(escaped: string, opts: Required<KatakanaOptions>): string {
     // 1. Normalize smart curly apostrophes (from mobile / macOS) to standard ASCII apostrophe
     let result = escaped.replace(/[\u2018\u2019]/g, "'");
 
-    // 2. Cyrillic (Russian)
-    if (opts.enableCyrillic) {
-      result = convertCyrillic(result);
-    }
+    const frenchMode = opts.enableFrench && detectFrenchMode(result);
 
-    // 3. Hangul (Korean)
-    if (opts.enableKorean) {
-      result = convertKorean(result);
-    }
+    // 2. Scripts conversion (Cyrillic, Korean, Chinese, Thai)
+    result = this.convertNonLatinScripts(result, opts);
 
-    // 4. Chinese (Kanji Guard + Taiwan phrases + Mandarin Hanzi)
-    if (opts.enableChinese) {
-      result = convertChinese(result);
-    }
+    // 3. Multi-word phrases
+    result = this.replacePhrases(result, opts);
 
-    // 4. Thai phrase dictionary and conservative syllable fallback
-    if (opts.enableThai) {
-      result = convertThai(result);
-    }
-
-    // 5. French dictionary phrases
-    if (opts.enableFrench) {
-      result = replaceFrenchPhrases(result);
-    }
-
-    // 6. Spanish multi-word phrases
-    if (opts.enableSpanish) {
-      result = replaceSpanishPhrases(result);
-    }
-
-    // 5b. Vietnamese multi-word phrases
-    if (opts.enableVietnamese) {
-      result = replaceVietnamesePhrases(result);
-    }
-
-    // 6. Slang multi-word phrases
-    if (opts.enableSlang) {
-      result = replaceSlangPhrases(result);
-    }
-
-    // 7. Word-level conversion (Slang -> Spanish -> English words -> Phonics fallback)
+    // 4. Word-level conversion
     if (
       opts.enableEnglish ||
       opts.enableSlang ||
@@ -332,7 +386,12 @@ export class KatakanaConverter {
     ) {
       result = result.replace(
         /[A-Za-zñáéíóúüäößàâèêëîïôûùçœæãõìòăđĩũơư\u1ea0-\u1ef9\u0102\u0103\u0110\u0111\u0128\u0129\u0168\u0169\u01a0\u01a1\u01af\u01b0ÑÁÉÍÓÚÜÄÖÀÂÈÊËÎÏÔÛÙÇŒÆÃÕÌÒĂĐĨŨƠƯ]+('[A-Za-z]+)?/g,
-        (match) => this.resolveWord(match, opts),
+        (match) => {
+          if (this.resolveWord !== KatakanaConverter.prototype.resolveWord) {
+            return this.resolveWord(match, opts);
+          }
+          return resolveWordInternal(match, opts, frenchMode);
+        },
       );
     }
 

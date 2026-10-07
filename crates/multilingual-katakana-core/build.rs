@@ -18,6 +18,10 @@ struct SpanishDict {
 #[derive(Deserialize)]
 struct FrenchDict {
     phrases: BTreeMap<String, String>,
+    #[serde(default)]
+    cues: Vec<String>,
+    #[serde(default)]
+    cue_readings: BTreeMap<String, String>,
 }
 
 #[derive(Deserialize)]
@@ -141,6 +145,15 @@ fn main() {
     }
     french_phrases.sort_by(|a, b| b.0.len().cmp(&a.0.len()).then_with(|| a.0.cmp(&b.0)));
     french_words.sort_by(|a, b| a.0.cmp(&b.0));
+
+    let mut french_cues = french.cues;
+    french_cues.sort();
+    let mut french_cue_readings: Vec<(String, String)> = french
+        .cue_readings
+        .into_iter()
+        .map(|(k, v)| (k.to_lowercase(), v))
+        .collect();
+    french_cue_readings.sort_by(|a, b| a.0.cmp(&b.0));
 
     // 3. Slang
     let slang_json =
@@ -266,6 +279,24 @@ fn main() {
     // French words
     code.push_str("pub static FRENCH_WORDS: &[(&str, &str)] = &[\n");
     for (k, v) in &french_words {
+        code.push_str(&format!(
+            "    (\"{}\", \"{}\"),\n",
+            escape_str(k),
+            escape_str(v)
+        ));
+    }
+    code.push_str("];\n\n");
+
+    // French cues
+    code.push_str("pub static FRENCH_CUES: &[&str] = &[\n");
+    for w in &french_cues {
+        code.push_str(&format!("    \"{}\",\n", escape_str(w)));
+    }
+    code.push_str("];\n\n");
+
+    // French cue readings
+    code.push_str("pub static FRENCH_CUE_READINGS: &[(&str, &str)] = &[\n");
+    for (k, v) in &french_cue_readings {
         code.push_str(&format!(
             "    (\"{}\", \"{}\"),\n",
             escape_str(k),
