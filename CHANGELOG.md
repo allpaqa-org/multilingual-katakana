@@ -81,9 +81,9 @@ Notable changes to this project are documented here.
   detected without a runtime dependency (#21).
 - CI workflow `build-native-matrix.yml`: builds each platform's addon, packs
   it as an npm tarball and smoke-tests it (real hardware for glibc, darwin
-  and win32; an Alpine container under QEMU for the two musl targets), and
-  publishes to npm only when a GitHub Release is published, never on a plain
-  tag push (#21, #22).
+  and win32; an Alpine container for the two musl targets, with arm64 under
+  QEMU), and publishes to npm only when a GitHub Release is published, never
+  on a plain tag push (#21, #22).
 - `.github/native-platforms.json` and `scripts/generate_native_packages.ts`
   define the platform metadata once and generate both the CI build matrix
   and the 8 platform `package.json` files (#22).

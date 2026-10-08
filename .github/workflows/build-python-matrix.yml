@@ -150,7 +150,7 @@ jobs:
         shell: bash
         # This proves the wheel actually installs (zero runtime deps) and
         # that all 228 shared spec cases pass against the *built artifact*,
-        # not the source tree — see docs/V0.4.0_BINDINGS_SCOPE.md §6.1 (item 4).
+        # not the source tree — see docs/V0.4.0_BINDINGS_SCOPE.md §6.1 (item 4) and §7.3.
         run: |
           set -euo pipefail
           python -m venv smoke-venv
