@@ -313,7 +313,7 @@ git push origin main --tags
      the failure in the release notes per §7.5 of
      `docs/V0.4.0_BINDINGS_SCOPE.md`.
      That assumes a transient failure: read the failed step's log first,
-     and for a configuration failure such as E404 follow §8.3.
+     and for an npm configuration failure such as E404 follow §8.3.
 
 4. **Automatic NuGet publish (`.github/workflows/build-dotnet-matrix.yml`,
    v0.5.0+)**:
@@ -329,15 +329,16 @@ git push origin main --tags
    - Like the PyPI publish, this is independent of the npm publish; it is
      idempotent (`--skip-duplicate`), so re-run only the failed workflow
      and note the failure in the release notes.
-     That assumes a transient failure; §8.3 shows how a configuration
-     failure was told apart from a transient one on npm.
+     That assumes a transient failure: read the failed step's log first.
+     §8.3 describes npm's configuration failures only.
 
 ---
 
 ## 8. Trusted Publishers, Rehearsals and Failed Publishes
 
 Recorded after the v0.5.0 release (#43), whose npm publish failed and was
-recovered by re-running the failed workflows; proposed in #45.
+recovered by re-running the failed workflows (runs 37783234415 and
+37783234423); proposed in #45.
 
 ### 8.1 Validate a new Trusted Publisher by publishing once
 
@@ -375,10 +376,13 @@ Neither path exists in the workflows yet:
 - `build-native-matrix.yml` publishes only on `release: published`; its
   `workflow_dispatch` and tag-push runs build, pack and smoke-test
   without publishing.
-- `publish.yml` runs `npm publish` without `--tag`, so it does not give a
-  prerelease a dist-tag of its own, and its `workflow_dispatch` run
-  publishes the version in `bindings/node/package.json` as a real
-  release.
+- `publish.yml`'s `workflow_dispatch` run publishes the version in
+  `bindings/node/package.json` as a real release.
+- Neither workflow passes `--tag` to `npm publish`. Publishing a GitHub
+  prerelease today therefore runs the real publish steps with no
+  prerelease dist-tag, and the NuGet publish as well when
+  `NUGET_PUBLISH_ENABLED` is set (NuGet versions are immutable, §3.3).
+  It is not a safe rehearsal.
 
 Adding a rehearsal path is a workflow change and is not part of this
 procedure.
@@ -392,11 +396,13 @@ transient failure. Read the failed step's log before re-running:
   in a publish step, after the provenance statement was signed (in
   v0.5.0: all 8 "Publish platform package to npm" jobs of
   `build-native-matrix.yml`): the registry refused the OIDC-authenticated
-  publish. The cause is the package's Trusted Publisher configuration,
-  not a transient failure, and a re-run fails the same way. Fix the
-  configuration on npmjs.com first. In v0.5.0 the configurations could
-  not be edited and were deleted and re-created; the re-run that follows
-  is also their validation (§8.1).
+  publish. In v0.5.0 the cause was the packages' Trusted Publisher
+  configurations, not a transient failure, and a re-run before fixing
+  them is unlikely to succeed. Check the configuration on npmjs.com
+  first; other causes, such as the package's or the scope's permissions,
+  are possible. In v0.5.0 the maintainer found the configurations could
+  not be edited, so they were deleted and re-created; the re-run that
+  follows is also their validation (§8.1).
 - **`… is not yet published to npm`** from `publish.yml`'s "Verify
   platform packages are published" step: the main package is waiting for
   the platform packages. It says nothing about the main package's own
@@ -415,28 +421,34 @@ gh run rerun <publish.yml run id> --failed
 ### 8.4 Verify after publishing: a bounded wait and no cache
 
 A version can take minutes to become visible after `npm publish`
-succeeds — 1 to 5 minutes per package in v0.5.0 — and the package's
-dist-tags can lag behind the version for several minutes more. The npm
-CLI also caches registry responses, so a check that reads its cache can
-report a package that has been published as missing.
+succeeds — 1 to 5 minutes per package, as observed in v0.5.0 — and the
+package's dist-tags can lag behind the version for several minutes more.
+The npm CLI also caches registry responses, so a check that reads its
+cache can report a package that has been published as missing.
 
 So query the exact version, with a fresh cache for every query, and wait
 for a bounded time:
 
 ```bash
 # One package; repeat for the main package and each of the 8 platform
-# packages (.github/native-platforms.json). Waits up to 10 minutes.
-spec="@allpaqa/multilingual-katakana-darwin-arm64@X.Y.Z"
+# packages (.github/native-platforms.json). Waits up to 10 minutes,
+# about twice the longest delay observed in v0.5.0.
+pkg="@allpaqa/multilingual-katakana-darwin-arm64"
+ver="X.Y.Z"
 found=no
 for _ in $(seq 1 20); do
-  if npm view "$spec" version --cache "$(mktemp -d)" >/dev/null 2>&1; then
+  cache="$(mktemp -d)"
+  got="$(npm view "$pkg@$ver" version --cache "$cache" 2>/dev/null || true)"
+  rm -rf "$cache"
+  if [ "$got" = "$ver" ]; then
     found=yes
     break
   fi
   sleep 30
 done
-echo "$spec: $found"
+echo "$pkg@$ver: $found"
 ```
 
-`no` after the bound is a failure to investigate (§8.3), not a reason to
-keep waiting without a limit.
+`no` after the bound — including a network error, which also reads as
+`no` — is a failure to investigate (§8.3), not a reason to keep waiting
+without a limit.
