@@ -312,6 +312,8 @@ git push origin main --tags
      already-published versions are skipped, not re-uploaded) and note
      the failure in the release notes per §7.5 of
      `docs/V0.4.0_BINDINGS_SCOPE.md`.
+     That assumes a transient failure: read the failed step's log first,
+     and for a configuration failure such as E404 follow §8.3.
 
 4. **Automatic NuGet publish (`.github/workflows/build-dotnet-matrix.yml`,
    v0.5.0+)**:
@@ -327,3 +329,114 @@ git push origin main --tags
    - Like the PyPI publish, this is independent of the npm publish; it is
      idempotent (`--skip-duplicate`), so re-run only the failed workflow
      and note the failure in the release notes.
+     That assumes a transient failure; §8.3 shows how a configuration
+     failure was told apart from a transient one on npm.
+
+---
+
+## 8. Trusted Publishers, Rehearsals and Failed Publishes
+
+Recorded after the v0.5.0 release (#43), whose npm publish failed and was
+recovered by re-running the failed workflows; proposed in #45.
+
+### 8.1 Validate a new Trusted Publisher by publishing once
+
+Every npm package this repository publishes — the main package and each
+of the 8 platform packages — has its own Trusted Publisher configuration
+on npmjs.com (`publish.yml` for the main package,
+`build-native-matrix.yml` for the platform packages).
+
+- After creating or re-creating a Trusted Publisher, publish through it
+  once before the deadline npmjs.com shows for it. When the 9
+  configurations were re-created during the v0.5.0 recovery, npmjs.com
+  showed "Trusted publishing config not yet validated. Publish once
+  before Oct 10, 2026, 2:41 PM UTC"; the re-runs in §8.3 published
+  through them before that time.
+- The same applies when a package is added (for example a new platform
+  in `.github/native-platforms.json`): its Trusted Publisher is new and
+  unvalidated until its first publish.
+
+Background: the 8 platform-package configurations were created in #24
+(the OIDC migration) and were not used until v0.5.0, where every platform
+publish failed with E404. That an unused configuration lapses is the
+maintainer's hypothesis and has not been confirmed. What is confirmed is
+that a newly created configuration shows a validation deadline, and that
+no npm publish through OIDC had succeeded before v0.5.0.
+
+### 8.2 Rehearse a publishing-path change before the release that needs it
+
+A change to how packages are published that can only be proven by a real
+publish — the OIDC migration in #24 is one — is rehearsed before the
+release that depends on it: with a prerelease tag, or with a
+`workflow_dispatch` run that publishes on request.
+
+Neither path exists in the workflows yet:
+
+- `build-native-matrix.yml` publishes only on `release: published`; its
+  `workflow_dispatch` and tag-push runs build, pack and smoke-test
+  without publishing.
+- `publish.yml` runs `npm publish` without `--tag`, so it does not give a
+  prerelease a dist-tag of its own, and its `workflow_dispatch` run
+  publishes the version in `bindings/node/package.json` as a real
+  release.
+
+Adding a rehearsal path is a workflow change and is not part of this
+procedure.
+
+### 8.3 When a publish fails: transient or configuration
+
+§7 items 3 and 4 say to re-run only the failed workflow. That fits a
+transient failure. Read the failed step's log before re-running:
+
+- **`npm error 404 Not Found - PUT …/@allpaqa%2fmultilingual-katakana-<triple>`**
+  in a publish step, after the provenance statement was signed (in
+  v0.5.0: all 8 "Publish platform package to npm" jobs of
+  `build-native-matrix.yml`): the registry refused the OIDC-authenticated
+  publish. The cause is the package's Trusted Publisher configuration,
+  not a transient failure, and a re-run fails the same way. Fix the
+  configuration on npmjs.com first. In v0.5.0 the configurations could
+  not be edited and were deleted and re-created; the re-run that follows
+  is also their validation (§8.1).
+- **`… is not yet published to npm`** from `publish.yml`'s "Verify
+  platform packages are published" step: the main package is waiting for
+  the platform packages. It says nothing about the main package's own
+  configuration; in v0.5.0 it was a consequence of the E404s above.
+  Make every platform package visible first (§8.4), then re-run
+  `publish.yml`.
+
+Re-run only the failed jobs, in this order:
+
+```bash
+gh run rerun <build-native-matrix.yml run id> --failed
+# wait until all 8 platform packages are visible (§8.4)
+gh run rerun <publish.yml run id> --failed
+```
+
+### 8.4 Verify after publishing: a bounded wait and no cache
+
+A version can take minutes to become visible after `npm publish`
+succeeds — 1 to 5 minutes per package in v0.5.0 — and the package's
+dist-tags can lag behind the version for several minutes more. The npm
+CLI also caches registry responses, so a check that reads its cache can
+report a package that has been published as missing.
+
+So query the exact version, with a fresh cache for every query, and wait
+for a bounded time:
+
+```bash
+# One package; repeat for the main package and each of the 8 platform
+# packages (.github/native-platforms.json). Waits up to 10 minutes.
+spec="@allpaqa/multilingual-katakana-darwin-arm64@X.Y.Z"
+found=no
+for _ in $(seq 1 20); do
+  if npm view "$spec" version --cache "$(mktemp -d)" >/dev/null 2>&1; then
+    found=yes
+    break
+  fi
+  sleep 30
+done
+echo "$spec: $found"
+```
+
+`no` after the bound is a failure to investigate (§8.3), not a reason to
+keep waiting without a limit.
