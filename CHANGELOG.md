@@ -66,6 +66,53 @@ Notable changes to this project are documented here.
 - Added Package Registries & Organizations documentation section (#42).
 - Milestone order change in this release: .NET published as v0.5.0; Python moved to follow pending PyPI organization approval (#43).
 
+## [0.4.1] - 2026-10-01
+
+### Added
+
+- Native npm distribution for all 8 Tier 1 platforms (#15, #22): platform
+  packages `@allpaqa/multilingual-katakana-<platform>` (`darwin-arm64`,
+  `darwin-x64`, `linux-x64-gnu`, `linux-arm64-gnu`, `linux-x64-musl`,
+  `linux-arm64-musl`, `win32-x64-msvc`, `win32-arm64-msvc`), listed as
+  exact-version `optionalDependencies` of the main package so npm installs
+  only the binary matching the user's platform.
+- The native loader now recognises all 8 Tier 1 platforms, adding
+  `linux-x64-musl`, `linux-arm64-musl` and `win32-arm64-msvc`; musl is
+  detected without a runtime dependency (#21).
+- CI workflow `build-native-matrix.yml`: builds each platform's addon, packs
+  it as an npm tarball and smoke-tests it (real hardware for glibc, darwin
+  and win32; an Alpine container for the two musl targets, with arm64 under
+  QEMU), and publishes to npm only when a GitHub Release is published, never
+  on a plain tag push (#21, #22).
+- `.github/native-platforms.json` and `scripts/generate_native_packages.ts`
+  define the platform metadata once and generate both the CI build matrix
+  and the 8 platform `package.json` files (#22).
+- CI job verifying the native backend on real darwin-x64 hardware
+  (`macos-15-intel`) (#20).
+
+### Changed
+
+- `publish.yml` verifies that all 8 platform packages exist on npm at the
+  pinned version before publishing the main package; republishing an
+  already-published version is skipped instead of failing; a CI job fails
+  the release if the tag, the main package version or any platform package's
+  version disagree (#22).
+
+### Removed
+
+- Unused `bindings/node/src/dicts/chinese.json`.
+
+### Documentation
+
+- Introduced ADRs (`docs/adr/`), translated `docs/RELEASE_PROCESS.md` into
+  English, and linked the open items in `docs/V0.4.0_BINDINGS_SCOPE.md` to
+  their tracking issues (#19).
+- README: described the supported TTS engines, and linked
+  twitch_text_to_speech_bot as a real-world usage example.
+
+The public API (`toKatakana`, `KatakanaConverter`, `KatakanaOptions`) is
+unchanged.
+
 ## [0.4.0] - 2026-09-30
 
 ### Added
