@@ -152,11 +152,12 @@ The 9 RIDs shipped in the package (`win-x64`, `win-x86`, `win-arm64`,
 §3–§3.3 at once (npm, platform packages and their `optionalDependencies`
 pins, all `crates/*/Cargo.toml`, `pyproject.toml` / `__version__` in
 PEP 440 spelling, and `Directory.Build.props`). `ci.yml` runs it on pushes
-to `main` and `feature/**` and on pull requests to `main`; the
-`verify-versions` jobs of the matrix workflows (including
-`.github/workflows/build-dotnet-matrix.yml`) run it with `--tag` on tag
-pushes and releases, before any nupkg is published — because **NuGet versions
-are immutable** (a published version can only be unlisted, never
+to `main` and `feature/**` and on pull requests to `main`; the .NET
+workflow's `verify-versions` job
+(`.github/workflows/build-dotnet-matrix.yml`) runs it with `--tag` on tag
+pushes and releases, before any nupkg is published; the native and Python
+matrix workflows run their own tag-vs-manifest checks — because **NuGet
+versions are immutable** (a published version can only be unlisted, never
 replaced).
 
 **NuGet publishing prerequisites (one-time setup):**

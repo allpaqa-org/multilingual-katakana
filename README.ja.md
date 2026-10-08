@@ -269,7 +269,7 @@ CI/CD 自動化や配布プロトコルについては [リリース手順書 (d
 | レジストリ | 組織 (Organization) | パッケージ | 公開方式 | ステータス |
 |---|---|---|---|---|
 | GitHub | `allpaqa-org` | `allpaqa-org/multilingual-katakana` | — | — |
-| npm | scope/org `@allpaqa` | `@allpaqa/multilingual-katakana` + 8 プラットフォーム別ネイティブパッケージ `@allpaqa/multilingual-katakana-<platform>` | OIDC Trusted Publishing（provenance 付き） | 公開済み (0.4.1) |
+| npm | scope/org `@allpaqa` | `@allpaqa/multilingual-katakana` + 8 プラットフォーム別ネイティブパッケージ `@allpaqa/multilingual-katakana-<platform>` | OIDC Trusted Publishing（provenance 付き） | 公開済み |
 | PyPI | `allpaqa` | `allpaqa-multilingual-katakana` | OIDC Trusted Publishing（ワークフロー `build-python-matrix.yml`, 環境 `pypi`） | 組織承認待ち・未公開（リポジトリ変数 `PYPI_PUBLISH_ENABLED` により公開ジョブを有効化） |
 | NuGet | `allpaqa`（ID プレフィックス `Allpaqa.` 予約済み） | `Allpaqa.MultilingualKatakana` | OIDC Trusted Publishing（ワークフロー `build-dotnet-matrix.yml`, 環境 `nuget`） | v0.5.0 より公開（リポジトリ変数 `NUGET_PUBLISH_ENABLED` により有効化） |
 

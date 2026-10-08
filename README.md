@@ -278,7 +278,7 @@ See [Release Process Documentation](docs/RELEASE_PROCESS.md) for automated CI/CD
 | Registry | Organization | Package(s) | Publishing | Status |
 |---|---|---|---|---|
 | GitHub | `allpaqa-org` | `allpaqa-org/multilingual-katakana` | — | — |
-| npm | scope/org `@allpaqa` | `@allpaqa/multilingual-katakana` + 8 per-platform native packages `@allpaqa/multilingual-katakana-<platform>` | OIDC Trusted Publishing, with provenance | published (0.4.1) |
+| npm | scope/org `@allpaqa` | `@allpaqa/multilingual-katakana` + 8 per-platform native packages `@allpaqa/multilingual-katakana-<platform>` | OIDC Trusted Publishing, with provenance | published |
 | PyPI | `allpaqa` | `allpaqa-multilingual-katakana` | OIDC Trusted Publishing (workflow `build-python-matrix.yml`, environment `pypi`) | organization approval pending; not yet published; publish job is enabled by repository variable `PYPI_PUBLISH_ENABLED` |
 | NuGet | `allpaqa` (ID prefix `Allpaqa.` reserved) | `Allpaqa.MultilingualKatakana` | OIDC Trusted Publishing (workflow `build-dotnet-matrix.yml`, environment `nuget`) | published from v0.5.0; publish job enabled by repository variable `NUGET_PUBLISH_ENABLED` |
 
