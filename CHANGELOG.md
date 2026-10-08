@@ -4,8 +4,30 @@ Notable changes to this project are documented here.
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-10-08
+
+### Added
+
+- C ABI crate `crates/multilingual-katakana-ffi` and .NET binding
+  `Allpaqa.MultilingualKatakana` (`netstandard2.0` / `net8.0`, 9 RIDs, NuGet Trusted
+  Publishing) (#32, #34).
+- Python binding (`crates/multilingual-katakana-python`, `bindings/python`)
+  via PyO3 + maturin with abi3 wheels; CI wheel matrix with PyPI Trusted
+  Publishing, publish gated on repository variable `PYPI_PUBLISH_ENABLED`
+  (**not published in this release**) (#29, #30).
+- `dicts/hanzi_class.json` and its generator `scripts/generate_hanzi_class.ts`.
+  The Simplified-only class and the marker evidence are generated from
+  Unihan 18.0.0 (pinned; Unicode License v3) at
+  generation time only; the Japanese-only class, guard words and
+  Chinese-context slang are curated by hand. No runtime dependency is added.
+- 46 new `spec/cases/kanji_guard.json` cases (209 shared cases in total at that point).
+
 ### Fixed
 
+- French mode detection and fallback readings (#39, #40): implemented French
+  mode detection and phonics fallback rules, tightened French mode detection
+  and aligned dictionary lookup priority, adding new spec cases in
+  `spec/cases/french.json` (reaching 228 shared specification cases in total).
 - Safe Kanji Guard: Japanese Kanji in comments that also contain Simplified
   Chinese are no longer read as Pinyin (#36). Chinese detection now classifies
   each maximal CJK ideograph run instead of the whole comment, using
@@ -33,14 +55,16 @@ Notable changes to this project are documented here.
   `8,886`, `18860`, …); elsewhere it stays `886`.
 - Added `晚上` to the Chinese common words.
 
-### Added
+### Changed
 
-- `dicts/hanzi_class.json` and its generator `scripts/generate_hanzi_class.ts`.
-  The Simplified-only class and the marker evidence are generated from
-  Unihan 18.0.0 (pinned; Unicode License v3) at
-  generation time only; the Japanese-only class, guard words and
-  Chinese-context slang are curated by hand. No runtime dependency is added.
-- 46 new `spec/cases/kanji_guard.json` cases (209 shared cases in total).
+- CI: Migrated npm package publishing to Trusted Publishing via OIDC (#24).
+- CI: Extracted shared Rust/Bun quality-gate composite actions into `.github/actions/` (#25).
+
+### Documentation
+
+- Aligned README conversion examples with actual output (#37).
+- Added Package Registries & Organizations documentation section (#42).
+- Milestone order change in this release: .NET published as v0.5.0; Python moved to follow pending PyPI organization approval (#43).
 
 ## [0.4.0] - 2026-09-30
 

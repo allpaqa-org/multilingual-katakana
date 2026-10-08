@@ -31,8 +31,8 @@ name: .NET NuGet Build Matrix (Tier 1)
 # Publishing is additionally gated on the repository variable
 # NUGET_PUBLISH_ENABLED == 'true'. Set it only once the nuget.org org
 # `allpaqa`, the Trusted Publishing policy, the GitHub environment `nuget`
-# and the NUGET_USER secret are all ready (planned for v0.6.0). Until then
-# releases still build + pack + test everything but never publish to NuGet.
+# and the NUGET_USER secret are all ready. Publishing is enabled from v0.5.0;
+# with the variable unset, releases still build + pack + test everything but never publish to NuGet.
 #
 # Package tests restore with bindings/dotnet/ci/NuGet.ci.config, whose
 # packageSourceMapping pins Allpaqa.* to the local ./nupkg feed so the

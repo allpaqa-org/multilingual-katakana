@@ -1,6 +1,6 @@
 [package]
 name = "multilingual-katakana-ffi"
-version = "0.4.1"
+version = "0.5.0"
 edition = "2021"
 license = "MIT"
 description = "Stable C ABI over multilingual-katakana-core for .NET (P/Invoke) and other FFI consumers (internal, not published to crates.io)"

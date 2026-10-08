@@ -9,7 +9,7 @@
 [![CI](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml/badge.svg)](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](package.json)
-[![Tests: 100%](https://img.shields.io/badge/tests-209%20passed-brightgreen.svg)](spec/cases/)
+[![Tests: 100%](https://img.shields.io/badge/tests-228%20passed-brightgreen.svg)](spec/cases/)
 [![Complexity: CC<=15](https://img.shields.io/badge/complexity-CC%20%3C%3D%2015-success.svg)](scripts/check_complexity.ts)
 
 ---
@@ -170,9 +170,9 @@ const output = converter.convert("hello VOICEVOX fan!");
 本リポジトリは、言語中立なテスト仕様契約（**Spec-Driven Development**）に基づいて設計されています。
 
 - **仕様契約 (`spec/cases/*.json`)**:
-  13 スイート（英語、中国語、韓国語、ロシア語、スペイン語、フランス語、ベトナム語、タイ語、スラング、漢字保護、プロソディ、複合コメント、失敗モード）に及ぶ209件のテストケースが JSON で定義されており、TypeScript 版と Rust コアで同一のテストを 100% パスします。
+  13 スイート（英語、中国語、韓国語、ロシア語、スペイン語、フランス語、ベトナム語、タイ語、スラング、漢字保護、プロソディ、複合コメント、失敗モード）に及ぶ228件のテストケースが JSON で定義されており、TypeScript 版と Rust コアで同一のテストを 100% パスします。
 - **品質基準 (Quality Gates)**:
-  - ✅ **テスト全件パス**: TypeScript・Rust 共通の仕様テスト209件がすべて成功
+  - ✅ **テスト全件パス**: TypeScript・Rust 共通の仕様テスト228件がすべて成功
   - ✅ **静的解析**: Biome による 0 errors, 0 warnings
   - ✅ **コード複雑度**: 全関数が **CC（Cyclomatic Complexity） <= 15**、Cognitive Complexity <= 15 を厳守
 
@@ -198,8 +198,8 @@ bun run validate:spec
 - [x] **v0.2.0**: Core ロジックの Rust 化（`crates/multilingual-katakana-core` による Single Source of Truth 化）
 - [x] **v0.3.0**: フランス語辞書・スペイン語辞書拡充とベトナム語・タイ語対応。**破壊的変更:** Rust の公開構造体 `KatakanaOptions` に言語フラグを追加するため、全フィールドを指定する既存の構造体リテラルには新フィールドの追加が必要です（または `..Default::default()` を使用）。
 - [x] **v0.4.0**: NAPI-RS による Node.js ネイティブバックエンド（`toKatakana` / `KatakanaConverter` の API は無変更のドロップイン高速化。非対応環境では Pure TypeScript へ自動フォールバック、`dependencies` は `{}` を維持）。CI の Linux ランナーおよびローカルの `darwin-arm64` 開発ビルドで動作確認済み。エンドユーザー向けのビルド不要インストールを実現する `optionalDependencies` 経由のプラットフォーム別バイナリ配布は v0.4.x で対応予定。詳細は [v0.4.0 バインディング スコープ定義](https://github.com/allpaqa-org/multilingual-katakana/blob/main/docs/V0.4.0_BINDINGS_SCOPE.md) を参照。
-- [ ] **v0.5.0**: Python バインディング（PyO3 + maturin、PyPI への abi3 wheel 配布）
-- [ ] **v0.6.0**: C# / .NET バインディング（C ABI + RID 別ネイティブアセット同梱の NuGet 配布）
+- [x] **v0.5.0**: C# / .NET バインディング（C ABI + RID 別ネイティブアセット同梱の NuGet 配布）
+- [ ] **今後（PyPI の `allpaqa` 組織承認後）**: Python バインディング（PyO3 + maturin、PyPI への abi3 wheel 配布）。バインディングのコードはリポジトリに同梱済み。
 - [ ] **今後（需要次第）**: ブラウザ・Edge ランタイム向けスタンドアロン WebAssembly パッケージ（`@allpaqa/multilingual-katakana-wasm`）
 
 ---

@@ -1,6 +1,6 @@
 {
   "name": "@allpaqa/multilingual-katakana-linux-arm64-musl",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Native NAPI-RS addon for Linux arm64 (musl) — internal platform binary for @allpaqa/multilingual-katakana. Not intended for direct use.",
   "main": "multilingual-katakana.linux-arm64-musl.node",
   "files": [
