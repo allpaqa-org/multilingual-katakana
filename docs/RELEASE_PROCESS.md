@@ -109,7 +109,7 @@ package is published — because **npm versions are immutable** — a
 mismatch published under the wrong version number can never be corrected
 after the fact.
 
-### 3.2 Python binding (v0.5.0+)
+### 3.2 Python binding (code in the tree from v0.5.0; PyPI publishing in a later release)
 
 Once the Python binding ships (see `docs/V0.4.0_BINDINGS_SCOPE.md` §7.3),
 add the following to the same lockstep `"X.Y.Z"`:
@@ -130,7 +130,7 @@ packages (§3.1), there are no generated per-platform files to keep in
 sync here — abi3 wheels are tagged per-platform automatically by
 maturin/auditwheel, not by hand-edited JSON.
 
-### 3.3 .NET binding (v0.6.0+)
+### 3.3 .NET binding (v0.5.0+)
 
 Once the .NET binding ships (see `docs/V0.4.0_BINDINGS_SCOPE.md` §7.3),
 add the following to the same lockstep `"X.Y.Z"`:
@@ -174,8 +174,8 @@ replaced).
   key at publish time, so no long-lived key is stored anywhere.
 - A repository **variable** `NUGET_PUBLISH_ENABLED` set to `true`. The
   `publish` job additionally requires it. Set it only once all the items
-  above are ready (planned for v0.6.0); until then releases build, pack and
-  test the nupkg but never publish to NuGet.
+  above are ready. Publishing is enabled from v0.5.0; with the variable unset,
+  releases build, pack and test the nupkg but never publish to NuGet.
 
 ---
 
@@ -213,7 +213,7 @@ bun run scripts/check_versions.ts
 # actions/setup-python all work; some system/Xcode-stub pythons on macOS
 # do not — point PYO3_PYTHON at a working interpreter if you hit a
 # "library 'pythonX.Y' not found" linker error).
-# 7. All Cargo tests pass (100% PASS, 209 shared spec cases)
+# 7. All Cargo tests pass (100% PASS, 228 shared spec cases)
 cargo test --all-targets
 
 # 8. Clippy static analysis (0 warnings required)
@@ -222,14 +222,14 @@ cargo clippy --all-targets -- -D warnings
 # 9. Rust code format check (0 diffs required)
 cargo fmt --check
 
-# --- Python binding checks (v0.5.0+) ---
+# --- Python binding checks (code in the tree from v0.5.0; PyPI publishing in a later release) ---
 # `maturin develop` requires an active virtualenv/conda env (or a `.venv`
 # next to pyproject.toml) — plain `pip install maturin` into a system
 # Python is not enough.
 # 10. Build native extension and run the spec + API test suite
 cd bindings/python && maturin develop --release && python -m pytest
 
-# --- .NET binding checks (v0.6.0+; .NET 10 SDK + .NET 8 runtime) ---
+# --- .NET binding checks (v0.5.0+; .NET 10 SDK + .NET 8 runtime) ---
 # 11. Build the C ABI library and stage it into bindings/dotnet/native/<host rid>/
 bun run scripts/stage_dotnet_native.ts
 
@@ -294,7 +294,7 @@ git push origin main --tags
      OIDC token.
 
 3. **Automatic PyPI publish (`.github/workflows/build-python-matrix.yml`,
-   v0.5.0+)**:
+   gated until the organization is approved)**:
    - The same `release: published` event also triggers this workflow's
      `build` job for all 8 Tier 1 platforms, followed by its `publish`
      job.
@@ -313,7 +313,7 @@ git push origin main --tags
      `docs/V0.4.0_BINDINGS_SCOPE.md`.
 
 4. **Automatic NuGet publish (`.github/workflows/build-dotnet-matrix.yml`,
-   v0.6.0+)**:
+   v0.5.0+)**:
    - The same `release: published` event builds the C ABI library for
      all 9 RIDs, packs a single `Allpaqa.MultilingualKatakana` nupkg,
      tests that nupkg on every RID (plus .NET Framework 4.8 x64/x86 and

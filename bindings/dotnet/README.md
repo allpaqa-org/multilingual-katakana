@@ -7,8 +7,8 @@
 
 **English** | [日本語](https://github.com/allpaqa-org/multilingual-katakana/blob/main/bindings/dotnet/README.ja.md)
 
-> **Not yet published to NuGet.** Until the first release, build the package
-> from source (see below).
+> Available on NuGet from v0.5.0 as `Allpaqa.MultilingualKatakana`
+> (`dotnet add package Allpaqa.MultilingualKatakana`).
 
 ---
 

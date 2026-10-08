@@ -7,8 +7,8 @@
 
 [English](README.md) | **日本語**
 
-> **まだNuGetには公開されていません。** 最初のリリースまでは、下記の手順で
-> ソースからパッケージをビルドしてください。
+> v0.5.0 より `Allpaqa.MultilingualKatakana` として NuGet で利用可能です
+> （`dotnet add package Allpaqa.MultilingualKatakana`）。
 
 ---
 

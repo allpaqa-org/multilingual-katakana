@@ -9,7 +9,7 @@
 [![CI](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml/badge.svg)](https://github.com/allpaqa-org/multilingual-katakana/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Zero Dependencies](https://img.shields.io/badge/dependencies-0-success.svg)](package.json)
-[![Tests: 100%](https://img.shields.io/badge/tests-209%20passed-brightgreen.svg)](spec/cases/)
+[![Tests: 100%](https://img.shields.io/badge/tests-228%20passed-brightgreen.svg)](spec/cases/)
 [![Complexity: CC<=15](https://img.shields.io/badge/complexity-CC%20%3C%3D%2015-success.svg)](scripts/check_complexity.ts)
 
 ---
@@ -179,9 +179,9 @@ const output = converter.convert("hello VOICEVOX fan!");
 This repository is built following **Spec-Driven Development** with language-neutral conformance suites:
 
 - **Cross-Language Test Specifications (`spec/cases/*.json`)**:
-  209 canonical test cases across 13 suites, including French, Spanish, Vietnamese, and Thai, are shared by the TypeScript and Rust implementations.
+  228 canonical test cases across 13 suites, including French, Spanish, Vietnamese, and Thai, are shared by the TypeScript and Rust implementations.
 - **Strict Quality Gates**:
-  - ✅ **100% Test Pass Rate**: All 209 shared specification cases pass in TypeScript and Rust.
+  - ✅ **100% Test Pass Rate**: All 228 shared specification cases pass in TypeScript and Rust.
   - ✅ **Biome Linter & Formatter**: 0 errors, 0 warnings.
   - ✅ **Complexity Guard**: Every function enforces **Cyclomatic Complexity <= 15** and Cognitive Complexity <= 15.
 
@@ -207,8 +207,8 @@ bun run validate:spec
 - [x] **v0.2.0**: Core Rust engine (`crates/multilingual-katakana-core`) as Single Source of Truth.
 - [x] **v0.3.0**: Curated French and expanded Spanish dictionaries plus Vietnamese and Thai support. **Breaking change:** Rust `KatakanaOptions` gains public language flags; downstream full struct literals must add them or use `..Default::default()`.
 - [x] **v0.4.0**: Node.js native backend architecture via NAPI-RS as a drop-in accelerator behind the unchanged `toKatakana` / `KatakanaConverter` API, with automatic pure-TypeScript fallback and `dependencies` staying `{}`. Verified for the Linux CI runner and local `darwin-arm64` dev builds; publishing prebuilt platform packages via `optionalDependencies` for zero-build end-user installs follows in v0.4.x. See the [v0.4.0 bindings scope](https://github.com/allpaqa-org/multilingual-katakana/blob/main/docs/V0.4.0_BINDINGS_SCOPE.md).
-- [ ] **v0.5.0**: Python bindings (PyO3 + maturin, abi3 wheels on PyPI).
-- [ ] **v0.6.0**: C# / .NET bindings (C ABI + NuGet with RID-specific native assets).
+- [x] **v0.5.0**: C# / .NET bindings (C ABI + NuGet with RID-specific native assets).
+- [ ] **Later (after the PyPI `allpaqa` organization is approved)**: Python bindings (PyO3 + maturin, abi3 wheels on PyPI). The binding's code already ships in the repository.
 - [ ] **Later (on demand)**: Standalone WebAssembly package (`@allpaqa/multilingual-katakana-wasm`) for browsers and edge runtimes.
 
 ---
