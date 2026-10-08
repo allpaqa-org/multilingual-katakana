@@ -1,6 +1,6 @@
 {
   "name": "@allpaqa/multilingual-katakana",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Zero-dependency multilingual foreign language to Japanese Katakana phonetic converter",
   "type": "module",
   "main": "./dist/index.cjs",
@@ -64,14 +64,14 @@
   },
   "dependencies": {},
   "optionalDependencies": {
-    "@allpaqa/multilingual-katakana-darwin-arm64": "0.4.1",
-    "@allpaqa/multilingual-katakana-darwin-x64": "0.4.1",
-    "@allpaqa/multilingual-katakana-linux-x64-gnu": "0.4.1",
-    "@allpaqa/multilingual-katakana-linux-arm64-gnu": "0.4.1",
-    "@allpaqa/multilingual-katakana-linux-x64-musl": "0.4.1",
-    "@allpaqa/multilingual-katakana-linux-arm64-musl": "0.4.1",
-    "@allpaqa/multilingual-katakana-win32-x64-msvc": "0.4.1",
-    "@allpaqa/multilingual-katakana-win32-arm64-msvc": "0.4.1"
+    "@allpaqa/multilingual-katakana-darwin-arm64": "0.5.0",
+    "@allpaqa/multilingual-katakana-darwin-x64": "0.5.0",
+    "@allpaqa/multilingual-katakana-linux-x64-gnu": "0.5.0",
+    "@allpaqa/multilingual-katakana-linux-arm64-gnu": "0.5.0",
+    "@allpaqa/multilingual-katakana-linux-x64-musl": "0.5.0",
+    "@allpaqa/multilingual-katakana-linux-arm64-musl": "0.5.0",
+    "@allpaqa/multilingual-katakana-win32-x64-msvc": "0.5.0",
+    "@allpaqa/multilingual-katakana-win32-arm64-msvc": "0.5.0"
   },
   "devDependencies": {
     "@biomejs/biome": "^2.5.14",

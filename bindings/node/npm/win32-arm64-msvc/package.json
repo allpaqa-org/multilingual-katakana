@@ -1,6 +1,6 @@
 {
   "name": "@allpaqa/multilingual-katakana-win32-arm64-msvc",
-  "version": "0.4.1",
+  "version": "0.5.0",
   "description": "Native NAPI-RS addon for Windows arm64 — internal platform binary for @allpaqa/multilingual-katakana. Not intended for direct use.",
   "main": "multilingual-katakana.win32-arm64-msvc.node",
   "files": [

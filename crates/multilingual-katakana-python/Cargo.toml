@@ -1,6 +1,6 @@
 [package]
 name = "multilingual-katakana-python"
-version = "0.4.1"
+version = "0.5.0"
 edition = "2021"
 license = "MIT"
 description = "PyO3 native accelerator for allpaqa-multilingual-katakana (internal, not published to crates.io)"

@@ -17,7 +17,7 @@ from . import _native
 
 __all__ = ["KatakanaOptions", "KatakanaConverter", "to_katakana"]
 
-__version__ = "0.4.1"
+__version__ = "0.5.0"
 
 
 @dataclass(frozen=True)
